@@ -40,6 +40,19 @@ export interface BodyFrame {
 
 export function bodyFrameEqj(body: string, timeMs: number): BodyFrame {
   const t = Astronomy.MakeTime(new Date(timeMs))
+  if (body === 'Earth') {
+    // Geographic meridians use apparent sidereal time and the true equator of date.
+    // A generic pole-node/spin basis introduces a longitude offset for Earth.
+    const rotation = Astronomy.Rotation_EQD_EQJ(t)
+    const angle = Astronomy.SiderealTime(t) * 15 * DEG
+    const c = Math.cos(angle)
+    const s = Math.sin(angle)
+    return {
+      x: v(Astronomy.RotateVector(rotation, new Astronomy.Vector(c, s, 0, t))),
+      y: v(Astronomy.RotateVector(rotation, new Astronomy.Vector(-s, c, 0, t))),
+      z: v(Astronomy.RotateVector(rotation, new Astronomy.Vector(0, 0, 1, t))),
+    }
+  }
   const info = Astronomy.RotationAxis(body as Astronomy.Body, t)
   const n = v(info.north)
   const node = norm({ x: -n.y, y: n.x, z: 0 })

@@ -1,6 +1,6 @@
 {
-  "name": "Celestial Clock",
-  "short_name": "Celestial",
+  "name": "Skydial",
+  "short_name": "Skydial",
   "description": "An astronomical clock that tells the time from the real positions of the Sun, Earth, Moon and planets.",
   "start_url": "/?view=ambient",
   "display": "fullscreen",
@@ -8,8 +8,21 @@
   "theme_color": "#04070d",
   "orientation": "any",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

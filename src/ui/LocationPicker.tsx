@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { CITIES, formatLatLon, type Place } from '../astro/places'
+import { locationFailureMessage, type DeviceLocationStatus } from './deviceLocation.js'
+import { CITIES, formatLatLon, type Place } from '../astro/places.js'
 
 const SOURCE_LABEL: Record<Place['source'], string> = {
   device: 'Your location',
@@ -17,7 +18,7 @@ export function LocationPicker({
   place: Place
   onChange: (p: Place) => void
   onUseDevice: () => void
-  geoStatus: 'idle' | 'pending' | 'denied' | 'unavailable' | 'granted'
+  geoStatus: DeviceLocationStatus
 }) {
   const [custom, setCustom] = useState(false)
   const [lat, setLat] = useState(String(place.latitude.toFixed(4)))
@@ -35,8 +36,8 @@ export function LocationPicker({
         </span>
       </div>
       <div className="location-actions">
-        <button className="chip" onClick={onUseDevice} disabled={geoStatus === 'pending'}>
-          {geoStatus === 'pending' ? 'Locating…' : 'Use my location'}
+        <button className="chip" onClick={onUseDevice} disabled={geoStatus === 'pending' || geoStatus === 'retrying'}>
+          {geoStatus === 'pending' ? 'Locating…' : geoStatus === 'retrying' ? 'Trying a fresh location…' : 'Use my location'}
         </button>
         <select
           className="select"
@@ -63,8 +64,7 @@ export function LocationPicker({
           Coordinates
         </button>
       </div>
-      {geoStatus === 'denied' && <p className="location-note">Location permission was declined. Choose a city or enter coordinates.</p>}
-      {geoStatus === 'unavailable' && <p className="location-note">Your device could not provide a location. Choose a city or enter coordinates.</p>}
+      {locationFailureMessage(geoStatus) && <p className="location-note" role="status">{locationFailureMessage(geoStatus)} Choose a city or enter coordinates.</p>}
       {custom && (
         <form
           className="coords"

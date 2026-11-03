@@ -1,0 +1,31 @@
+body { margin: 0; background: #f4f1ea; color: #23302c; font-family: system-ui, sans-serif; }
+.host-header, .host-grid, .host-footer { max-width: 1160px; margin: 0 auto; padding: 32px; }
+.host-header { padding-top: 64px; }
+.host-header > span { font-size: 11px; font-weight: 650; letter-spacing: .22em; color: #557266; }
+.host-header h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(32px, 5vw, 56px); letter-spacing: -.04em; margin: 20px 0; }
+.host-header p, .host-card > p { color: #64736b; line-height: 1.6; }
+.host-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-top: 0; }
+.host-card { min-width: 0; border: 1px solid #d8ded5; border-radius: 16px; overflow: hidden; background: #fffefb; }
+.host-card > h2 { font-size: 16px; font-weight: 550; margin: 24px 24px 12px; }
+.host-card > p, .host-card > output, .host-card > button { margin: 0 24px 20px; }
+.host-card > output { display: block; font-size: 12px; color: #64736b; }
+.host-card > button { padding: 8px 12px; background: transparent; border: 1px solid #b8c7bd; border-radius: 8px; color: #23302c; cursor: pointer; }
+.host-wide { grid-column: 1 / -1; }
+.host-pair { display: grid; grid-template-columns: 1fr 1fr; }
+.host-footer { font-size: 12px; color: #64736b; line-height: 1.7; }
+@media (max-width: 700px) { .host-grid, .host-pair { grid-template-columns: 1fr; } .host-grid, .host-header, .host-footer { padding-left: 16px; padding-right: 16px; } }
+.host-section-header { padding: 24px 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.host-section-header h2 { margin: 0; font-size: 14px; font-weight: 500; }
+.host-section-header output { font-size: 11px; color: #64736b; }
+.host-section-header p { font-size: 12px; color: #64736b; margin: 0; }
+.host-widget-section { background: #e5e9e0; border-radius: 24px; padding: 10px 8px 24px; }
+.host-widget-gallery { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 24px; padding: 8px 12px; }
+.host-small-pair { width: 368px; max-width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.host-small-pair > .widget-medium { grid-column: 1 / -1; }
+.host-note { font-size: 11px; color: #64736b; text-align: center; margin: 12px 16px 0; }
+.host-toggle { display: block; margin: 16px auto 0; padding: 6px 12px; border: 1px solid #b8c7bd; border-radius: 99px; font-size: 11px; background: transparent; color: #435a4e; cursor: pointer; }
+@media (max-width: 420px) { .host-small-pair { gap: 12px; } .host-widget-gallery { padding: 8px 0; } .host-section-header { padding: 20px 16px; } .host-widget-section { padding-left: 6px; padding-right: 6px; } .host-small-pair > *, .host-small-pair .celestial-card { width: 100%; } .host-small-pair > .widget-medium { width: 100%; } }
+.host-widget-section { min-width: 0; }
+@media (max-width: 700px) { .host-grid { grid-template-columns: minmax(0, 1fr); } }
+.adapter-host { padding: 24px; }
+.adapter-host button { margin: 0 12px 16px 0; padding: 8px 12px; }

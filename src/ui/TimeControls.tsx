@@ -1,16 +1,19 @@
-import { MAX_YEAR, MIN_YEAR } from '../astro/bodies'
-import { daysInMonth, daysInYear, monthDayFromDayOfYear, zonedToUtc, type CivilParts } from '../astro/time'
-import { SPEEDS, simClock } from '../sim/clock'
-import { useClockState } from './hooks'
+import { MAX_YEAR, MIN_YEAR } from '../astro/bodies.js'
+import { daysInMonth, daysInYear, monthDayFromDayOfYear, zonedToUtc, type CivilParts } from '../astro/time.js'
+import { SPEEDS } from '../sim/clock.js'
+import { useCelestialClock, useCelestialTime } from '../sim/hooks.js'
+import { useClockState } from './hooks.js'
 
 const pad = (n: number, w = 2) => String(n).padStart(w, '0')
 
 export function TimeControls({ parts, tz, doy }: { parts: CivilParts; tz: string; doy: number }) {
+  const simClock = useCelestialClock()
+  const { selectDate, controlled, readOnly } = useCelestialTime()
   const state = useClockState()
 
   const setCivil = (y: number, m: number, d: number) => {
     const day = Math.min(d, daysInMonth(y, m))
-    simClock.setTime(zonedToUtc(tz, y, m, day, parts.hour, parts.minute, parts.second))
+    selectDate(zonedToUtc(tz, y, m, day, parts.hour, parts.minute, parts.second))
   }
 
   const stepYear = (delta: number) => {
@@ -22,7 +25,7 @@ export function TimeControls({ parts, tz, doy }: { parts: CivilParts; tz: string
 
   return (
     <div className="time-controls">
-      <div className="control-row">
+      <div className="control-row" hidden={controlled}>
         <button className={state.live ? 'chip active' : 'chip'} onClick={() => simClock.goLive()} aria-pressed={state.live}>
           <span className={state.live ? 'live-dot on' : 'live-dot'} /> Live
         </button>
@@ -50,7 +53,7 @@ export function TimeControls({ parts, tz, doy }: { parts: CivilParts; tz: string
 
       <div className="control-row">
         <div className="year-stepper">
-          <button className="chip icon" onClick={() => stepYear(-1)} aria-label="Previous year">
+          <button className="chip icon" onClick={() => stepYear(-1)} aria-label="Previous year" disabled={readOnly}>
             −
           </button>
           <input
@@ -60,12 +63,13 @@ export function TimeControls({ parts, tz, doy }: { parts: CivilParts; tz: string
             max={MAX_YEAR}
             value={parts.year}
             aria-label="Year"
+            disabled={readOnly}
             onChange={(e) => {
               const y = Number(e.target.value)
               if (Number.isFinite(y) && y >= MIN_YEAR && y <= MAX_YEAR) setCivil(y, parts.month, parts.day)
             }}
           />
-          <button className="chip icon" onClick={() => stepYear(1)} aria-label="Next year">
+          <button className="chip icon" onClick={() => stepYear(1)} aria-label="Next year" disabled={readOnly}>
             +
           </button>
         </div>
@@ -76,6 +80,7 @@ export function TimeControls({ parts, tz, doy }: { parts: CivilParts; tz: string
           min={`${MIN_YEAR}-01-01`}
           max={`${MAX_YEAR}-12-31`}
           aria-label="Date"
+          disabled={readOnly}
           onChange={(e) => {
             const [y, m, d] = e.target.value.split('-').map(Number)
             if (y && m && d) setCivil(y, m, d)
@@ -87,6 +92,7 @@ export function TimeControls({ parts, tz, doy }: { parts: CivilParts; tz: string
         <span className="sr-only">Day of year</span>
         <input
           type="range"
+          disabled={readOnly}
           min={1}
           max={daysInYear(parts.year)}
           step={1}

@@ -1,15 +1,18 @@
-import { useMemo, useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { SceneCanvas } from './SceneCanvas.js'
+import { ClockFrames } from './ClockFrames.js'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { bodyFrameEqj, observerOf, type Location } from '../astro/observer'
+import { bodyFrameEqj, observerOf, type Location } from '../astro/observer.js'
 import * as Astronomy from 'astronomy-engine'
-import { simClock } from '../sim/clock'
-import { applyAxesInWorld } from './planetFactory'
-import { usePanelTextures } from './panelTextures'
+import { useCelestialClock } from '../sim/hooks.js'
+import { applyAxesInWorld } from './planetFactory.js'
+import { usePanelTextures } from './panelTextures.js'
+import { earthCameraVector, type EarthCameraView } from './earthCamera.js'
 
 /**
  * Observer-centred Earth. World frame = J2000 equatorial (EQJ).
- * The globe carries the IAU Earth orientation; the camera sits above the
+ * The globe follows the true equator and Greenwich apparent sidereal time; the camera sits above the
  * observer, so the observer stays centred while the terminator, driven only
  * by the Sun's computed direction, sweeps across the globe.
  */
@@ -19,30 +22,35 @@ export const EARTH_FOV = 30
 
 const KEYS = ['earthDay', 'earthNight', 'earthRough'] as const
 
-export function EarthGlobe({ location }: { location: Location }) {
+export function EarthGlobe({ location, view = 'observer', cameraDistance = EARTH_CAMERA_DISTANCE }: { location: Location; view?: EarthCameraView; cameraDistance?: number }) {
   const tex = usePanelTextures(KEYS)
   return (
-    <Canvas
+    <SceneCanvas
+      frameloop="demand"
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
-      camera={{ fov: EARTH_FOV, near: 0.1, far: 50, position: [0, 0, EARTH_CAMERA_DISTANCE] }}
+      camera={{ fov: EARTH_FOV, near: 0.1, far: 50, position: [0, 0, cameraDistance] }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1.0
       }}
     >
-      {tex.ready && <EarthScene location={location} textures={tex.textures} />}
-    </Canvas>
+      <ClockFrames />
+      {tex.ready && <EarthScene key={`${view}:${location.latitude}:${location.longitude}:${location.elevationM ?? 0}`} location={location} textures={tex.textures} view={view} cameraDistance={cameraDistance} />}
+    </SceneCanvas>
   )
 }
 
-function EarthScene({ location, textures }: { location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>> }) {
+function EarthScene({ location, textures, view, cameraDistance }: { view: EarthCameraView; location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>>; cameraDistance: number }) {
+  const simClock = useCelestialClock()
+  const [viewEpoch] = useState(() => simClock.now())
   const earth = useRef<THREE.Group>(null)
   const light = useRef<THREE.DirectionalLight>(null)
-  const { camera } = useThree()
+  const { camera, invalidate } = useThree()
   const sunView = useMemo(() => ({ value: new THREE.Vector3(1, 0, 0) }), [])
   const sunWorld = useMemo(() => ({ value: new THREE.Vector3(1, 0, 0) }), [])
   const observer = useMemo(() => observerOf(location), [location])
+  useEffect(() => { invalidate() }, [location.latitude, location.longitude, view, invalidate])
 
   const material = useMemo(() => {
     const m = new THREE.MeshStandardMaterial({
@@ -104,6 +112,11 @@ function EarthScene({ location, textures }: { location: Location; textures: Part
     [sunWorld],
   )
 
+  useEffect(() => () => {
+    material.dispose()
+    atmosphere.dispose()
+  }, [material, atmosphere])
+
   const tmp = useMemo(() => ({ up: new THREE.Vector3(), obs: new THREE.Vector3(), n: new THREE.Vector3() }), [])
 
   useFrame(() => {
@@ -111,13 +124,13 @@ function EarthScene({ location, textures }: { location: Location; textures: Part
     const time = Astronomy.MakeTime(new Date(t))
     const frame = bodyFrameEqj('Earth', t)
     if (earth.current) applyAxesInWorld(earth.current, frame)
-    const o = Astronomy.ObserverVector(time, observer, false)
+    const o = earthCameraVector(observer, t, view, viewEpoch)
     tmp.obs.set(o.x, o.y, o.z).normalize()
     const s = Astronomy.GeoVector(Astronomy.Body.Sun, time, true)
     sunWorld.value.set(s.x, s.y, s.z).normalize()
     light.current?.position.copy(sunWorld.value).multiplyScalar(20)
     // Camera above the observer, Earth's north pole up
-    camera.position.copy(tmp.obs).multiplyScalar(EARTH_CAMERA_DISTANCE)
+    camera.position.copy(tmp.obs).multiplyScalar(cameraDistance)
     tmp.n.set(frame.z.x, frame.z.y, frame.z.z)
     tmp.up.copy(tmp.n).addScaledVector(tmp.obs, -tmp.n.dot(tmp.obs))
     if (tmp.up.lengthSq() < 1e-8) tmp.up.set(0, 1, 0).addScaledVector(tmp.obs, -tmp.obs.y)

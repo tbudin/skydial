@@ -6,33 +6,22 @@ import * as THREE from 'three'
  */
 
 export const TEXTURE_URLS = {
-  sun: '/textures/sun_1k.jpg',
-  mercury: '/textures/mercury_1k.jpg',
-  venus: '/textures/venus_1k.jpg',
-  earth: '/textures/earth_1k.jpg',
-  mars: '/textures/mars_1k.jpg',
-  jupiter: '/textures/jupiter_1k.jpg',
-  saturn: '/textures/saturn_1k.jpg',
-  uranus: '/textures/uranus_1k.jpg',
-  neptune: '/textures/neptune_1k.jpg',
-  saturnRing: '/textures/saturn_ring.png',
+  sun: new URL('../../public/textures/sun_1k.jpg?no-inline', import.meta.url).href,
+  mercury: new URL('../../public/textures/mercury_1k.jpg?no-inline', import.meta.url).href,
+  venus: new URL('../../public/textures/venus_1k.jpg?no-inline', import.meta.url).href,
+  earth: new URL('../../public/textures/earth_1k.jpg?no-inline', import.meta.url).href,
+  mars: new URL('../../public/textures/mars_1k.jpg?no-inline', import.meta.url).href,
+  jupiter: new URL('../../public/textures/jupiter_1k.jpg?no-inline', import.meta.url).href,
+  saturn: new URL('../../public/textures/saturn_1k.jpg?no-inline', import.meta.url).href,
+  uranus: new URL('../../public/textures/uranus_1k.jpg?no-inline', import.meta.url).href,
+  neptune: new URL('../../public/textures/neptune_1k.jpg?no-inline', import.meta.url).href,
+  saturnRing: new URL('../../public/textures/saturn_ring.png?no-inline', import.meta.url).href,
 } as const
 
 export type TextureKey = keyof typeof TEXTURE_URLS
 
-/** Fallback colours, used only if a texture fails to load. */
-export const FALLBACK_COLOURS: Record<TextureKey, string> = {
-  sun: '#f6c35b',
-  mercury: '#8c8680',
-  venus: '#d8c49a',
-  earth: '#3f6fa8',
-  mars: '#b5603a',
-  jupiter: '#c9a983',
-  saturn: '#d7c08f',
-  uranus: '#a6d6dc',
-  neptune: '#4d6fc4',
-  saturnRing: '#bfae8a',
-}
+import { FALLBACK_COLOURS } from './fallbackColours.js'
+export { FALLBACK_COLOURS }
 
 export type TextureSet = Partial<Record<TextureKey, THREE.Texture>>
 

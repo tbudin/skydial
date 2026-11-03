@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import * as Astronomy from 'astronomy-engine'
-import { earthView, moonView, sunTimes, type Location } from './observer'
-import { zonedToUtc } from './time'
+import { earthView, moonView, sunTimes, type Location } from './observer.js'
+import { zonedToUtc } from './time.js'
 
 const CITIES: Record<string, Location & { tz: string }> = {
   Singapore: { latitude: 1.2903, longitude: 103.852, tz: 'Asia/Singapore' },

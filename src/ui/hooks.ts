@@ -1,22 +1,28 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { simClock } from '../sim/clock'
+import { useCelestialClock } from '../sim/hooks.js'
 
 export function useClockState() {
-  return useSyncExternalStore(simClock.subscribe, simClock.getState)
+  const simClock = useCelestialClock()
+  return useSyncExternalStore(simClock.subscribe, simClock.getState, simClock.getState)
 }
 
 /** Simulated time, refreshed for the UI at a modest rate (3D runs per frame). */
 export function useSimNow(intervalMs = 100) {
-  const [now, setNow] = useState(() => simClock.now())
+  const simClock = useCelestialClock()
+  const [sample, setSample] = useState(() => ({ clock: simClock, now: simClock.now() }))
+  const now = sample.clock === simClock ? sample.now : simClock.now()
   useEffect(() => {
     let id = 0
-    const tick = () => setNow(simClock.now())
+    const tick = () => {
+      const next = simClock.now()
+      setSample((previous) => previous.clock === simClock && previous.now === next ? previous : { clock: simClock, now: next })
+    }
     id = window.setInterval(tick, intervalMs)
     const unsub = simClock.subscribe(tick)
     return () => {
       window.clearInterval(id)
       unsub()
     }
-  }, [intervalMs])
+  }, [intervalMs, simClock])
   return now
 }

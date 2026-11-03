@@ -1,0 +1,303 @@
+.celestial-clock.celestial-control { --bg: #0b111b; --text: #e9eef6; --muted: #98a7bb; --line: #b5c7e530; --hour: #a9c8ff; --picker-accent: var(--hour); --picker-radius: 8px; --picker-field-height: 32px; --picker-surface: #ffffff05; color: var(--text); background: transparent; font-size: 13px; }
+.celestial-clock.celestial-control[data-picker-theme="light"] { --bg: #fff; --text: #243044; --muted: #66748a; --line: #cbd3df; --hour: #315d9a; --green: #287652; --gold: #946b20; --picker-surface: #24304405; color-scheme: light; }
+.celestial-control[data-picker-size="medium"] { --picker-field-height: 40px; }
+.celestial-control[data-picker-size="large"] { --picker-field-height: 44px; }
+@media (prefers-color-scheme: light) { .celestial-clock.celestial-control[data-picker-theme="auto"] { --bg: #fff; --text: #243044; --muted: #66748a; --line: #cbd3df; --hour: #315d9a; --green: #287652; --gold: #946b20; --picker-surface: #24304405; color-scheme: light; } }
+.celestial-control .celestial-control-group { display: grid; grid-template-columns: repeat(var(--picker-columns, 3), minmax(0, 1fr)); gap: 12px 8px; width: max-content; max-width: 100%; }
+.celestial-control .celestial-control-group > div { min-width: 0; width: 64px; }
+.celestial-control .celestial-control-group > [data-unit="year"] { width: 80px; }
+.celestial-control .picker-wheel-column { min-width: 0; max-width: none; }
+.celestial-control .picker-wheel { min-width: 0; background: color-mix(in srgb, var(--text) 3%, var(--bg)); border-radius: var(--picker-radius); }
+.celestial-control .picker-wheel-option { font-size: 16px; padding: 0 6px; }
+.celestial-control .picker-wheel-option[aria-disabled="true"] { opacity: .35; cursor: default; }
+.celestial-control .picker-wheel-option[aria-selected="true"] { color: var(--picker-accent); }
+.celestial-control .picker-wheel-selection { border-color: color-mix(in srgb, var(--picker-accent) 45%, transparent); background: color-mix(in srgb, var(--picker-accent) 8%, transparent); border-radius: var(--picker-radius); }
+.celestial-control .picker-wheel-label { font-size: 9px; letter-spacing: .06em; margin: 0 0 6px; }
+.celestial-control .picker-step-unit { text-align: center; }
+.celestial-control .picker-step-unit input { width: 100%; height: var(--picker-field-height); min-height: 32px; padding: 3px; border: 1px solid var(--line); border-radius: var(--picker-radius); background: var(--bg); color: var(--text); font: inherit; font-size: 17px; text-align: center; font-variant-numeric: tabular-nums; }
+.celestial-control .picker-step-buttons { display: flex; gap: 4px; margin-top: 4px; }
+.celestial-control .picker-step-buttons button { display: inline-flex; align-items: center; justify-content: center; flex: 1; min-width: 28px; min-height: var(--picker-field-height); padding: 0; border: 1px solid var(--line); border-radius: var(--picker-radius); background: var(--bg); color: var(--picker-accent); font: inherit; font-size: 18px; line-height: 1; cursor: pointer; transition: background-color .12s, border-color .12s; }
+.celestial-control .picker-step-buttons button > svg { display: block; width: 1em; height: 1em; flex: 0 0 auto; }
+@media (hover: hover) {
+  .celestial-control .picker-step-buttons button:hover:not(:disabled) { border-color: var(--picker-accent); background: color-mix(in srgb, var(--picker-accent) 9%, var(--bg)); }
+}
+.celestial-control .picker-step-buttons button:active:not(:disabled) { border-color: var(--picker-accent); background: color-mix(in srgb, var(--picker-accent) 18%, var(--bg)); }
+.celestial-control button:disabled, .celestial-control input:disabled { opacity: .4; cursor: default; }
+.celestial-control .picker-form-label { display: block; margin-bottom: 7px; font-size: 12px; color: var(--text); }
+.celestial-control.celestial-form-picker { position: relative; width: 100%; min-width: 0; }
+.celestial-control .picker-form-trigger { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-width: 0; width: 100%; height: var(--picker-field-height); min-height: var(--picker-field-height); line-height: 1.2; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--picker-radius); background: var(--bg); color: var(--text); font: inherit; text-align: left; font-variant-numeric: tabular-nums; cursor: pointer; }
+.celestial-control .picker-form-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.celestial-control .picker-form-trigger[aria-invalid="true"] { border-color: #d17b72; }
+.celestial-control .picker-form-placeholder { color: var(--muted); }
+.celestial-control .picker-form-value { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; }
+.celestial-control .picker-form-panel { position: fixed; inset: auto; margin: 0; width: max-content; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; padding: 16px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: calc(var(--picker-radius) + 4px); box-shadow: 0 10px 32px #02050b30; }
+.celestial-control .picker-form-panel::backdrop { background: transparent; }
+.celestial-control .picker-form-scene-panel { width: min(680px, calc(100vw - 16px)); }
+.celestial-control .picker-form-scene-panel:popover-open { display: flex; flex-direction: column; }
+.celestial-control .picker-form-scene-panel > .picker-form-panel-title, .celestial-control .picker-form-scene-panel > .picker-form-actions { flex-shrink: 0; }
+.celestial-control .picker-composed-content { display: grid; grid-template-columns: minmax(0, 1fr) max-content; gap: 20px; align-items: start; min-height: 0; overflow: auto; padding-bottom: 3px; }
+.celestial-control .picker-visual-content, .celestial-control .picker-exact-content { min-width: 0; align-self: safe center; }
+.celestial-control .picker-composed-content > .picker-exact-content { padding: 16px 0 16px 20px; border-left: 1px solid var(--line); }
+.celestial-control .picker-form-scene-panel:has([data-scene="earth"]) { width: min(540px, calc(100vw - 16px)); }
+.celestial-control .picker-form-scene-panel:has([data-scene="moon"]), .celestial-control .picker-form-scene-panel:has([data-scene="planet"]) { width: min(540px, calc(100vw - 16px)); }
+.celestial-control .picker-form-inline:has(.picker-composed-content) { display: block; }
+.celestial-control .celestial-input-scene { background: transparent; color: var(--text); }
+.celestial-control .celestial-input-reading { padding: 2px 12px 12px; }
+.celestial-control .celestial-input-reading > span { display: block; margin-bottom: 6px; color: var(--muted); font-size: 9px; letter-spacing: .12em; }
+.celestial-control .celestial-input-reading output { display: block; color: var(--text); font-size: 22px; letter-spacing: -.04em; line-height: 1.3; }
+.celestial-control .celestial-input-scene .orrery-control { padding: 0; }
+.celestial-control .celestial-input-scene .orbit-control-heading { display: none; }
+.celestial-control .celestial-input-scene .planet-selector { margin: 0 0 4px; }
+.celestial-control .celestial-input-scene .planet-btn { min-height: 48px; background: transparent; border-color: transparent; color: var(--muted); }
+.celestial-control .celestial-input-scene .planet-btn.selected { border-color: var(--line); background: var(--picker-surface); }
+.celestial-control .celestial-input-scene .planet-name { color: inherit; }
+.celestial-control .celestial-input-scene .planet-btn.selected .planet-name { color: var(--gold); }
+.celestial-control .celestial-input-scene .planet-thumb { width: 30px; height: 24px; }
+.celestial-control .celestial-input-scene .orrery-control-stage { max-width: 320px; margin-inline: auto; }
+.celestial-control .celestial-input-scene .orbit-range-navigation { gap: 8px; font-size: 10px; }
+.celestial-control .celestial-input-scene .chip { min-height: 30px; background: transparent; border: 1px solid var(--line); color: var(--gold); }
+.celestial-control .celestial-input-scene .scale-label.year { color: var(--gold); }
+.celestial-control .celestial-input-scene .scale-label.date-pill, .celestial-control .celestial-input-scene .scale-label.year-pill { color: var(--bg); }
+.celestial-control .celestial-input-scene .picker-instruction { font-size: 10px; margin: 8px auto 0; line-height: 1.6; padding: 0; }
+.celestial-control .celestial-input-scene .earth-time-control { padding: 6px; }
+.celestial-control .celestial-input-scene .earth-turner { max-width: var(--picker-earth-size, clamp(100px, calc(var(--picker-available-height, 720px) - 160px), 260px)); }
+.celestial-control .celestial-input-scene .earth-precision { margin: 0 auto 10px; }
+.earth-precision-short { display: none; }
+.earth-time-editor-unit { display: flex; align-items: flex-start; gap: 6px; }
+.celestial-control .celestial-input-scene .earth-precision button { min-height: 32px; padding-inline: 10px; }
+.celestial-control .celestial-input-scene .earth-precision button[aria-pressed="true"] { color: var(--picker-accent); background: color-mix(in srgb, var(--picker-accent) 10%, transparent); }
+.celestial-control .celestial-input-earth-companion { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.celestial-control .celestial-input-earth-companion .earth-time-control { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 0; }
+.celestial-control .celestial-input-earth-companion .earth-turner { flex: 0 1 auto; width: var(--picker-earth-size, 200px); max-width: 100%; margin: 0; }
+.celestial-control .celestial-input-earth-companion .earth-precision { flex: 0 0 auto; margin: 0; }
+.celestial-control .celestial-input-earth-companion .earth-drag-hint { display: none; }
+.celestial-control .celestial-input-earth-companion .picker-instruction { grid-column: 1; font-size: 9px; max-width: 180px; }
+.celestial-control .celestial-input-body { position: relative; height: 230px; width: 100%; border-radius: var(--picker-radius); touch-action: pan-y; }
+.celestial-control .celestial-input-body[role="slider"] { cursor: grab; }
+.celestial-control .celestial-input-body[role="slider"]:active { cursor: grabbing; }
+.celestial-control .celestial-input-body canvas { pointer-events: none; }
+.celestial-control .celestial-input-body > span { display: block; margin-top: 8px; font-size: 10px; text-align: center; color: var(--muted); }
+@media (max-width: 560px) {
+  .celestial-control .picker-composed-content { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .celestial-control .picker-composed-content > .picker-exact-content { padding: 14px 0 0; border-left: 0; border-top: 1px solid var(--line); display: flex; justify-content: center; }
+  .celestial-control .celestial-input-scene .orrery-control-stage { max-width: 220px; }
+  .celestial-control .celestial-input-scene .orrery-control > .picker-instruction { display: none; }
+  .celestial-control .celestial-input-scene .planet-selector { max-width: 300px; margin-inline: auto; }
+  .celestial-control .celestial-input-reading { text-align: center; }
+  .celestial-control .celestial-input-reading output { font-size: 19px; }
+}
+.celestial-control .picker-form-panel-title { margin: 0 0 16px; color: var(--text); font: inherit; font-size: 12px; font-weight: 500; }
+.celestial-control .picker-form-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-top: 1px solid var(--line); margin-top: 14px; padding-top: 10px; }
+.celestial-control .picker-form-actions > span { font-size: 9px; color: var(--muted); }
+.celestial-control .picker-form-actions > div { display: flex; gap: 4px; }
+.celestial-control .picker-form-actions button { min-height: 30px; padding: 4px 7px; border: 0; border-radius: var(--picker-radius); background: transparent; color: var(--muted); font: inherit; font-size: 11px; cursor: pointer; }
+.celestial-control .picker-form-actions .picker-form-done { color: var(--picker-accent); background: color-mix(in srgb, var(--picker-accent) 10%, transparent); }
+.celestial-control .picker-form-inline { display: inline-block; padding: 14px; max-width: 100%; border: 1px solid var(--line); border-radius: var(--picker-radius); background: var(--bg); }
+.celestial-control .picker-form-description { color: var(--muted); font-size: 10px; line-height: 1.6; margin: 6px 0 0; }
+.celestial-control .picker-form-error { color: #d17b72; font-size: 11px; line-height: 1.6; margin: 6px 0 0; }
+.celestial-clock.celestial-control.celestial-control-surface { display: inline-block; max-width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: var(--picker-radius); background: var(--bg); }
+.celestial-control .picker-form-trigger { line-height: 1.2; }
+/* The form-only stylesheet is self-contained and inherits the host's font. */
+.celestial-clock.celestial-control { box-sizing: border-box; font-family: var(--picker-font, inherit); color-scheme: dark; }
+.celestial-control * { box-sizing: border-box; }
+.celestial-control .picker-wheel-column { text-align: center; }
+.celestial-control .picker-wheel-frame { position: relative; }
+.celestial-control .picker-wheel-label { display: block; color: var(--muted); text-transform: uppercase; }
+.celestial-control .picker-wheel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-snap-type: y mandatory; touch-action: pan-y; }
+.celestial-control .picker-wheel::-webkit-scrollbar { display: none; }
+.celestial-control .picker-wheel[aria-disabled="true"] { overflow: hidden; opacity: .5; }
+.celestial-control .picker-wheel-option { display: flex; align-items: center; justify-content: center; scroll-snap-align: center; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.celestial-control .picker-wheel-selection { position: absolute; left: 0; right: 0; pointer-events: none; }
+.celestial-control :focus-visible { outline: 2px solid var(--picker-accent); outline-offset: 2px; }
+.celestial-control[data-picker-theme="light"] { color-scheme: light; }
+@media (prefers-color-scheme: light) { .celestial-control[data-picker-theme="auto"] { color-scheme: light; } }
+.celestial-control .celestial-control-group > div { max-width: 100%; }
+/* Prefer the input's edge; viewport fitting keeps default popup content visible. */
+.celestial-control .picker-form-indicator { flex: 0 0 auto; display: block; align-self: center; transition: transform .15s; }
+.celestial-control .picker-form-trigger[aria-expanded="true"] .picker-form-indicator { transform: rotate(180deg); }
+.celestial-control .picker-form-panel { max-height: min(var(--picker-panel-max-height, 720px), var(--picker-available-height, calc(100dvh - 16px))); overflow: hidden; }
+.celestial-control .picker-form-panel:popover-open { display: flex; flex-direction: column; }
+.celestial-control .picker-controls-content { min-height: 0; overflow: auto; }
+.celestial-control .picker-form-actions { flex-shrink: 0; }
+.celestial-control .picker-form-scene-panel { width: var(--picker-panel-width, min(680px, calc(100vw - 16px))); }
+.celestial-control .celestial-input-scene .orrery-control-stage { width: 100%; max-width: var(--picker-orbit-size, clamp(110px, calc(var(--picker-available-height, 720px) - 140px), 340px)); }
+.celestial-control .celestial-control-group > div { width: var(--picker-unit-width, 64px); }
+.celestial-control .celestial-control-group > [data-unit="year"] { width: var(--picker-year-width, 80px); }
+@media (max-width: 560px) {
+  .celestial-control .celestial-input-scene .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(110px, calc(var(--picker-available-height, 720px) - 340px), 240px)); }
+  .celestial-control .celestial-input-scene .earth-turner { max-width: var(--picker-earth-size, clamp(100px, calc(var(--picker-available-height, 720px) - 380px), 260px)); }
+}
+/* Accessibility and reflow defaults; consumer styles remain the final override. */
+.picker-sr-only { position: absolute; top: 0; left: 0; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.celestial-clock.celestial-control { --line: #71839b; --picker-error: #efaaa1; }
+.celestial-clock.celestial-control[data-picker-theme="light"] { --line: #78879a; --picker-error: #a63226; }
+.celestial-control .picker-form-error { color: var(--picker-error); }
+.celestial-clock .label-layer button.scale-label { min-width: 24px; min-height: 24px; padding: 3px; display: flex; align-items: center; justify-content: center; }
+.celestial-control .picker-form-actions > span { font-size: 10px; overflow-wrap: anywhere; }
+.celestial-control .picker-composed-content, .celestial-control .picker-controls-content { scrollbar-width: thin; scrollbar-color: var(--line) transparent; scroll-padding: 4px; }
+.celestial-control .picker-form-panel [data-picker-part="controls"] { scroll-margin-block: 4px; }
+.celestial-control .picker-wheel:focus-visible { outline-offset: -3px; }
+@media (prefers-color-scheme: light) { .celestial-clock.celestial-control[data-picker-theme="auto"] { --line: #78879a; --picker-error: #a63226; } }
+@media (pointer: coarse) {
+  .celestial-control .picker-step-buttons button, .celestial-control .picker-form-actions button, .celestial-control .earth-precision button, .celestial-control .orbit-range-navigation button { min-height: 44px; min-width: 36px; }
+  .celestial-control .celestial-control-group > div { width: var(--picker-unit-width, 80px); }
+}
+@media (max-height: 600px) and (min-width: 561px) {
+  .celestial-control .celestial-input-scene .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(100px, calc(var(--picker-available-height, 720px) - 130px), 240px)); }
+  .celestial-control .celestial-input-scene .earth-turner { max-width: var(--picker-earth-size, clamp(90px, calc(var(--picker-available-height, 720px) - 160px), 260px)); }
+  .celestial-control .celestial-input-earth-companion .earth-time-control { flex-direction: row; }
+  .celestial-control .celestial-input-earth-companion .earth-turner { width: var(--picker-earth-size, 140px); }
+}
+@media (prefers-reduced-motion: reduce) { .celestial-control *, .celestial-control *::before, .celestial-control *::after { transition: none !important; scroll-behavior: auto !important; animation: none !important; } }
+@media (forced-colors: active) {
+  .celestial-control .picker-form-trigger, .celestial-control .picker-form-panel, .celestial-control .picker-wheel, .celestial-control .picker-step-buttons button { border: 1px solid ButtonText; }
+  .celestial-control .picker-wheel-option[aria-selected="true"] { color: HighlightText; background: Highlight; forced-color-adjust: none; }
+  .celestial-control .picker-wheel-selection { border: 2px solid Highlight; background: transparent; }
+  .celestial-control :focus-visible { outline: 3px solid Highlight; }
+  .celestial-control .scale-label.date-pill, .celestial-control .scale-label.year-pill { color: CanvasText !important; background: Canvas !important; outline: 1px solid CanvasText; }
+}
+/* LCD: two configurable inks, an inverse display and vector seven-segment digits. */
+.celestial-clock.celestial-control[data-picker-style="lcd"], .celestial-clock.celestial-card[data-picker-style="lcd"] {
+  --lcd-paper: #c9cfb4; --lcd-ink: #263426;
+  --bg: var(--lcd-paper); --text: var(--lcd-ink); --muted: var(--lcd-ink); --line: var(--lcd-ink);
+  --hour: var(--lcd-ink); --green: var(--lcd-ink); --gold: var(--lcd-ink); --picker-accent: var(--lcd-ink);
+  --picker-error: var(--lcd-ink); --picker-surface: var(--lcd-paper); --picker-radius: 2px;
+  color: var(--lcd-ink); font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+.celestial-clock[data-picker-style="lcd"][data-picker-theme="dark"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
+@media (prefers-color-scheme: dark) { .celestial-clock[data-picker-style="lcd"][data-picker-theme="auto"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; } }
+.celestial-control[data-picker-style="lcd"] .picker-form-trigger { border: 2px solid var(--lcd-ink); background: var(--lcd-paper); box-shadow: inset 0 0 0 2px var(--lcd-paper), inset 0 0 0 3px var(--lcd-ink); padding-inline: 10px; }
+.celestial-control[data-picker-style="lcd"] .picker-form-label, .celestial-control[data-picker-style="lcd"] .picker-wheel-label { color: var(--lcd-ink); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; }
+.celestial-control[data-picker-style="lcd"] .picker-form-panel, .celestial-control[data-picker-style="lcd"] .picker-form-inline, .celestial-control[data-picker-style="lcd"].celestial-control-surface {
+  background: var(--lcd-paper); color: var(--lcd-ink); border: 4px double var(--lcd-ink); border-radius: calc(var(--picker-radius) + 2px); box-shadow: 4px 4px 0 var(--lcd-ink);
+}
+.celestial-control[data-picker-style="lcd"] .picker-wheel { background: var(--lcd-paper); border-radius: var(--picker-radius); box-shadow: inset 0 0 0 1px var(--lcd-ink); }
+.celestial-control[data-picker-style="lcd"] .picker-wheel-option { color: var(--lcd-ink); font-size: 15px; }
+.celestial-control[data-picker-style="lcd"] .picker-wheel-option[aria-selected="true"] { color: var(--lcd-ink); background: transparent; }
+.celestial-control[data-picker-style="lcd"] .picker-wheel-selection { display: flex; align-items: center; justify-content: center; border: 1px solid var(--lcd-ink); border-radius: 0; background: var(--lcd-ink); color: var(--lcd-paper); font-size: 15px; }
+.celestial-control[data-picker-style="lcd"] .picker-step-unit input { color: var(--lcd-ink); background: var(--lcd-paper); border: 1px solid var(--lcd-ink); font-family: inherit; border-radius: var(--picker-radius); }
+.celestial-control[data-picker-style="lcd"] .picker-step-buttons button, .celestial-control[data-picker-style="lcd"] .picker-form-actions button, .celestial-control[data-picker-style="lcd"] .chip {
+  border: 1px solid var(--lcd-ink); border-radius: var(--picker-radius); color: var(--lcd-ink); background: var(--lcd-paper); font-family: inherit; box-shadow: none; transition: none;
+}
+.celestial-control[data-picker-style="lcd"] .picker-form-actions button { min-height: 32px; padding: 5px 8px; text-transform: uppercase; font-size: 10px; }
+.celestial-control[data-picker-style="lcd"] .picker-form-actions .picker-form-done { color: var(--lcd-paper); background: var(--lcd-ink); }
+.celestial-control[data-picker-style="lcd"] .earth-precision { border-radius: var(--picker-radius); border: 1px solid var(--lcd-ink); gap: 3px; }
+.celestial-control[data-picker-style="lcd"] .earth-precision button { color: var(--lcd-ink); border-radius: var(--picker-radius); text-transform: uppercase; font-family: inherit; font-size: 10px; }
+.celestial-control[data-picker-style="lcd"] .earth-precision button[aria-pressed="true"] { color: var(--lcd-paper); background: var(--lcd-ink); }
+.celestial-control[data-picker-style="lcd"] .orbit-range-navigation { font-family: inherit; text-transform: uppercase; font-size: 10px; }
+.celestial-control[data-picker-style="lcd"] .label-layer .scale-label { color: var(--lcd-ink); font-family: inherit; letter-spacing: .015em; font-size: 10px; }
+.celestial-control[data-picker-style="lcd"] .label-layer .scale-label.active { text-decoration: underline; text-underline-offset: 3px; }
+.celestial-control[data-picker-style="lcd"] .label-layer .scale-label.date-pill, .celestial-control[data-picker-style="lcd"] .label-layer .scale-label.year-pill { color: var(--lcd-paper); background: var(--lcd-ink); border: 1px solid var(--lcd-ink); border-radius: 0; padding: 3px 5px; font-size: 11px; }
+.celestial-clock[data-picker-style="lcd"] .lcd-paper-fill { fill: var(--lcd-paper); }
+.celestial-clock[data-picker-style="lcd"] .lcd-orrery, .celestial-clock[data-picker-style="lcd"] .lcd-body { color: var(--lcd-ink); }
+.celestial-clock[data-picker-style="lcd"] .lcd-orrery > svg, .celestial-clock[data-picker-style="lcd"] .lcd-body { display: block; }
+.lcd-digital-text { display: inline-block; line-height: 1; vertical-align: middle; }
+.lcd-digital-text > [aria-hidden="true"] { display: inline-flex; align-items: center; gap: 2px; white-space: pre; }
+.lcd-digit { display: inline-block; width: .5em; height: 1em; fill: currentColor; flex: 0 0 auto; }
+.lcd-punctuation { display: inline-block; font-family: ui-monospace, monospace; font-size: .8em; }
+.celestial-control[data-picker-style="lcd"] .picker-form-trigger .lcd-digital-text { font-size: 18px; }
+.celestial-control[data-picker-style="lcd"] .picker-wheel-selection .lcd-digital-text { font-size: 23px; }
+.celestial-clock[data-picker-style="lcd"] .earth-city-reticle { border-color: var(--lcd-ink); box-shadow: none; }
+.celestial-clock[data-picker-style="lcd"] .earth-city-reticle::before, .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::after { background: var(--lcd-ink); }
+.celestial-control[data-picker-style="lcd"] :focus-visible { outline: 3px solid var(--lcd-ink); }
+@media (hover: hover) {
+  .celestial-control[data-picker-style="lcd"] .picker-step-buttons button:hover:not(:disabled), .celestial-control[data-picker-style="lcd"] .picker-form-actions button:hover:not(:disabled), .celestial-control[data-picker-style="lcd"] .chip:hover:not(:disabled) { border-color: var(--lcd-ink); color: var(--lcd-paper); background: var(--lcd-ink); }
+  .celestial-control[data-picker-style="lcd"] .picker-form-actions .picker-form-done:hover:not(:disabled) { color: var(--lcd-ink); background: var(--lcd-paper); }
+}
+.celestial-control[data-picker-style="lcd"] .picker-step-buttons button:active:not(:disabled), .celestial-control[data-picker-style="lcd"] .picker-form-actions button:active:not(:disabled), .celestial-control[data-picker-style="lcd"] .chip:active:not(:disabled) { color: var(--lcd-paper); background: var(--lcd-ink); box-shadow: inset 0 0 0 2px var(--lcd-paper); }
+.celestial-control[data-picker-style="lcd"] .picker-step-buttons button:focus-visible, .celestial-control[data-picker-style="lcd"] .picker-form-actions button:focus-visible, .celestial-control[data-picker-style="lcd"] .chip:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
+.celestial-clock.celestial-card[data-picker-style="lcd"] { background: var(--lcd-paper); color: var(--lcd-ink); border: 4px double var(--lcd-ink); border-radius: 5px; box-shadow: 3px 3px 0 var(--lcd-ink); }
+.celestial-card[data-picker-style="lcd"] .widget-copy { gap: 8px; }
+.celestial-card[data-picker-style="lcd"] .widget-eyebrow, .celestial-card[data-picker-style="lcd"] .widget-value, .celestial-card[data-picker-style="lcd"] .widget-caption, .celestial-card[data-picker-style="lcd"] .widget-detail { color: var(--lcd-ink); }
+.celestial-card[data-picker-style="lcd"] .widget-eyebrow { font-size: 10px; }
+.celestial-card[data-picker-style="lcd"] .widget-value { letter-spacing: 0; }
+.celestial-card[data-picker-style="lcd"] .widget-caption { font-size: 10px; text-transform: uppercase; }
+.celestial-card[data-picker-style="lcd"] .widget-planet-select select { color: var(--lcd-ink); background: var(--lcd-paper); border: 1px solid var(--lcd-ink); border-radius: 2px; font-family: inherit; min-height: 32px; }
+.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] { background: var(--widget-background, #f4f7fb); border-color: var(--widget-border, #78879a); }
+.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-eyebrow, .celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-value { color: var(--widget-foreground, #243044); }
+.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-caption, .celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-detail { color: var(--widget-muted, #526177); }
+.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-planet-select select { color: var(--widget-foreground, #243044); background: var(--widget-background, #fff); border-color: var(--widget-border, #78879a); }
+@media (prefers-color-scheme: light) {
+  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] { background: var(--widget-background, #f4f7fb); border-color: var(--widget-border, #78879a); }
+  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-eyebrow, .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-value { color: var(--widget-foreground, #243044); }
+  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-caption, .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-detail { color: var(--widget-muted, #526177); }
+  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-planet-select select { color: var(--widget-foreground, #243044); background: var(--widget-background, #fff); border-color: var(--widget-border, #78879a); }
+}
+@media (forced-colors: active) {
+  .celestial-clock[data-picker-style="lcd"] { --lcd-paper: Canvas !important; --lcd-ink: CanvasText !important; }
+  .celestial-control[data-picker-style="lcd"] .picker-wheel-selection { color: HighlightText; background: Highlight; forced-color-adjust: none; }
+}
+/* Labels outside the themed surface follow the host page's text colour. */
+.celestial-clock.celestial-control.celestial-form-picker { color: inherit; }
+.celestial-clock.celestial-control.celestial-form-picker > .picker-form-label,
+.celestial-clock.celestial-control.celestial-form-picker > .picker-form-description,
+.celestial-clock.celestial-control.celestial-form-picker > .picker-form-error { color: var(--picker-label-color, inherit); }
+.celestial-clock.celestial-control.celestial-form-picker > .picker-form-error { font-weight: 600; }
+@media (pointer: coarse) { .celestial-control[data-picker-style="lcd"] .picker-form-actions button { min-height: 44px; } }
+@media (forced-colors: active) {
+  .celestial-clock.celestial-control[data-picker-style="lcd"], .celestial-clock.celestial-card[data-picker-style="lcd"] { --lcd-paper: Canvas !important; --lcd-ink: CanvasText !important; }
+}
+@media (max-width: 560px) {
+  .celestial-control .picker-composed-content > .picker-exact-content { order: -1; padding: 2px 0 14px; border-top: 0; border-bottom: 1px solid var(--line); }
+}
+/* Inline scenes respond to their host container as well as the viewport. */
+.celestial-clock.celestial-form-picker { container-type: inline-size; }
+.celestial-control .picker-form-inline:has(.picker-composed-content) { width: 100%; }
+@container (max-width: 560px) {
+  .celestial-control .picker-form-inline .picker-composed-content { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .celestial-control .picker-form-inline .picker-exact-content { order: -1; display: flex; justify-content: center; padding: 2px 0 14px; border-left: 0; border-bottom: 1px solid var(--line); }
+}
+/* Custom ARIA controls retain a focus cue with each browser's keyboard heuristics. */
+.celestial-control .picker-wheel:focus { outline: none; }
+.celestial-control .picker-wheel-frame:has(.picker-wheel:focus) > .picker-wheel-selection { outline: 2px solid var(--picker-accent); outline-offset: -2px; }
+.celestial-clock .earth-turner:focus, .celestial-clock .orbit-hit:focus { outline: 2px solid var(--hour); outline-offset: 3px; }
+@media (forced-colors: active) {
+  .celestial-control .picker-wheel-frame:has(.picker-wheel:focus) > .picker-wheel-selection, .celestial-clock .earth-turner:focus, .celestial-clock .orbit-hit:focus { outline: 3px solid Highlight; }
+}
+/* The combined input keeps its two celestial views and all units in one frame. */
+.celestial-control .picker-form-scene-panel:has([data-combined="true"]) { width: var(--picker-panel-width, min(720px, calc(100vw - 16px))); }
+.celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.celestial-control .celestial-input-scene[data-combined="true"] { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 12px; }
+.celestial-control [data-combined="true"] .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(120px, calc(var(--picker-available-height, 720px) - 300px), 280px)); }
+.celestial-control [data-combined="true"] .celestial-input-earth-companion { margin: 0; padding: 0; border: 0; min-width: 0; }
+.celestial-control [data-combined="true"] .celestial-input-earth-companion .earth-time-control { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 8px; }
+.celestial-control [data-combined="true"] .celestial-input-earth-companion .earth-turner { width: 100%; max-width: var(--picker-earth-size, clamp(110px, calc(var(--picker-available-height, 720px) - 320px), 230px)); }
+.celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content > .picker-exact-content { border: 0; border-top: 1px solid var(--line); padding: 14px 0 0; width: 100%; }
+.celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group { width: 100%; grid-template-columns: repeat(var(--picker-unit-count), minmax(0, 1fr)); }
+.celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group > div { width: auto; min-width: 0; }
+@media (max-width: 560px) {
+  .celestial-control .picker-form-panel { padding: 12px; }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content > .picker-exact-content { order: 0; border-bottom: 0; }
+  .celestial-control [data-combined="true"] .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(110px, calc(var(--picker-available-height, 720px) - 410px), 180px)); }
+  .celestial-control [data-combined="true"] .celestial-input-earth-companion .earth-turner { max-width: var(--picker-earth-size, clamp(100px, calc(var(--picker-available-height, 720px) - 430px), 160px)); }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group { gap: 8px 4px; }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-wheel-option { padding-inline: 2px; font-size: 14px; }
+  .celestial-control[data-picker-style="lcd"] .picker-form-panel:has([data-combined="true"]) .picker-wheel-selection { font-size: 14px; }
+  .celestial-control[data-picker-style="lcd"] .picker-form-panel:has([data-combined="true"]) .picker-wheel-selection .lcd-digital-text { font-size: 18px; }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-wheel-label { font-size: 9px; letter-spacing: 0; }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-step-buttons { flex-direction: column; }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-step-buttons button { min-height: 28px; min-width: 24px; }
+  .celestial-control [data-combined="true"] .orbit-range-navigation { display: grid; grid-template-columns: 24px minmax(0, 1fr) 24px; gap: 4px; font-size: 8px; text-align: center; }
+  .celestial-control [data-combined="true"] .orbit-range-navigation .chip { min-width: 24px; padding-inline: 5px; }
+  .celestial-control [data-combined="true"] .earth-precision { gap: 0; max-width: 100%; }
+  .celestial-control [data-combined="true"] .earth-precision button { padding-inline: 6px; font-size: 10px; }
+  .celestial-control [data-combined="true"] .earth-precision[data-count="3"] .earth-precision-full { display: none; }
+  .celestial-control [data-combined="true"] .earth-precision[data-count="3"] .earth-precision-short { display: inline; }
+}
+@media (max-height: 600px) and (min-width: 561px) {
+  .celestial-control .picker-form-panel { padding: 10px; }
+  .celestial-control .picker-form-actions { margin-top: 6px; padding-top: 6px; gap: 8px; }
+  .celestial-control .picker-composed-content > .picker-exact-content { padding-block: 0; }
+  .celestial-control .picker-form-scene-panel:has([data-combined="true"]) { width: var(--picker-panel-width, min(920px, calc(100vw - 16px))); }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content { grid-template-columns: minmax(240px, 1fr) minmax(0, 1.4fr); gap: 12px; }
+  .celestial-control .celestial-input-scene[data-combined="true"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; }
+  .celestial-control [data-combined="true"] .orrery-control-stage { max-width: var(--picker-orbit-size, 160px); }
+  .celestial-control [data-combined="true"] .celestial-input-earth-companion .earth-turner { max-width: var(--picker-earth-size, 140px); }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content > .picker-exact-content { border-top: 0; border-left: 1px solid var(--line); padding: 0 0 0 12px; }
+  .celestial-control [data-combined="true"] .orbit-range-navigation { gap: 4px; font-size: 8px; flex-wrap: wrap; }
+  .celestial-control [data-combined="true"] .orbit-range-navigation .chip { padding-inline: 5px; }
+}
+/* Keep the enlarged LCD artwork clear of the large widget's reading. */
+.celestial-card[data-picker-style="lcd"].widget-large .widget-detail { max-width: 125px; }
+.celestial-card[data-picker-style="lcd"].widget-large.widget-year .widget-detail { display: none; }
+.celestial-card[data-picker-style="lcd"].widget-large.widget-year .widget-scene { width: 290px; height: 290px; top: 112px; right: 0; }

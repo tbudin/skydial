@@ -1,8 +1,9 @@
 import * as THREE from 'three'
-import { SATURN_RING_INNER, SATURN_RING_OUTER, type PlanetId } from '../astro/bodies'
-import type { BodyAxes } from '../astro/ephemeris'
-import { eclipticDirToScene } from '../geometry/projection'
-import { FALLBACK_COLOURS, type TextureSet } from './textures'
+import { SATURN_RING_INNER, SATURN_RING_OUTER, type PlanetId } from '../astro/bodies.js'
+import type { BodyAxes } from '../astro/ephemeris.js'
+import { eclipticDirToScene } from '../geometry/projection.js'
+import { FALLBACK_COLOURS } from './fallbackColours.js'
+import type { TextureSet } from './textures.js'
 
 /**
  * One factory for planet models, used by the orrery and by the
@@ -24,14 +25,8 @@ export const DISPLAY_RADIUS: Record<PlanetId, number> = {
 
 export const SUN_DISPLAY_RADIUS = 0.42
 
-const sphereCache = new Map<number, THREE.SphereGeometry>()
 function sphere(segments: number) {
-  let g = sphereCache.get(segments)
-  if (!g) {
-    g = new THREE.SphereGeometry(1, segments, Math.round(segments / 2))
-    sphereCache.set(segments, g)
-  }
-  return g
+  return new THREE.SphereGeometry(1, segments, Math.round(segments / 2))
 }
 
 function ringGeometry(inner: number, outer: number): THREE.BufferGeometry {
@@ -84,7 +79,7 @@ export function createPlanetObject(id: PlanetId, textures: TextureSet, segments 
   mesh.scale.setScalar(radius)
   body.add(mesh)
 
-  const disposables: Array<{ dispose: () => void }> = [material]
+  const disposables: Array<{ dispose: () => void }> = [material, mesh.geometry]
   let ringShadow: RingShadowUniforms | undefined
 
   if (id === 'saturn') {
@@ -172,4 +167,39 @@ export function applyAxesInWorld(target: THREE.Object3D, axes: BodyAxes) {
   _z.set(-py.x, -py.y, -py.z)
   _m.makeBasis(_x, _y, _z)
   target.quaternion.setFromRotationMatrix(_m)
+}
+
+export type CelestialBodyId = PlanetId | 'sun' | 'moon'
+export type CelestialTextures = TextureSet & { moon?: THREE.Texture; moonNormal?: THREE.Texture }
+
+/** A self-lit sphere; astronomical orientation can be applied to `body`. */
+export function createSunObject(textures: CelestialTextures = {}, segments = 64): PlanetObject {
+  const root = new THREE.Group()
+  root.name = 'sun'
+  const body = new THREE.Group()
+  root.add(body)
+  const geometry = new THREE.SphereGeometry(1, segments, Math.round(segments / 2))
+  const material = new THREE.MeshBasicMaterial({
+    map: textures.sun ?? null, color: textures.sun ? '#fff0d8' : '#f6c35b', toneMapped: false,
+  })
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.scale.setScalar(SUN_DISPLAY_RADIUS)
+  body.add(mesh)
+  return { root, body, dispose: () => { geometry.dispose(); material.dispose() } }
+}
+
+/** Real lunar geometry; use a directional Sun light to produce the phase. */
+export function createMoonObject(textures: CelestialTextures = {}, segments = 128): PlanetObject {
+  const root = new THREE.Group()
+  root.name = 'moon'
+  const body = new THREE.Group()
+  root.add(body)
+  const geometry = new THREE.SphereGeometry(1, segments, Math.round(segments / 2))
+  const material = new THREE.MeshStandardMaterial({
+    map: textures.moon ?? null, color: textures.moon ? '#ffffff' : '#9a978f',
+    normalMap: textures.moonNormal ?? null, normalScale: new THREE.Vector2(0.6, 0.6),
+    roughness: 1, metalness: 0,
+  })
+  body.add(new THREE.Mesh(geometry, material))
+  return { root, body, dispose: () => { geometry.dispose(); material.dispose() } }
 }

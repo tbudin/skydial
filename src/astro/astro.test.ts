@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import * as Astronomy from 'astronomy-engine'
-import { bodyAxes, helioEcliptic, helioLongitude } from './ephemeris'
-import { calendarScale, yearScale } from './clockScales'
-import { civilParts, dayBoundaries, zonedToUtc } from './time'
-import { CALENDAR_RADIUS, ORBIT_SLOTS, radialScale } from '../geometry/projection'
-import { PLANETS } from './bodies'
+import { bodyAxes, helioEcliptic, helioLongitude } from './ephemeris.js'
+import { calendarScale, yearScale } from './clockScales.js'
+import { civilParts, dayBoundaries, zonedToUtc } from './time.js'
+import { CALENDAR_RADIUS, ORBIT_SLOTS, radialScale } from '../geometry/projection.js'
+import { PLANETS } from './bodies.js'
 
 const DEG = 180 / Math.PI
 const angDiff = (a: number, b: number) => {

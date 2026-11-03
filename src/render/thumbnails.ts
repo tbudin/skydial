@@ -1,8 +1,9 @@
+import { webglAvailable } from './capabilities.js'
 import * as THREE from 'three'
-import { SATURN_RING_OUTER, type YearPlanetId } from '../astro/bodies'
-import { bodyAxes } from '../astro/ephemeris'
-import { DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory'
-import type { TextureSet } from './textures'
+import { SATURN_RING_OUTER, type YearPlanetId } from '../astro/bodies.js'
+import { bodyAxes } from '../astro/ephemeris.js'
+import { DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory.js'
+import type { TextureSet } from './textures.js'
 
 /**
  * Pre-render the planet-selector thumbnails from the same models the orrery
@@ -10,6 +11,7 @@ import type { TextureSet } from './textures'
  * rings show their real tilt. One short-lived WebGL context, then disposed.
  */
 export function renderThumbnails(textures: TextureSet, timeMs: number, sizePx = 160): Record<YearPlanetId, string> {
+  if (!webglAvailable()) return {} as Record<YearPlanetId, string>
   const ids: YearPlanetId[] = ['jupiter', 'saturn', 'uranus', 'neptune']
   const out = {} as Record<YearPlanetId, string>
   const canvas = document.createElement('canvas')

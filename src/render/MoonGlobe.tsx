@@ -1,10 +1,12 @@
+import { SceneCanvas } from './SceneCanvas.js'
+import { ClockFrames } from './ClockFrames.js'
 import { useMemo, useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { moonView, type Location } from '../astro/observer'
-import { simClock } from '../sim/clock'
-import { applyAxesInWorld } from './planetFactory'
-import { usePanelTextures } from './panelTextures'
+import { moonView, type Location } from '../astro/observer.js'
+import { useCelestialClock } from '../sim/hooks.js'
+import { applyAxesInWorld } from './planetFactory.js'
+import { usePanelTextures } from './panelTextures.js'
 
 /**
  * The Moon as the observer sees it. World frame = J2000 equatorial.
@@ -22,7 +24,8 @@ const KEYS = ['moon', 'moonNormal'] as const
 export function MoonGlobe({ location }: { location: Location }) {
   const tex = usePanelTextures(KEYS)
   return (
-    <Canvas
+    <SceneCanvas
+      frameloop="demand"
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
       camera={{ fov: MOON_FOV, near: 0.1, far: 50, position: [0, 0, MOON_CAMERA_DISTANCE] }}
@@ -30,24 +33,21 @@ export function MoonGlobe({ location }: { location: Location }) {
         gl.toneMapping = THREE.ACESFilmicToneMapping
       }}
     >
+      <ClockFrames />
       {tex.ready && <MoonScene location={location} textures={tex.textures} />}
-    </Canvas>
+    </SceneCanvas>
   )
 }
 
 function MoonScene({ location, textures }: { location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>> }) {
+  const simClock = useCelestialClock()
   const moon = useRef<THREE.Group>(null)
   const light = useRef<THREE.DirectionalLight>(null)
   const { camera } = useThree()
   const tmp = useMemo(() => ({ f: new THREE.Vector3(), up: new THREE.Vector3() }), [])
-  const last = useRef(0)
 
   useFrame(() => {
     const t = simClock.now()
-    // Moon geometry changes slowly; recompute at most 20 times a second of real time
-    const nowReal = performance.now()
-    if (nowReal - last.current < 50 && last.current !== 0) return
-    last.current = nowReal
     const m = moonView(location, t)
     if (moon.current) applyAxesInWorld(moon.current, m.moonFrame)
     light.current?.position.set(m.toSun.x * 20, m.toSun.y * 20, m.toSun.z * 20)

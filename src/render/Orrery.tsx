@@ -1,12 +1,15 @@
+import { usePickerParts } from '../lib/appearance.js'
+import { SceneCanvas } from './SceneCanvas.js'
+import { ClockFrames } from './ClockFrames.js'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Line } from '@react-three/drei'
 import * as THREE from 'three'
 import type { Line2 } from 'three-stdlib'
-import { PLANETS, PLANET_BY_ID, type PlanetId, type YearPlanetId } from '../astro/bodies'
-import { bodyAxes, helioEcliptic, normaliseAngle } from '../astro/ephemeris'
-import type { CalendarScale, YearScale } from '../astro/clockScales'
-import { MONTH_SHORT } from '../astro/time'
+import { PLANETS, PLANET_BY_ID, type PlanetId, type YearPlanetId } from '../astro/bodies.js'
+import { bodyAxes, helioEcliptic, normaliseAngle } from '../astro/ephemeris.js'
+import type { CalendarScale, YearScale } from '../astro/clockScales.js'
+import { MONTH_SHORT } from '../astro/time.js'
 import {
   CALENDAR_RADIUS,
   CALENDAR_TICK_MAJOR,
@@ -16,14 +19,14 @@ import {
   projectHelio,
   radialScale,
   sampleOrbit,
-} from '../geometry/projection'
-import { simClock } from '../sim/clock'
-import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory'
-import { SATURN_RING_OUTER } from '../astro/bodies'
-import { layoutLabels, radialCandidates, type Disc, type LabelRequest, type Pt, type Seg } from '../geometry/labelLayout'
-import type { TextureSet } from './textures'
-import { PALETTE } from './palette'
-import { installVerifier } from './verify'
+} from '../geometry/projection.js'
+import { useCelestialClock } from '../sim/hooks.js'
+import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory.js'
+import { SATURN_RING_OUTER } from '../astro/bodies.js'
+import { layoutLabels, radialCandidates, type Disc, type LabelRequest, type Pt, type Seg } from '../geometry/labelLayout.js'
+import type { TextureSet } from './textures.js'
+import { PALETTE, LIGHT_PALETTE, type OrreryPalette } from './palette.js'
+import { installVerifier } from './verify.js'
 
 type V3 = [number, number, number]
 
@@ -49,6 +52,7 @@ export interface LabelSpec {
   lon: number
   /** Scene radius of the anchor (pills: computed each frame) */
   radius: number
+  value?: number
 }
 
 interface LabelStore {
@@ -64,7 +68,32 @@ const HAND_INITIAL: V3[] = [
   [1, 0, 0],
 ]
 
+export interface OrreryAppearance {
+  palette?: Partial<OrreryPalette>
+  /** Multipliers for orbit and tick stroke widths. */
+  orbitWidth?: number
+  tickWidth?: number
+  /** Hand width in CSS pixels. */
+  handWidth?: number
+  bodyScale?: number
+  sunScale?: number
+}
+
 export interface OrreryProps {
+  appearance?: OrreryAppearance
+  /** Enabled calendar units; omitted flags keep the full playground dial. */
+  showMonths?: boolean
+  showDays?: boolean
+  showYears?: boolean
+  sceneExtent?: number
+  /** Omit to show the whole solar system. A date input uses Earth and its year planet. */
+  visibleBodies?: readonly PlanetId[]
+  theme?: 'light' | 'dark'
+  onMonthSelect?: (month: number) => void
+  onYearSelect?: (year: number) => void
+  /** Widget rendering omits dial labels and ticks, retaining the 3D solar system and hands. */
+  compact?: boolean
+  diagnostics?: boolean
   textures: TextureSet
   calendar: CalendarScale
   yearScale: YearScale
@@ -72,11 +101,20 @@ export interface OrreryProps {
   /** Index into calendar.ticks of the current day */
   currentDayIndex: number
   currentMonth: number
+  currentYear?: number
   /** Epoch (ms) the orbit paths are sampled around */
   orbitEpochMs: number
 }
 
 export function Orrery(props: OrreryProps) {
+  const part = usePickerParts()
+  const palette = { ...(props.theme === 'light' ? LIGHT_PALETTE : PALETTE), ...props.appearance?.palette }
+  const orbitWidth = Math.max(0, props.appearance?.orbitWidth ?? 1)
+  const tickWidth = Math.max(0, props.appearance?.tickWidth ?? 1)
+  const handWidth = Math.max(0, props.appearance?.handWidth ?? 1.4)
+  const bodyScale = Math.max(0.1, props.appearance?.bodyScale ?? 1)
+  const sunScale = Math.max(0.1, props.appearance?.sunScale ?? 1)
+  const invalidateScene = useRef<() => void>(() => {})
   const store = useMemo<LabelStore>(() => ({ els: new Map(), sizes: new Map(), previous: new Map(), shown: new Map() }), [])
   const specs = useLabelSpecs(props)
 
@@ -87,33 +125,43 @@ export function Orrery(props: OrreryProps) {
         const el = store.els.get(s.id)
         if (el) store.sizes.set(s.id, { w: el.offsetWidth, h: el.offsetHeight })
       }
+      invalidateScene.current()
     }
+    const observer = new ResizeObserver(measure)
+    for (const el of store.els.values()) observer.observe(el)
     measure()
     document.fonts?.ready.then(measure).catch(() => {})
+    return () => observer.disconnect()
   }, [specs, store])
 
   return (
-    <div className="orrery-stage">
-      <Canvas
+    <div className="orrery-stage" data-visible-bodies={props.visibleBodies?.join(' ') ?? PLANETS.map((p) => p.id).join(' ')}>
+      <SceneCanvas
+      frameloop="demand"
         orthographic
         dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         camera={{ position: [0, 40, 0], up: [0, 0, -1], near: 1, far: 100, zoom: 40 }}
-        onCreated={({ gl, camera }) => {
+        onCreated={({ gl, camera, invalidate }) => {
+          invalidateScene.current = invalidate
           gl.toneMapping = THREE.ACESFilmicToneMapping
           gl.toneMappingExposure = 1.05
           camera.lookAt(0, 0, 0)
         }}
-        style={{ background: PALETTE.background }}
+        style={{ background: props.appearance?.palette?.background ?? (props.compact || props.theme ? 'transparent' : palette.background) }}
       >
-        <FitCamera />
+        <ClockFrames />
+        <FitCamera compact={props.compact} extent={props.sceneExtent} />
         <ambientLight intensity={0.035} />
         <pointLight position={[0, 0, 0]} intensity={3.2} decay={0} />
-        <Sun textures={props.textures} />
-        <Orbits epochMs={props.orbitEpochMs} yearPlanet={props.yearPlanet} />
-        <CalendarRing calendar={props.calendar} currentDayIndex={props.currentDayIndex} currentMonth={props.currentMonth} />
-        <YearScaleMarks scale={props.yearScale} />
+        <Sun textures={props.textures} scale={sunScale} />
+        <Orbits visibleBodies={props.visibleBodies} width={orbitWidth} palette={palette} epochMs={props.orbitEpochMs} yearPlanet={props.yearPlanet} />
+        {!props.compact && (props.showMonths !== false || props.showDays !== false) && <CalendarRing width={tickWidth} palette={palette} calendar={props.calendar} currentDayIndex={props.currentDayIndex} currentMonth={props.currentMonth} showMonths={props.showMonths} showDays={props.showDays} />}
+        {!props.compact && props.showYears !== false && <YearScaleMarks width={tickWidth} palette={palette} scale={props.yearScale} />}
         <PlanetsAndHands
+          visibleBodies={props.visibleBodies} handWidth={handWidth} bodyScale={bodyScale} sunScale={sunScale} showCalendar={props.showMonths !== false || props.showDays !== false} showYears={props.showYears !== false}
+          palette={palette}
+          diagnostics={props.diagnostics}
           textures={props.textures}
           yearPlanet={props.yearPlanet}
           calendar={props.calendar}
@@ -121,22 +169,30 @@ export function Orrery(props: OrreryProps) {
           specs={specs}
           store={store}
         />
-      </Canvas>
-      <div className="label-layer" aria-hidden="true">
-        {specs.map((s) => (
-          <span
+      </SceneCanvas>
+      <div {...part('orbitLabels', 'label-layer')} aria-hidden={props.onMonthSelect || props.onYearSelect ? undefined : true}>
+        {specs.map((s) => {
+          const select = s.kind === 'month' && props.onMonthSelect ? () => props.onMonthSelect!(s.value!)
+            : s.kind === 'year' && props.onYearSelect ? () => props.onYearSelect!(s.value!) : undefined
+          const Element = select ? 'button' : 'span'
+          return <Element
             key={s.id}
+            type={select ? 'button' : undefined}
+            onClick={select}
+            tabIndex={select ? -1 : undefined}
+            aria-hidden={select ? true : undefined}
+            aria-label={select ? s.kind === 'month' ? `Select ${MONTH_SHORT[s.value! - 1]} ${props.calendar.year}` : `Select year ${s.value}` : undefined}
             ref={(el) => {
-              if (el) store.els.set(s.id, el)
+              if (el) { if (store.els.get(s.id) !== el) store.shown.delete(s.id); store.els.set(s.id, el) }
               else store.els.delete(s.id)
             }}
             data-label={s.id}
             data-kind={s.kind}
-            className={`scale-label ${s.kind}${s.active ? ' active' : ''}`}
+            {...part(s.kind === 'month' ? 'monthLabel' : s.kind === 'year' ? 'yearLabel' : s.kind === 'date-pill' ? 'dateBadge' : 'yearBadge', `scale-label ${s.kind}${s.active ? ' active' : ''}`, s.kind === 'month' ? { color: s.active ? palette.labelActive : palette.label } : s.kind === 'year' ? { color: palette.yearHand } : { background: s.kind === 'date-pill' ? palette.earthHand : palette.yearHand }, { selected: s.active })}
           >
             {s.text}
-          </span>
-        ))}
+          </Element>
+        })}
       </div>
     </div>
   )
@@ -153,42 +209,46 @@ function monthSpans(calendar: CalendarScale) {
   })
 }
 
-function useLabelSpecs({ calendar, yearScale, currentDayIndex, currentMonth }: OrreryProps): LabelSpec[] {
+function useLabelSpecs({ calendar, yearScale, currentDayIndex, currentMonth, currentYear, compact, showMonths = true, showDays = true, showYears = true }: OrreryProps): LabelSpec[] {
   const day = calendar.ticks[currentDayIndex]?.day ?? 1
   return useMemo(() => {
-    const out: LabelSpec[] = [
-      { id: 'date-pill', kind: 'date-pill', text: `${day} ${MONTH_SHORT[currentMonth - 1].toUpperCase()}`, lon: 0, radius: CALENDAR_RADIUS },
-      { id: 'year-pill', kind: 'year-pill', text: String(yearScale.fromYear), lon: 0, radius: 0 },
-    ]
-    for (const m of monthSpans(calendar)) {
-      out.push({ id: `m${m.month}`, kind: 'month', text: MONTH_SHORT[m.month - 1].toUpperCase(), active: m.month === currentMonth, lon: m.mid, radius: CALENDAR_RADIUS })
+    if (compact) return []
+    const out: LabelSpec[] = []
+    if (showMonths || showDays) out.push({ id: 'date-pill', kind: 'date-pill', text: showDays ? `${day}${showMonths ? ` ${MONTH_SHORT[currentMonth - 1].toUpperCase()}` : ''}` : MONTH_SHORT[currentMonth - 1].toUpperCase(), lon: 0, radius: CALENDAR_RADIUS })
+    if (showYears) out.push({ id: 'year-pill', kind: 'year-pill', text: String(currentYear ?? yearScale.fromYear), lon: 0, radius: 0 })
+    for (const m of showMonths ? monthSpans(calendar) : []) {
+      out.push({ id: `m${m.month}`, kind: 'month', value: m.month, text: MONTH_SHORT[m.month - 1].toUpperCase(), active: m.month === currentMonth, lon: m.mid, radius: CALENDAR_RADIUS })
     }
     const body = PLANET_BY_ID[yearScale.planet].body
-    for (const mk of yearScale.markers) {
-      if (!mk.major || mk.current) continue // the current year is read from the hand's window
-      out.push({ id: `y${mk.year}`, kind: 'year', text: String(mk.year), lon: mk.lon, radius: radialScale(helioEcliptic(body, mk.startMs).rho) })
+    for (const mk of showYears ? yearScale.markers : []) {
+      if (!mk.major || mk.year === (currentYear ?? yearScale.fromYear)) continue // the current year is read from the hand's window
+      out.push({ id: `y${mk.year}`, kind: 'year', value: mk.year, text: String(mk.year), lon: mk.lon, radius: radialScale(helioEcliptic(body, mk.startMs).rho) })
     }
     return out
-  }, [calendar, yearScale, day, currentMonth])
+  }, [calendar, yearScale, day, currentMonth, currentYear, compact, showMonths, showDays, showYears])
 }
 
 /** Fit the whole instrument into the shorter side of the canvas. */
-function FitCamera() {
+function FitCamera({ compact = false, extent = SCENE_EXTENT }: { compact?: boolean; extent?: number }) {
   const { camera, size } = useThree()
   useLayoutEffect(() => {
-    const cam = camera as THREE.OrthographicCamera
-    // Month labels are nudged a fixed number of px outside the ring, so reserve
-    // a px margin rather than a scene-unit one: it then holds at every size.
-    cam.zoom = (Math.min(size.width, size.height) - 2 * LABEL_MARGIN_PX) / (2 * SCENE_EXTENT)
-    cam.position.set(0, 40, 0)
-    cam.up.set(0, 0, -1)
-    cam.lookAt(0, 0, 0)
-    cam.updateProjectionMatrix()
-  }, [camera, size])
+    fitCamera(camera as THREE.OrthographicCamera, size, compact ? 10 : LABEL_MARGIN_PX, extent)
+  }, [camera, size, compact, extent])
   return null
 }
 
-function Sun({ textures }: { textures: TextureSet }) {
+function fitCamera(cam: THREE.OrthographicCamera, size: { width: number; height: number }, margin = LABEL_MARGIN_PX, extent = SCENE_EXTENT) {
+  // Month labels are nudged a fixed number of px outside the ring, so reserve
+  // a px margin rather than a scene-unit one: it then holds at every size.
+  cam.zoom = Math.max(1, (Math.min(size.width, size.height) - 2 * margin) / (2 * extent))
+  cam.position.set(0, 40, 0)
+  cam.up.set(0, 0, -1)
+  cam.lookAt(0, 0, 0)
+  cam.updateProjectionMatrix()
+}
+
+function Sun({ textures, scale }: { textures: TextureSet; scale: number }) {
+  const simClock = useCelestialClock()
   const ref = useRef<THREE.Mesh>(null)
   const halo = useMemo(() => {
     const c = document.createElement('canvas')
@@ -204,11 +264,12 @@ function Sun({ textures }: { textures: TextureSet }) {
     t.colorSpace = THREE.SRGBColorSpace
     return t
   }, [])
+  useEffect(() => () => halo.dispose(), [halo])
   useFrame(() => {
     if (ref.current) applyBodyAxes(ref.current, bodyAxes('Sun', simClock.now()))
   })
   return (
-    <group>
+    <group scale={scale}>
       <mesh ref={ref} scale={SUN_DISPLAY_RADIUS}>
         <sphereGeometry args={[1, 64, 32]} />
         <meshBasicMaterial map={textures.sun ?? null} color={textures.sun ? '#fff0d8' : '#f6c35b'} toneMapped={false} />
@@ -221,29 +282,30 @@ function Sun({ textures }: { textures: TextureSet }) {
   )
 }
 
-function Orbits({ epochMs, yearPlanet }: { epochMs: number; yearPlanet: YearPlanetId }) {
+function Orbits({ epochMs, yearPlanet, palette, visibleBodies, width }: { epochMs: number; yearPlanet: YearPlanetId; palette: OrreryPalette; visibleBodies?: readonly PlanetId[]; width: number }) {
+  const visibleKey = visibleBodies?.join(',')
   const paths = useMemo(
     () =>
-      PLANETS.map((p) => {
+      PLANETS.filter((p) => !visibleKey || visibleKey.split(',').includes(p.id)).map((p) => {
         const arr = sampleOrbit(p.body, p.periodYears, epochMs, p.periodYears > 1 ? 1440 : 720)
         const pts: V3[] = []
         for (let i = 0; i < arr.length; i += 3) pts.push([arr[i], -0.02, arr[i + 2]])
         return { id: p.id, pts }
       }),
-    [epochMs],
+    [epochMs, visibleKey],
   )
   return (
     <group>
-      {paths.map(({ id, pts }) => {
+      {paths.filter(({ id }) => !visibleBodies || visibleBodies.includes(id)).map(({ id, pts }) => {
         const active = id === yearPlanet
         return (
           <Line
             key={id}
             points={pts}
-            color={active ? PALETTE.yearHand : PALETTE.orbit}
-            lineWidth={active ? 1.1 : 0.8}
+            color={active ? palette.yearHand : palette.orbit}
+            lineWidth={(active ? 1.1 : 0.8) * width}
             transparent
-            opacity={active ? 0.55 : PALETTE.orbitOpacity}
+            opacity={active ? 0.55 : palette.orbitOpacity}
             depthWrite={false}
           />
         )
@@ -253,13 +315,21 @@ function Orbits({ epochMs, yearPlanet }: { epochMs: number; yearPlanet: YearPlan
 }
 
 function CalendarRing({
+  width,
+  palette,
   calendar,
   currentDayIndex,
   currentMonth,
+  showMonths = true,
+  showDays = true,
 }: {
+  palette: OrreryPalette
+  width: number
   calendar: CalendarScale
   currentDayIndex: number
   currentMonth: number
+  showMonths?: boolean
+  showDays?: boolean
 }) {
   const { minor, major, months, ring } = useMemo(() => {
     const minor: V3[] = []
@@ -267,6 +337,7 @@ function CalendarRing({
     const ticks = calendar.ticks
     for (let i = 0; i < ticks.length - 1; i++) {
       const t = ticks[i]
+      if (!showMonths && t.month !== currentMonth || !showDays && t.day !== 1) continue
       const isMonthStart = t.day === 1
       const len = isMonthStart ? CALENDAR_TICK_MAJOR : t.day % 5 === 0 ? CALENDAR_TICK_MINOR * 1.6 : CALENDAR_TICK_MINOR
       const a = polarToScene(t.lon, CALENDAR_RADIUS)
@@ -280,7 +351,7 @@ function CalendarRing({
       ring.push([p.x, 0, p.z])
     }
     return { minor, major, months, ring }
-  }, [calendar])
+  }, [calendar, showMonths, showDays, currentMonth])
 
   const dayArc = useMemo(() => {
     const a = calendar.ticks[currentDayIndex]
@@ -307,16 +378,16 @@ function CalendarRing({
 
   return (
     <group>
-      <Line points={ring} color={PALETTE.tick} lineWidth={0.8} transparent opacity={0.45} />
-      <Line points={minor} segments color={PALETTE.tick} lineWidth={0.8} transparent opacity={0.75} />
-      <Line points={major} segments color={PALETTE.tickMajor} lineWidth={1.2} />
-      <Line points={monthArc} color={PALETTE.earthHand} lineWidth={1.4} transparent opacity={0.6} />
-      {dayArc && <Line points={dayArc} color={PALETTE.earthHand} lineWidth={4} />}
+      <Line points={ring} color={palette.tick} lineWidth={0.8 * width} transparent opacity={0.45} />
+      {minor.length > 0 && <Line points={minor} segments color={palette.tick} lineWidth={0.8 * width} transparent opacity={0.75} />}
+      {major.length > 0 && <Line points={major} segments color={palette.tickMajor} lineWidth={1.2 * width} />}
+      <Line points={monthArc} color={palette.earthHand} lineWidth={1.4 * width} transparent opacity={0.6} />
+      {showDays && dayArc && <Line points={dayArc} color={palette.earthHand} lineWidth={4 * width} />}
     </group>
   )
 }
 
-function YearScaleMarks({ scale }: { scale: YearScale }) {
+function YearScaleMarks({ scale, palette, width }: { scale: YearScale; palette: OrreryPalette; width: number }) {
   const planet = PLANET_BY_ID[scale.planet]
   const { minor, major } = useMemo(() => {
     const minor: V3[] = []
@@ -333,13 +404,16 @@ function YearScaleMarks({ scale }: { scale: YearScale }) {
 
   return (
     <group>
-      {minor.length > 0 && <Line points={minor} segments color={PALETTE.yearHand} lineWidth={0.9} transparent opacity={0.55} />}
-      {major.length > 0 && <Line points={major} segments color={PALETTE.yearHand} lineWidth={1.4} />}
+      {minor.length > 0 && <Line points={minor} segments color={palette.yearHand} lineWidth={0.9 * width} transparent opacity={0.55} />}
+      {major.length > 0 && <Line points={major} segments color={palette.yearHand} lineWidth={1.4 * width} />}
     </group>
   )
 }
 
 function PlanetsAndHands({
+  visibleBodies, handWidth, bodyScale, sunScale, showCalendar, showYears,
+  palette,
+  diagnostics,
   textures,
   yearPlanet,
   calendar,
@@ -347,6 +421,14 @@ function PlanetsAndHands({
   specs,
   store,
 }: {
+  visibleBodies?: readonly PlanetId[]
+  handWidth: number
+  bodyScale: number
+  sunScale: number
+  showCalendar: boolean
+  showYears: boolean
+  diagnostics?: boolean
+  palette: OrreryPalette
   textures: TextureSet
   yearPlanet: YearPlanetId
   calendar: CalendarScale
@@ -354,6 +436,7 @@ function PlanetsAndHands({
   specs: LabelSpec[]
   store: LabelStore
 }) {
+  const simClock = useCelestialClock()
   const objects = useMemo(() => {
     const map = {} as Record<PlanetId, ReturnType<typeof createPlanetObject>>
     for (const p of PLANETS) map[p.id] = createPlanetObject(p.id, textures, p.id === 'jupiter' || p.id === 'saturn' ? 96 : 64)
@@ -377,6 +460,7 @@ function PlanetsAndHands({
       const h = helioEcliptic(p.body, t)
       const s = projectHelio(h.lon, h.rho)
       o.root.position.set(s.x, s.y, s.z)
+      o.root.scale.setScalar(bodyScale)
       if (o.ringShadow) o.ringShadow.uPlanetCentre.value.copy(o.root.position) // Sun stays at the origin
       applyBodyAxes(o.body, bodyAxes(p.body, t))
       if (p.id === 'earth') earthLon = h.lon
@@ -402,18 +486,17 @@ function PlanetsAndHands({
     const pxPerUnit = (camera as THREE.OrthographicCamera).zoom
     const centre = toPx(0, 0)
     const dir = (lon: number): Pt => ({ x: Math.cos(lon), y: -Math.sin(lon) })
-    const discs: Disc[] = [{ ...centre, r: SUN_DISPLAY_RADIUS * pxPerUnit + 4 }]
-    for (const p of PLANETS) {
+    const discs: Disc[] = [{ ...centre, r: SUN_DISPLAY_RADIUS * sunScale * pxPerUnit + 4 }]
+    for (const p of PLANETS.filter((p) => !visibleBodies || visibleBodies.includes(p.id))) {
       const pos = objects[p.id].root.position
       const r = DISPLAY_RADIUS[p.id] * (p.id === 'saturn' ? SATURN_RING_OUTER : 1)
-      discs.push({ ...toPx(pos.x, pos.z), r: r * pxPerUnit + 3 })
+      discs.push({ ...toPx(pos.x, pos.z), r: r * bodyScale * pxPerUnit + 3 })
     }
     const eTip = toPx(e.x, e.z)
     const yTip = toPx(y.x, y.z)
-    const segs: Seg[] = [
-      { x0: centre.x, y0: centre.y, x1: eTip.x, y1: eTip.y, half: 3 },
-      { x0: centre.x, y0: centre.y, x1: yTip.x, y1: yTip.y, half: 3 },
-    ]
+    const segs: Seg[] = []
+    if (showCalendar) segs.push({ x0: centre.x, y0: centre.y, x1: eTip.x, y1: eTip.y, half: 3 })
+    if (showYears) segs.push({ x0: centre.x, y0: centre.y, x1: yTip.x, y1: yTip.y, half: 3 })
     const requests: LabelRequest[] = []
     for (const s of specs) {
       const sz = store.sizes.get(s.id)
@@ -448,29 +531,35 @@ function PlanetsAndHands({
       if (pl.visible) {
         el.style.transform = `translate3d(${Math.round(pl.cx - pl.w / 2)}px, ${Math.round(pl.cy - pl.h / 2)}px, 0)`
         el.dataset.visible = 'true'
+        if (el.tagName === 'BUTTON') { el.tabIndex = 0; el.removeAttribute('aria-hidden') }
       } else {
         el.dataset.visible = 'false'
+        if (el.tagName === 'BUTTON') { el.tabIndex = -1; el.setAttribute('aria-hidden', 'true') }
       }
     }
     for (const s of specs) {
-      if (!seen.has(s.id)) store.els.get(s.id)?.setAttribute('data-visible', 'false')
+      if (!seen.has(s.id)) {
+        const el = store.els.get(s.id)
+        el?.setAttribute('data-visible', 'false')
+        if (el?.tagName === 'BUTTON') { el.tabIndex = -1; el.setAttribute('aria-hidden', 'true') }
+      }
     }
   })
 
   useEffect(
-    () => installVerifier({ camera, size, objects, earthHand, yearHand, yearPlanet, calendar, yearScale }),
-    [camera, size, objects, yearPlanet, calendar, yearScale],
+    () => diagnostics ? installVerifier({ camera, size, objects, earthHand, yearHand, yearPlanet, calendar, yearScale, clock: simClock }) : undefined,
+    [diagnostics, camera, size, objects, yearPlanet, calendar, yearScale, simClock],
   )
 
   return (
     <group>
-      <Line ref={earthHand} points={HAND_INITIAL} color={PALETTE.earthHand} lineWidth={1.4} />
-      <Line ref={yearHand} points={HAND_INITIAL} color={PALETTE.yearHand} lineWidth={1.4} />
-      <mesh ref={earthDot} rotation={[-Math.PI / 2, 0, 0]}>
+      {showCalendar && <Line ref={earthHand} points={HAND_INITIAL} color={palette.earthHand} lineWidth={handWidth} />}
+      {showYears && <Line ref={yearHand} points={HAND_INITIAL} color={palette.yearHand} lineWidth={handWidth} />}
+      {showCalendar && <mesh ref={earthDot} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.045, 24]} />
-        <meshBasicMaterial color={PALETTE.earthHand} toneMapped={false} />
-      </mesh>
-      {PLANETS.map((p) => (
+        <meshBasicMaterial color={palette.earthHand} toneMapped={false} />
+      </mesh>}
+      {PLANETS.filter((p) => !visibleBodies || visibleBodies.includes(p.id)).map((p) => (
         <primitive key={p.id} object={objects[p.id].root} />
       ))}
     </group>

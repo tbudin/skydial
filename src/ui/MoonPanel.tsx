@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { moonEvents, moonView, phaseName } from '../astro/observer'
-import type { Place } from '../astro/places'
-import { civilParts, MONTH_SHORT, zonedToUtc } from '../astro/time'
-import { MoonGlobe } from '../render/MoonGlobe'
+import { moonEvents, moonView, phaseName } from '../astro/observer.js'
+import type { Place } from '../astro/places.js'
+import { civilParts, MONTH_SHORT, zonedToUtc } from '../astro/time.js'
+import { MoonGlobe } from '../render/MoonGlobe.js'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 

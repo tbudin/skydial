@@ -1,0 +1,26 @@
+name: Stage npm package
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm install --global npm@11.21.0
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:release
+      - run: npm audit --omit=dev --audit-level=low
+      - run: node scripts/release-guard.mjs
+      - run: npm stage publish --ignore-scripts --access public --provenance

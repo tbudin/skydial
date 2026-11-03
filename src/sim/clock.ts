@@ -21,8 +21,8 @@ export interface ClockState {
 
 type Listener = () => void
 
-const MIN_MS = Date.UTC(1600, 0, 1)
-const MAX_MS = Date.UTC(2400, 11, 31)
+export const MIN_TIME_MS = Date.UTC(1600, 0, 1)
+export const MAX_TIME_MS = Date.UTC(2401, 0, 1) - 1
 
 export class SimClock {
   private anchorSim = Date.now()
@@ -30,13 +30,20 @@ export class SimClock {
   state: ClockState = { live: true, playing: true, speed: 'real' }
   private listeners = new Set<Listener>()
 
+  constructor(initialTimeMs?: number) {
+    if (initialTimeMs !== undefined) {
+      this.setTime(initialTimeMs)
+      this.state = { ...this.state, playing: false }
+    }
+  }
+
   now(): number {
     if (this.state.live) return Date.now()
     if (!this.state.playing) return this.anchorSim
     const rate = SPEEDS.find((s) => s.id === this.state.speed)!.rate
     const t = this.anchorSim + (performance.now() - this.anchorReal) * rate
-    if (t > MAX_MS || t < MIN_MS) {
-      this.anchorSim = Math.min(MAX_MS, Math.max(MIN_MS, t))
+    if (t > MAX_TIME_MS || t < MIN_TIME_MS) {
+      this.anchorSim = Math.min(MAX_TIME_MS, Math.max(MIN_TIME_MS, t))
       this.anchorReal = performance.now()
       this.state = { ...this.state, playing: false }
       this.emit()
@@ -51,7 +58,9 @@ export class SimClock {
   }
 
   setTime(ms: number) {
-    this.anchorSim = Math.min(MAX_MS, Math.max(MIN_MS, ms))
+    if (!Number.isFinite(ms)) throw new RangeError('Expected a finite UTC timestamp.')
+    if (ms < MIN_TIME_MS || ms > MAX_TIME_MS) throw new RangeError('Dates must be within 1600–2400.')
+    this.anchorSim = ms
     this.anchorReal = performance.now()
     this.state = { ...this.state, live: false }
     this.emit()
@@ -69,6 +78,7 @@ export class SimClock {
   }
 
   setSpeed(speed: SpeedId) {
+    if (!SPEEDS.some((entry) => entry.id === speed)) throw new RangeError('Unknown playback speed.')
     this.rebase()
     this.state = { ...this.state, live: false, playing: true, speed }
     this.emit()
@@ -76,7 +86,7 @@ export class SimClock {
 
   subscribe = (l: Listener) => {
     this.listeners.add(l)
-    return () => this.listeners.delete(l)
+    return () => { this.listeners.delete(l) }
   }
 
   getState = () => this.state
@@ -84,11 +94,4 @@ export class SimClock {
   private emit() {
     this.listeners.forEach((l) => l())
   }
-}
-
-export const simClock = new SimClock()
-
-// Test hook: lets the automated visual check start fast playback
-if (typeof window !== 'undefined') {
-  ;(window as unknown as { __celestialClockSim?: (s: SpeedId) => void }).__celestialClockSim = (s) => simClock.setSpeed(s)
 }

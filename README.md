@@ -1,4 +1,127 @@
-# Celestial Clock
+# Skydial
+
+A package for 3D and duotone LCD astronomical clocks, Earth and Moon widgets, and date selectors
+that show celestial positions. React components, Vue components, a Svelte action and a vanilla mount API
+share one renderer. Astronomy, simulation time and Three.js models are also
+available independently.
+
+**Skydial 0.1.0 release candidate; not yet published on npm.**
+The package-site documentation and interactive consumer playground are built.
+The native mobile app remains a separate next project.
+
+For regular website forms, use the form-only entry (React and React DOM; no
+Three.js peers required):
+
+```tsx
+import { CelestialPicker, CelestialScrollPicker, CelestialStepper } from 'skydial/pickers'
+import 'skydial/picker.css'
+
+<CelestialPicker name="startsAt" mode="datetime" required clearable theme="light" />
+<CelestialPicker name="year" precision="year" control="stepper" />
+<CelestialScrollPicker units={['year', 'month']} />
+<CelestialStepper units={['day', 'hour', 'minute']} steps={{ minute: 15 }} />
+```
+
+The field defaults to a 32px control with an anchored popover. Select units,
+per-unit steps, bounds, size and theme; use standalone elements inline or share
+one provider. Native form validation, submission, reset, empty values and
+controlled values are supported. The documentation picker configurator exposes
+these options in the UI and includes a real form with its submitted value.
+
+The designed date/time input shows an orbital calendar, scrolling columns and −/+
+steps together when opened. Light and dark themes cover the entire popup:
+
+```tsx
+import { CelestialInput } from 'skydial/react'
+import 'skydial/style.css'
+
+<CelestialInput name="startsAt" label="Date" mode="date" theme="auto" defaultValue={new Date('2026-03-20T12:00:00Z')} />
+<CelestialInput name="time" mode="time" precision="second" steps={{ minute: 15 }} />
+<CelestialInput name="year" precision="year" planet="jupiter" />
+```
+
+`scene="auto"` shows the Sun, Earth and one year planet (Jupiter by default). Earth’s revolution selects the day; the year planet defines the year range. Combined date/time inputs add rotating Earth for time. Set `planet` in host settings; the popup contains no planet selector or repeated date/title/help text. Use
+`interactive={false}` for a decorative orbital view alongside precise controls. Optional `earth`, `moon` and `planet` scenes remain available; `scene={false}` hides the visual.
+The default `control="both"` places −/+ buttons beneath the scrollers; wheel-only
+and editable-stepper alternatives are available. The selected moment is shared
+by the scene, controls and native form value. Use the same `CelestialInput` in Vue,
+the Svelte `input` action or `mountCelestial(element, 'input', options)`.
+
+Customize every visible element with `styles` and `classNames`, keyed by the
+exported `PICKER_PARTS`. Styles can depend on selected/disabled state or unit.
+Use `orbitalStyle` for canvas colours, stroke weights and body sizes;
+`wheelRowHeight`/`wheelRows` for scroll geometry; and `popoverPlacement`/`popoverOffset`
+for positioning. The live builder exposes these settings and exports the code.
+
+A second style uses a duotone LCD display, vector segmented digits and flat
+celestial diagrams, with the same date, time and form behaviour:
+
+```tsx
+<CelestialInput variant="lcd" mode="datetime" planet="jupiter" theme="light" />
+<EarthWidget variant="lcd" theme="light" size="medium" />
+```
+
+Use `variant="celestial"` for textured 3D (the default). LCD scenes use SVG and do
+not start WebGL or fetch textures. Both styles support light, dark and system
+appearance. Set `colors={{ background: '#dcebf1', foreground: '#183747' }}` to
+recolour the LCD display. The same `colors` option works on compact widgets and
+standalone scroll/step controls. The live builders provide swatches, colour codes
+and presets; [colour configuration](docs/package-api.md#colour-configuration)
+lists the 3D palette options.
+The visual entry still uses the documented renderer peer dependencies; the
+form-only entry remains separate.
+
+The 3D views also work inline:
+
+```tsx
+import { EarthWidget, MoonWidget, OrreryWidget, CelestialDateTimePicker } from 'skydial/react'
+import 'skydial/style.css'
+
+<CelestialDateTimePicker />
+<EarthWidget size="small" />
+<MoonWidget size="medium" />
+<OrreryWidget size="large" />
+```
+
+Turn the 3D Earth to choose hours (crossing midnight changes the day). Touch or
+drag the orrery's calendar ring to select a day, or its gold year orbit to select
+a year. The visible planet selector defaults to Jupiter and also offers Saturn,
+Uranus and Neptune. Click selections animate through astronomical time.
+
+Compact website widgets come in small, medium and large sizes, with Earth,
+Moon, orrery and planetary-year variants. Each standalone widget owns its time. Wrap widgets in `CelestialProvider` to
+synchronize them. Textures ship in the package and load relative to its assets;
+there is no public-folder copying step. Surface textures are mapped onto real
+sphere meshes; orientation and lighting come from the astronomy calculations.
+
+[API and examples](docs/package-api.md) · [Roadmap](docs/package-roadmap.md)
+
+Try the **Date & time, directly** documentation page to configure form controls
+and click the date input to open celestial visuals and precise controls together. The **Orrery playground** page provides a separate exploration view. **A place on your website** shows all
+four widgets with visible size controls and examples.
+
+Try the built-package playground:
+
+```bash
+npm install
+npm run build:consumer
+npm run preview:consumer
+# http://127.0.0.1:4175/package-demo/
+```
+
+Run `npm run check` for lint, unit/server tests, both builds, consumer types and
+package import/asset checks. Run `npm run test:release` for the full release
+suite: archive/type validation, clean installs, documentation and three-browser
+checks. `npm run test:browser` builds the consumer and runs
+Chromium, Firefox and WebKit checks; install them once with `npx playwright install`.
+Run `npm pack` to create a local installable archive. Code is MIT, copyright
+Plain Matter Pte Ltd; texture licenses remain separate.
+
+Run `npm run docs` for the package-site documentation on port 4323. See
+[framework integrations and API](docs/package-api.md) and the
+[release guide](docs/releasing.md).
+
+## Reference clock app
 
 An astronomical clock that tells the time from the real positions of the Sun, Earth, Moon and planets.
 Look at Earth to read the date. Look at Jupiter to read the year. Look at the Sun's light on Earth to read the hour.
@@ -31,7 +154,7 @@ The strip at the top repeats the four readings and names the body each one comes
 | `tz` | `Europe/London` | Time zone for civil time and the calendar |
 | `name` | `London` | Label for the location |
 | `planet` | `saturn` | Year-hand planet |
-| `t` | `2026-03-20T14:46:00Z` | Start the clock at this instant (it keeps running) |
+| `t` | `2026-03-20T14:46:00Z` | Start paused at this instant |
 
 Embed in any site:
 
@@ -46,7 +169,7 @@ The site is installable (web app manifest): "Add to Home Screen" on iOS/Android 
 ```bash
 npm install
 npm run dev
-npm test             # 45 astronomy, geometry and layout tests
+npm test             # astronomy, geometry, models and component tests
 npm run build        # site, to dist/
 npm run build:lib    # packages, to dist-lib/
 ```
@@ -70,13 +193,11 @@ It captures phone (390 × 844), tablet (768 × 1024) and desktop (1440 × 900) s
 | 3D renderer | `src/render/` | Three.js, React Three Fiber |
 | UI | `src/ui/`, `src/App.tsx` | everything above |
 
-### Packages (`npm run build:lib`)
+### Package entries
 
-- `dist-lib/astro.js` (`celestial-clock/astro`): the astronomy core. Pure functions of a UTC timestamp and a location: heliocentric positions, calendar and year scales, Earth view (sub-solar point, solar time, equation of time, sunrise/sunset), Moon view (phase, illumination, bright-limb and parallactic angles, rise/set, next quarter), time-zone helpers.
-- `dist-lib/react.js` (`celestial-clock`): `<CelestialClock view="orrery" useUrl={false} />`, plus the simulation clock. React, Three.js and R3F are peer dependencies. Copy `public/textures` into the host's public folder.
-- Type declarations in `dist-lib/types`.
-
-These are the building blocks for the planned native apps: the astronomy core runs anywhere JavaScript runs (React Native, Electron, a Swift app via JavaScriptCore), and the installable web app already covers desktop and home-screen use.
+See [the package API](docs/package-api.md) for the component, astronomy,
+simulation-clock and Three.js entries. The native app can reuse `/astro` and
+`/clock` without React, Three.js, DOM access or browser assets.
 
 ### How alignment is guaranteed
 

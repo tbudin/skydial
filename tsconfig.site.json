@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "strict": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.site.tsbuildinfo"
+  },
+  "include": ["site/*.ts", "site/*.tsx"]
+}

@@ -1,0 +1,1120 @@
+@import './picker.css';
+
+.celestial-clock {
+
+& {
+  --bg: #04070d;
+  --panel: #0a0f19;
+  --line: rgba(160, 178, 206, 0.14);
+  --line-strong: rgba(160, 178, 206, 0.3);
+  --text: #e9eef6;
+  --muted: #8e9ab0;
+  --faint: #5d6880;
+  --green: #79c99e;
+  --gold: #d8b46a;
+  --hour: #a9c8ff;
+  --sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  color-scheme: dark;
+}
+
+&,
+& * {
+  box-sizing: border-box;
+}
+
+& {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+& button,
+& input {
+  font: inherit;
+  color: inherit;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.app {
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 18px 24px 0;
+}
+
+.masthead h1 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.masthead-note {
+  font-size: 12px;
+  color: var(--faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Orrery */
+
+.orrery-section {
+  position: relative;
+  padding: 0 16px;
+}
+
+.orrery-canvas {
+  position: relative;
+  width: 100%;
+  height: min(100vw - 32px, 88vh);
+  min-height: 340px;
+}
+
+.orrery-canvas canvas {
+  touch-action: pan-y;
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--faint);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.scale-note {
+  margin: 4px auto 0;
+  max-width: 720px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+.warning {
+  margin: 8px auto;
+  max-width: 720px;
+  padding: 10px 14px;
+  border: 1px solid rgba(216, 180, 106, 0.4);
+  border-radius: 10px;
+  color: var(--gold);
+  font-size: 13px;
+}
+
+/* Orrery labels: one DOM layer, positioned by the layout engine */
+
+.orrery-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.label-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.label-layer .scale-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  will-change: transform;
+}
+
+.label-layer .scale-label[data-visible='true'] {
+  opacity: 1;
+}
+.label-layer .scale-label[data-visible='false'] {
+  visibility: hidden;
+}
+
+.scale-label {
+  display: block;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  user-select: none;
+}
+
+.scale-label.month.active {
+  color: var(--green);
+  font-weight: 500;
+}
+
+.scale-label.year {
+  color: rgba(216, 180, 106, 0.78);
+  font-size: 10px;
+}
+
+.scale-label.date-pill,
+.scale-label.year-pill {
+  padding: 4px 8px 3px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #04100a;
+  box-shadow: 0 0 0 3px var(--bg);
+}
+
+.scale-label.date-pill {
+  background: var(--green);
+  /* Fixed width: "1 JUL" and "30 JUN" take the same box, so the layout never works from a stale size */
+  min-width: calc(6ch + 16px);
+  text-align: center;
+}
+
+.scale-label.year-pill {
+  background: var(--gold);
+  color: #140d02;
+}
+
+@media (max-width: 480px) {
+  .scale-label {
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+  }
+  .scale-label.year {
+    font-size: 8.5px;
+  }
+  .scale-label.date-pill,
+  .scale-label.year-pill {
+    font-size: 10px;
+    padding: 3px 6px 2px;
+  }
+  .scale-label.date-pill {
+    min-width: calc(6ch + 12px);
+  }
+  .masthead {
+    padding: 14px 16px 0;
+  }
+}
+
+/* Reading strip: the four readings, each keyed to the hand that shows it */
+
+.reading {
+  max-width: 1280px;
+  margin: 16px auto 0;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reading-cell {
+  position: relative;
+  padding: 12px 14px 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  min-width: 0;
+}
+
+.reading-cell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--key);
+}
+
+.reading-cell.hour {
+  --key: var(--hour);
+}
+
+.reading-cell.day,
+.reading-cell.month {
+  --key: var(--green);
+}
+
+.reading-cell.year {
+  --key: var(--gold);
+}
+
+.reading-label {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.reading-value {
+  display: block;
+  margin-top: 4px;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--key);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reading-weekday {
+  font-size: 0.5em;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.reading-value .secs {
+  color: var(--muted);
+}
+
+.reading-source {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 760px) {
+  .reading {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .reading-value {
+    font-size: 24px;
+  }
+}
+
+/* Controls */
+
+.controls-section {
+  max-width: 920px;
+  margin: 20px auto 0;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.planet-selector {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.planet-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.planet-btn:hover {
+  border-color: var(--line-strong);
+}
+
+.planet-btn.selected {
+  border-color: rgba(216, 180, 106, 0.55);
+  background: rgba(216, 180, 106, 0.06);
+}
+
+.planet-thumb {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+}
+
+.planet-thumb img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.thumb-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+
+.planet-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.planet-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.planet-btn.selected .planet-name {
+  color: var(--gold);
+}
+
+.planet-period {
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  .planet-selector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.time-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.chip,
+.seg {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.chip:hover,
+.seg:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.chip.active {
+  color: var(--text);
+  border-color: rgba(121, 201, 158, 0.55);
+}
+
+.chip.icon {
+  width: 40px;
+  justify-content: center;
+  padding: 0;
+  font-size: 18px;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.live-dot.on {
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgba(121, 201, 158, 0.18);
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.seg.active {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.year-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.year-input,
+.date-input {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  padding: 0 10px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.year-input {
+  width: 84px;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.year-input::-webkit-inner-spin-button,
+.year-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.scrubber input[type='range'] {
+  width: 100%;
+  height: 32px;
+  accent-color: var(--green);
+  background: transparent;
+}
+
+@media (max-width: 480px) {
+  .seg {
+    padding: 0 11px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wide-only {
+    display: none;
+  }
+}
+
+/* Location */
+
+.location {
+  max-width: 1280px;
+  margin: 14px auto 0;
+  padding: 0 24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.location-now {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.location-name {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.location-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.location-meta .approx {
+  color: var(--gold);
+}
+
+.location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.select {
+  min-height: 40px;
+  padding: 0 34px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238e9ab0' fill='none' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 14px center;
+  color: var(--muted);
+  font-size: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.select option {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.location-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.coords {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.coords label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.coords .year-input {
+  width: 120px;
+  text-align: left;
+}
+
+.coords .location-note {
+  flex-basis: auto;
+}
+
+/* Telemetry panels */
+
+.telemetry {
+  max-width: 1280px;
+  margin: 18px auto 0;
+  padding: 0 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.telemetry.single {
+  max-width: 640px;
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 760px) {
+  .telemetry {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.panel-kicker {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.panel-place {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.globe-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1;
+  margin: 6px auto 0;
+}
+
+.globe-wrap > div:first-child {
+  position: absolute !important;
+  inset: 0;
+}
+
+.dial {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.dial-ring {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 0.8;
+}
+
+.dial-tick {
+  stroke: var(--faint);
+  stroke-width: 0.8;
+}
+
+.dial-tick.hour {
+  stroke: #8e9ab0;
+  stroke-width: 1;
+}
+
+.dial-tick.major {
+  stroke: #c9d2e0;
+  stroke-width: 1.4;
+}
+
+.dial-label.major {
+  fill: var(--text);
+  font-weight: 500;
+}
+
+.dial-window rect {
+  fill: var(--hour);
+  stroke: var(--bg);
+  stroke-width: 3;
+  paint-order: stroke;
+}
+
+.dial-window text {
+  fill: #050b16;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.dial-label {
+  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.dial-day {
+  fill: none;
+  stroke: rgba(216, 180, 106, 0.28);
+  stroke-width: 7;
+}
+
+.dial-noon {
+  stroke: var(--gold);
+  stroke-width: 1.4;
+}
+
+.dial-rise {
+  fill: var(--gold);
+}
+
+.dial-track {
+  fill: none;
+  stroke: rgba(216, 180, 106, 0.18);
+  stroke-width: 0.8;
+}
+
+.dial-sun {
+  fill: var(--gold);
+  stroke: #04070d;
+  stroke-width: 1.5;
+}
+
+.dial-hand {
+  stroke: var(--hour);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.observer-dot {
+  fill: var(--green);
+}
+
+.observer-ring {
+  fill: none;
+  stroke: rgba(121, 201, 158, 0.6);
+  stroke-width: 1;
+}
+
+.panel-readout {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.big-time {
+  font-size: 30px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+
+.big-time .secs {
+  color: var(--muted);
+}
+
+.panel-readout .sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.facts {
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 10px;
+}
+
+.facts div {
+  min-width: 0;
+}
+
+.facts dt {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.facts dd {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gold {
+  color: var(--gold);
+}
+
+.credits {
+  font-size: 11.5px;
+  color: var(--faint);
+  line-height: 1.6;
+}
+
+.credits a {
+  color: var(--muted);
+}
+
+/* Modes */
+
+.view-full .orrery-section {
+  margin-top: 18px;
+}
+
+.view-ambient {
+  cursor: none;
+  padding-bottom: 0;
+}
+
+.view-ambient .telemetry {
+  margin-top: 12px;
+}
+
+.view-ambient .panel-readout .facts {
+  display: none;
+}
+
+.view-orrery,
+.view-earth,
+.view-moon {
+  padding-bottom: 0;
+}
+
+.view-orrery .orrery-canvas {
+  height: min(100vw - 32px, 100vh - 140px);
+}
+
+@media (min-width: 1024px) {
+  .view-ambient .side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    min-height: 0;
+  }
+  .view-ambient .reading {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    padding: 0 0 0 24px;
+  }
+  .view-ambient .reading-value {
+    font-size: 26px;
+  }
+  .view-ambient {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.36fr) 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .view-ambient .telemetry {
+    grid-template-columns: 1fr;
+    align-content: center;
+    margin: 0;
+    padding: 16px 0 16px 24px;
+    gap: 12px;
+  }
+  .view-ambient .panel {
+    border: none;
+    padding: 4px 8px;
+  }
+  .view-ambient .globe-wrap {
+    max-width: min(34vh, 320px);
+  }
+  .view-ambient .orrery-section {
+    align-self: center;
+  }
+  .view-ambient .orrery-canvas {
+    height: min(100vh - 20px, 64vw);
+  }
+  .view-orrery .orrery-canvas {
+    height: calc(100vh - 20px);
+  }
+}
+
+@media (max-width: 420px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+}
+
+.celestial-clock .app { min-height: 0; }
+.celestial-widget { width: 100%; }
+.celestial-orrery-widget .celestial-clock .view-orrery .orrery-canvas {
+  width: 100%; height: auto; aspect-ratio: 1;
+}
+.celestial-orrery-widget .orrery-section { padding: 0; }
+.celestial-date-picker .date-selection {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding: 16px; border-bottom: 1px solid var(--line);
+}
+.celestial-date-picker .date-selection .scrubber { flex-basis: 100%; }
+.celestial-clock :focus-visible { outline: 2px solid var(--hour); outline-offset: 3px; }
+.celestial-clock [hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .celestial-clock *, .celestial-clock *::before, .celestial-clock *::after {
+    animation: none !important; transition: none !important;
+  }
+}
+
+/* Direct celestial selection */
+.celestial-date-picker { border-radius: 28px; overflow: hidden; background: #060b13; }
+.celestial-clock .direct-picker-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 28px 28px 12px; }
+.celestial-clock .picker-eyebrow { display: block; font-size: 10px; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; margin-bottom: 9px; }
+.celestial-clock .picker-selected-date { display: block; font-size: clamp(22px, 3vw, 32px); font-weight: 450; letter-spacing: -.04em; }
+.celestial-clock .picker-year-source { font-size: 11px; padding: 8px 12px; border-radius: 99px; background: #d8b46a12; color: var(--gold); }
+.celestial-clock .direct-picker-layout { display: grid; grid-template-columns: minmax(180px, .6fr) minmax(0, 1fr); align-items: center; }
+.celestial-clock .earth-time-control { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px; min-width: 0; }
+.celestial-clock .earth-view-controls { width: 100%; max-width: 290px; margin-bottom: 12px; }
+.celestial-clock .earth-view-select { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; font-size: 10px; color: var(--muted); }
+.celestial-clock .earth-view-select + .earth-view-select { margin-top: 6px; }
+.celestial-clock .earth-view-select > span { flex: 0 0 56px; }
+.celestial-clock .earth-view-select select { min-width: 0; width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; background: #101722; color: var(--text); font: inherit; font-size: 11px; cursor: pointer; }
+.celestial-clock .earth-use-location { min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 6px 14px; margin-top: 8px; background: #ffffff05; color: var(--hour); font: inherit; font-size: 11px; cursor: pointer; }
+.celestial-clock .earth-view-location, .celestial-clock .earth-location-note { font-size: 10px; line-height: 1.6; color: var(--muted); margin: 8px 0 0; overflow-wrap: anywhere; }
+.celestial-clock .earth-location-note { color: var(--gold); }
+.celestial-clock .earth-precision { display: flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid var(--line); border-radius: 99px; margin-bottom: 10px; }
+.celestial-clock .earth-precision > span { font-size: 10px; color: var(--muted); padding: 0 8px; }
+.celestial-clock .earth-precision button { min-height: 44px; padding: 0 15px; border: 0; border-radius: 99px; font: inherit; font-size: 11px; color: var(--muted); background: transparent; cursor: pointer; }
+.celestial-clock .earth-precision button[aria-pressed="true"] { background: #79c99e1c; color: var(--hour); }
+.celestial-clock .earth-turner { position: relative; width: 100%; max-width: 290px; aspect-ratio: 1; margin: auto; cursor: grab; touch-action: pan-y; border-radius: 50%; }
+.celestial-clock .earth-turner:active { cursor: grabbing; }
+.celestial-clock .earth-turner canvas { pointer-events: none; }
+.celestial-clock .earth-city-reticle { display: none; position: absolute; pointer-events: none; left: 50%; top: 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); border: 1px solid #fff; border-radius: 50%; box-shadow: 0 0 0 2px #060b1399; }
+.celestial-clock .earth-city-reticle::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; }
+.celestial-clock .earth-turner:has(canvas) .earth-city-reticle { display: block; }
+.celestial-clock .earth-drag-hint { position: absolute; bottom: 0; left: 0; right: 0; font-size: 9px; letter-spacing: .22em; color: var(--muted); pointer-events: none; }
+.celestial-clock .earth-time-editor { display: flex; align-items: flex-start; gap: 6px; margin-top: 24px; color: var(--hour); font-variant-numeric: tabular-nums; }
+.celestial-clock .earth-time-part { width: 96px; }
+.celestial-clock .earth-time-label { display: block; text-transform: uppercase; font-size: 9px; letter-spacing: .14em; color: var(--muted); margin-bottom: 5px; }
+.celestial-clock .earth-time-digit { display: block; box-sizing: border-box; width: 100%; padding: 2px 0; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--hour); font: inherit; font-size: clamp(42px, 5vw, 56px); line-height: 1.1; text-align: center; caret-color: var(--hour); }
+.celestial-clock .earth-time-part[data-active="true"] .earth-time-digit { border-color: #79c99e30; background: #79c99e09; }
+.celestial-clock .earth-time-digit:focus { outline-offset: 2px; border-color: var(--hour); background: #79c99e12; }
+.celestial-clock .time-colon { color: var(--muted); margin-top: 23px; font-size: 40px; line-height: 1; }
+.celestial-clock .earth-time-steps { display: flex; gap: 4px; margin-top: 6px; }
+.celestial-clock .earth-time-steps button { flex: 1; min-width: 44px; min-height: 44px; padding: 0; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 20px; color: var(--hour); background: #ffffff05; cursor: pointer; }
+.celestial-clock .earth-time-steps button:hover:not(:disabled) { background: #79c99e18; border-color: #79c99e60; }
+.celestial-clock .earth-time-control button:disabled, .celestial-clock .earth-time-digit:disabled { opacity: .45; cursor: default; }
+.celestial-clock .earth-view-select select:disabled { opacity: .6; cursor: default; }
+.celestial-clock .earth-turner[aria-disabled="true"] { cursor: default; }
+.celestial-clock .picker-instruction { font-size: 11px; color: var(--muted); line-height: 1.7; margin: 12px auto; max-width: 340px; text-align: center; padding: 0 12px; }
+.celestial-clock .picker-zone { font-size: 10px; color: var(--faint); }
+.celestial-clock .orrery-control { padding: 18px 16px; min-width: 0; }
+.celestial-clock .orbit-control-heading { display: flex; justify-content: space-between; gap: 12px; font-size: 9px; color: var(--muted); letter-spacing: .1em; margin: 0 8px 16px; }
+.celestial-clock .orrery-control .planet-selector { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 0; }
+.celestial-clock .orrery-control .planet-btn { min-width: 0; padding: 6px 2px; flex-direction: column; gap: 3px; border-radius: 12px; }
+.celestial-clock .orrery-control .planet-thumb { width: 36px; height: 28px; }
+.celestial-clock .orrery-control .planet-name { font-size: 10px; }
+.celestial-clock .orrery-control .planet-period { display: none; }
+.celestial-clock .orrery-control-stage { position: relative; width: 100%; aspect-ratio: 1; }
+.celestial-clock .orrery-control-stage .orrery-stage { height: 100%; width: 100%; }
+.celestial-clock .orbit-pick-layer { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.celestial-clock .orbit-hit { pointer-events: stroke; cursor: grab; touch-action: none; outline: none; }
+.celestial-clock .orbit-hit:active { cursor: grabbing; }
+.celestial-clock .orbit-hit-day:hover, .celestial-clock .orbit-hit-day:focus-visible { stroke: color-mix(in srgb, var(--green) 12%, transparent); }
+.celestial-clock .orbit-hit-year:hover, .celestial-clock .orbit-hit-year:focus-visible { stroke: color-mix(in srgb, var(--gold) 12%, transparent); }
+.celestial-clock .orbit-hit:focus-visible { stroke-width: 32px; }
+.celestial-clock .orbit-hit[aria-disabled="true"] { cursor: default; }
+.celestial-clock .orbit-preview { position: absolute; z-index: 3; max-width: calc(100% - 8px); padding: 6px 9px; border: 1px solid currentColor; border-radius: var(--picker-radius, 6px); color: var(--green); background: var(--bg); box-shadow: 0 3px 12px #02050b20; font-family: var(--picker-font, inherit); font-size: 12px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.celestial-clock .orbit-preview[data-kind="year"] { color: var(--gold); }
+.celestial-clock .orbit-preview-marker { fill: var(--bg); stroke: var(--green); stroke-width: 2px; pointer-events: none; }
+.celestial-clock .orbit-preview-marker[data-kind="year"] { stroke: var(--gold); }
+.celestial-clock[data-picker-style="lcd"] .orbit-preview { color: var(--lcd-paper); background: var(--lcd-ink); border-color: var(--lcd-ink); box-shadow: none; border-radius: var(--picker-radius); font-family: inherit; }
+.celestial-clock[data-picker-style="lcd"] .orbit-preview-marker { fill: var(--lcd-paper); stroke: var(--lcd-ink); }
+@media (forced-colors: active) {
+  .celestial-clock .orbit-preview, .celestial-clock[data-picker-style="lcd"] .orbit-preview { color: CanvasText; background: Canvas; border-color: CanvasText; }
+  .celestial-clock .orbit-preview-marker, .celestial-clock[data-picker-style="lcd"] .orbit-preview-marker { fill: Canvas; stroke: CanvasText; }
+}
+.celestial-clock .orbit-range-navigation { display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--gold); font-size: 11px; }
+.celestial-clock .orbit-range-navigation .chip { padding: 3px 10px; }
+.celestial-clock .picker-exact { border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+.celestial-clock .picker-exact summary { cursor: pointer; padding: 16px 24px; }
+.celestial-clock .picker-exact .date-selection { border: 0; padding-top: 0; }
+.celestial-clock .orrery-section > .planet-selector { margin: 0 8px 12px; }
+
+/* Website cards keep the reading and the 3D scene in separate areas. */
+.celestial-card { position: relative; isolation: isolate; flex-shrink: 0; overflow: hidden; border: 1px solid var(--widget-border, #b5c7e51c); border-radius: 24px; background: var(--widget-background, radial-gradient(ellipse at 100% 100%, #1c304a, #0b111d 80%)); box-shadow: 0 8px 24px #06102514; max-width: 100%; }
+.celestial-card.widget-small { width: 176px; height: 176px; }
+.celestial-card.widget-medium { width: 368px; height: 176px; }
+.celestial-card.widget-large { width: 368px; height: 368px; }
+.celestial-card .widget-copy { position: absolute; inset: 18px 20px; z-index: 2; display: flex; align-items: flex-start; flex-direction: column; gap: 7px; pointer-events: none; }
+.celestial-card .widget-eyebrow { color: var(--widget-muted, #acbdd4); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.celestial-card .widget-value { color: var(--widget-foreground, #edf5ff); font-size: 38px; line-height: 1.1; letter-spacing: -.05em; font-weight: 450; font-variant-numeric: tabular-nums; }
+.celestial-card .widget-caption { font-size: 11px; color: var(--widget-muted, #c0ccdf); max-width: 142px; line-height: 1.4; }
+.celestial-card .widget-detail { font-size: 9px; color: var(--widget-muted, #8e9fb8); max-width: 155px; line-height: 1.5; }
+.celestial-card .widget-scene { position: absolute; width: 240px; height: 240px; top: -32px; right: -24px; z-index: 1; pointer-events: none; }
+.celestial-card.widget-medium .widget-copy { right: 170px; }
+.celestial-card.widget-moon { background: var(--widget-background, radial-gradient(ellipse at 100% 100%, #292d3c, #10121d 80%)); }
+.celestial-card.widget-year { background: var(--widget-background, radial-gradient(ellipse at 100% 100%, #3b3026, #171418 80%)); }
+.celestial-card.widget-year .widget-value { color: var(--widget-foreground, #ecd29d); }
+.celestial-card .widget-planet-select { position: absolute; z-index: 3; bottom: 14px; left: 20px; }
+.celestial-card .widget-planet-select select { width: 112px; min-height: 32px; font-size: 10px; border: 1px solid var(--widget-border, #ecd29d40); border-radius: 99px; padding: 5px 10px; color: var(--widget-foreground, #ecd29d); background: var(--widget-background, #201c20); font-family: inherit; }
+.celestial-card.widget-year .widget-detail, .celestial-card.widget-orrery .widget-detail { display: none; }
+.celestial-card.widget-orrery { background: var(--widget-background, radial-gradient(ellipse at 80% 70%, #202c32, #0b1119 80%)); }
+.celestial-card.widget-orrery .widget-scene { width: 172px; height: 160px; top: 8px; right: 8px; }
+.celestial-card .widget-scene .orrery-stage { width: 100%; height: 100%; }
+.celestial-card .widget-loading { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 10px; color: var(--muted); text-align: center; }
+.celestial-card.widget-orrery .widget-caption { max-width: 140px; }
+.celestial-card.widget-small .widget-copy { inset: 16px; gap: 6px; }
+.celestial-card.widget-small .widget-value { font-size: 32px; }
+.celestial-card.widget-small .widget-eyebrow { max-width: 130px; font-size: 8px; }
+.celestial-card.widget-small .widget-scene { width: 156px; height: 156px; top: auto; right: -20px; bottom: -24px; }
+.celestial-card.widget-small .widget-caption { margin-top: auto; max-width: 65px; font-size: 10px; }
+.celestial-card.widget-small .widget-detail { display: none; }
+.celestial-card.widget-small .widget-planet-select { top: 10px; right: 12px; bottom: auto; left: auto; }
+.celestial-card.widget-small .widget-planet-select select { width: 82px; min-height: 28px; font-size: 9px; padding: 4px 5px; }
+.celestial-card.widget-small.widget-year .widget-eyebrow { max-width: 42px; }
+.celestial-card.widget-small.widget-orrery .widget-value { font-size: 24px; }
+.celestial-card.widget-small.widget-orrery .widget-scene { width: 110px; height: 110px; right: 2px; bottom: 2px; }
+.celestial-card.widget-small.widget-orrery .widget-planet-select { left: 12px; top: auto; right: auto; bottom: 12px; }
+.celestial-card.widget-small.widget-orrery .widget-planet-select select { width: 72px; }
+.celestial-card.widget-small.widget-orrery .widget-caption { display: none; }
+.celestial-card.widget-large .widget-copy { inset: 24px; gap: 9px; }
+.celestial-card.widget-large .widget-value { font-size: 52px; }
+.celestial-card.widget-large .widget-scene { width: 310px; height: 310px; top: 74px; right: -16px; }
+.celestial-card.widget-large .widget-caption { margin-top: auto; font-size: 12px; max-width: 155px; }
+.celestial-card.widget-large .widget-detail { display: block; max-width: 270px; }
+.celestial-card.widget-large.widget-year .widget-caption { margin-top: 0; }
+.celestial-card.widget-large .widget-planet-select { bottom: auto; left: auto; top: 20px; right: 20px; }
+.celestial-card.widget-large.widget-orrery .widget-value { font-size: 28px; }
+.celestial-card.widget-large.widget-orrery .widget-scene { inset: 78px 12px 30px; width: auto; height: auto; }
+.celestial-card.widget-large.widget-orrery .widget-caption { display: none; }
+.celestial-card.widget-large.widget-orrery .widget-detail { margin-top: auto; }
+@media (max-width: 650px) {
+  .celestial-clock .direct-picker-layout { grid-template-columns: minmax(0, 1fr); }
+  .celestial-clock .direct-picker-heading { padding: 22px 20px 0; }
+  .celestial-clock .earth-time-control { padding: 18px 12px; }
+  .celestial-clock .earth-turner { max-width: 200px; }
+  .celestial-clock .earth-time-editor { margin-top: 20px; }
+  .celestial-clock .earth-time-control .picker-instruction { font-size: 10px; }
+  .celestial-clock .earth-drag-hint { bottom: -6px; font-size: 8px; }
+  .celestial-clock .earth-time-control .picker-zone { font-size: 9px; }
+  .celestial-clock .orrery-control { padding-top: 20px; }
+}
+.celestial-card .celestial-orrery-widget .orrery-canvas { min-height: 0; }
+.celestial-time-picker { max-width: 360px; border-radius: 28px; background: #060b13; overflow: hidden; }
+.celestial-clock .celestial-fallback { display: flex; width: 100%; height: 100%; min-height: 100px; padding: 14px; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; color: var(--muted); font-size: 11px; }
+.celestial-clock .celestial-fallback > span { font-size: 30px; color: var(--gold); }
+.celestial-clock .celestial-fallback p { margin: 0; }
+.celestial-clock .celestial-fallback small { max-width: 210px; line-height: 1.5; font-size: 10px; }
+.celestial-card .celestial-fallback { justify-content: flex-end; padding-bottom: 36px; }
+.celestial-card .celestial-fallback small { display: none; }
+
+.celestial-clock .earth-coordinates-toggle { background: transparent; border: 0; color: var(--muted); font: inherit; font-size: 10px; text-decoration: underline; padding: 8px; cursor: pointer; }
+.celestial-clock .earth-coordinates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; text-align: left; padding-top: 8px; }
+.celestial-clock .earth-coordinates label { min-width: 0; font-size: 10px; color: var(--muted); }
+.celestial-clock .earth-coordinates input { width: 100%; min-height: 40px; margin-top: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: #101722; color: var(--text); font: inherit; }
+.celestial-clock .earth-coordinates button { grid-column: 1 / -1; }
+
+.celestial-card { container-type: inline-size; }
+@container (max-width: 320px) {
+  .celestial-card.widget-medium .widget-copy { left: 16px; right: 110px; }
+  .celestial-card.widget-medium .widget-value { font-size: 32px; }
+  .celestial-card.widget-medium .widget-caption, .celestial-card.widget-medium .widget-detail { max-width: 118px; }
+  .celestial-card.widget-medium .widget-scene { width: 190px; height: 190px; right: -32px; top: -7px; }
+  .celestial-card.widget-medium.widget-orrery .widget-scene { width: 128px; height: 128px; right: 6px; top: 24px; }
+}
+
+.celestial-card.widget-medium.widget-moon .widget-scene { width: 208px; height: 208px; right: -14px; top: -16px; }
+.celestial-card.widget-small .widget-scene { right: -30px; }
+.celestial-card.widget-small.widget-moon .widget-scene { width: 132px; height: 132px; right: -14px; bottom: -10px; }
+.celestial-card.widget-small.widget-orrery .widget-scene { right: 2px; }
+@container (max-width: 320px) {
+  .celestial-card.widget-medium.widget-moon .widget-scene { width: 168px; height: 168px; right: -10px; top: 4px; }
+}
+.celestial-card.widget-small.widget-year[data-planet="saturn"] .widget-scene { width: 120px; height: 120px; right: 5px; bottom: 3px; }
+.celestial-card.widget-medium.widget-year[data-planet="saturn"] .widget-scene { width: 208px; height: 208px; right: 0; top: -16px; }
+.celestial-card.widget-large.widget-year[data-planet="saturn"] .widget-scene { right: 0; }
+
+.celestial-clock .label-layer { z-index: 2; }
+.celestial-clock .orbit-pick-layer { z-index: 1; }
+.celestial-clock .label-layer button.scale-label { padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer; pointer-events: auto; }
+.celestial-clock .label-layer button.scale-label:not([data-visible="true"]) { pointer-events: none; }
+.celestial-clock .label-layer button.scale-label:hover { color: var(--text); text-decoration: underline; }

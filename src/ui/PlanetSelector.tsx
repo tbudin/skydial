@@ -1,4 +1,4 @@
-import { PLANET_BY_ID, type YearPlanetId } from '../astro/bodies'
+import { PLANET_BY_ID, type YearPlanetId } from '../astro/bodies.js'
 
 const ORDER: YearPlanetId[] = ['jupiter', 'saturn', 'uranus', 'neptune']
 
@@ -6,7 +6,9 @@ export function PlanetSelector({
   value,
   onChange,
   thumbnails,
+  disabled = false,
 }: {
+  disabled?: boolean
   value: YearPlanetId
   onChange: (id: YearPlanetId) => void
   thumbnails: Partial<Record<YearPlanetId, string>>
@@ -19,7 +21,19 @@ export function PlanetSelector({
         return (
           <button
             key={id}
+            type="button"
+            disabled={disabled}
             role="radio"
+            tabIndex={selected ? 0 : -1}
+            onKeyDown={(event) => {
+              const current = ORDER.indexOf(id)
+              const direction = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 0
+              const index = event.key === 'Home' ? 0 : event.key === 'End' ? ORDER.length - 1 : direction ? (current + direction + ORDER.length) % ORDER.length : -1
+              if (index < 0) return
+              event.preventDefault()
+              onChange(ORDER[index])
+              event.currentTarget.parentElement?.querySelectorAll('button')[index]?.focus()
+            }}
             aria-checked={selected}
             className={selected ? 'planet-btn selected' : 'planet-btn'}
             onClick={() => onChange(id)}

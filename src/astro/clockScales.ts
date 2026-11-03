@@ -1,6 +1,6 @@
-import { PLANET_BY_ID, YEAR_SCALES, type YearPlanetId } from './bodies'
-import { helioLongitude } from './ephemeris'
-import { civilParts, dayBoundaries, monthDayFromDayOfYear, zonedToUtc } from './time'
+import { PLANET_BY_ID, YEAR_SCALES, type YearPlanetId } from './bodies.js'
+import { helioLongitude } from './ephemeris.js'
+import { civilParts, dayBoundaries, daysInMonth, monthDayFromDayOfYear, zonedToUtc, type CivilParts } from './time.js'
 
 /**
  * Calendar and year scales, expressed as heliocentric ecliptic longitudes.
@@ -41,7 +41,7 @@ export function calendarScale(year: number, tz: string): CalendarScale {
 
 export interface YearMarker {
   year: number
-  /** Local 1 January 00:00 (UTC ms) */
+  /** Calibration instant: local 1 January by default, or the picker's selected month/day/time. */
   startMs: number
   /** Planet's heliocentric longitude at startMs, radians */
   lon: number
@@ -63,11 +63,13 @@ export interface YearScale {
 /**
  * Year markers for a planet: its longitude on 1 January of each year, from the
  * simulated year forwards, over a span strictly shorter than one orbit.
+ * A picker may supply a civil reference so selecting a year retains its month/day/time
+ * and the hand still reaches the printed mark. Display clocks use January by default.
  * Starting at the current year leaves the whole scale for the years ahead;
  * keeping it under one revolution is the cycle context that removes the
  * one-revolution ambiguity.
  */
-export function yearScale(planet: YearPlanetId, simYear: number, tz: string): YearScale {
+export function yearScale(planet: YearPlanetId, simYear: number, tz: string, reference?: Pick<CivilParts, 'month' | 'day' | 'hour' | 'minute' | 'second'>): YearScale {
   const spec = YEAR_SCALES[planet]
   const period = PLANET_BY_ID[planet].periodYears
   // Whole years that fit in one revolution, minus a safety year
@@ -76,7 +78,9 @@ export function yearScale(planet: YearPlanetId, simYear: number, tz: string): Ye
   const toYear = fromYear + span
   const markers: YearMarker[] = []
   for (let y = fromYear; y <= toYear; y++) {
-    const startMs = zonedToUtc(tz, y, 1, 1)
+    const startMs = reference
+      ? zonedToUtc(tz, y, reference.month, Math.min(reference.day, daysInMonth(y, reference.month)), reference.hour, reference.minute, reference.second)
+      : zonedToUtc(tz, y, 1, 1)
     markers.push({
       year: y,
       startMs,

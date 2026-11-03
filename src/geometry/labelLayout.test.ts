@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { boxesOverlap, boxHitsDisc, boxHitsSeg, layoutLabels, radialCandidate, type LabelRequest } from './labelLayout'
+import { boxesOverlap, boxHitsDisc, boxHitsSeg, layoutLabels, radialCandidate, type LabelRequest } from './labelLayout.js'
 
 const bounds = { x0: 0, y0: 0, x1: 400, y1: 400 }
 

@@ -1,0 +1,98 @@
+import { expect, test } from '@playwright/test'
+
+test('Earth minute mode snaps the drag and exact edits keep widgets synchronized', async ({ page }) => {
+  await page.goto('./')
+  const picker = page.getByRole('region', { name: 'Earth time picker' })
+  const earth = picker.getByRole('slider')
+  await picker.getByRole('button', { name: 'Minutes', exact: true }).click()
+  await expect(picker.getByRole('button', { name: 'Minutes', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await earth.scrollIntoViewIfNeeded()
+  const box = (await earth.boundingBox())!
+  await page.mouse.move(box.x + box.width * .25, box.y + box.height * .5)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width * .5, box.y + box.height * .5, { steps: 12 })
+  await page.mouse.up()
+  await expect(page.getByTestId('selected-date')).toHaveText('2026-03-20T12:15:00.000Z')
+  await picker.getByRole('button', { name: 'Increase minutes' }).click()
+  await expect(page.getByTestId('selected-date')).toHaveText('2026-03-20T12:16:00.000Z')
+  await picker.getByRole('button', { name: 'Decrease hours' }).click()
+  await expect(page.getByTestId('selected-date')).toHaveText('2026-03-20T11:16:00.000Z')
+  await picker.getByRole('spinbutton', { name: 'Hours', exact: true }).fill('09')
+  await picker.getByRole('spinbutton', { name: 'Minutes', exact: true }).fill('37')
+  await page.keyboard.press('Enter')
+  await expect(page.getByTestId('selected-date')).toHaveText('2026-03-20T01:37:00.000Z')
+  await expect(page.getByLabel('earth widget').locator('.widget-value')).toHaveText('09:37')
+  await picker.getByRole('spinbutton', { name: 'Minutes', exact: true }).focus()
+  await page.keyboard.press('ArrowUp')
+  await expect(page.getByTestId('selected-date')).toHaveText('2026-03-20T01:38:00.000Z')
+  await page.keyboard.press('Escape')
+  await earth.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByTestId('selected-date')).toHaveText('2026-03-20T01:39:00.000Z')
+})
+
+test('precise steps cross midnight and invalid or cancelled text leaves the time intact', async ({ page }) => {
+  await page.goto('./?time')
+  const hours = page.getByRole('spinbutton', { name: 'Hours', exact: true })
+  const minutes = page.getByRole('spinbutton', { name: 'Minutes', exact: true })
+  const earth = page.getByRole('slider')
+  await hours.fill('23')
+  await minutes.fill('59')
+  await minutes.press('Enter')
+  await page.getByRole('button', { name: 'Increase minutes' }).click()
+  await expect(hours).toHaveValue('00')
+  await expect(minutes).toHaveValue('00')
+  await expect(earth).toHaveAttribute('aria-valuetext', /21\/3\/2026/)
+  await page.getByRole('button', { name: 'Decrease minutes' }).click()
+  await expect(hours).toHaveValue('23')
+  await expect(minutes).toHaveValue('59')
+  await expect(earth).toHaveAttribute('aria-valuetext', /20\/3\/2026/)
+  await minutes.fill('99')
+  await minutes.press('Enter')
+  await expect(minutes).toHaveValue('59')
+  await hours.fill('08')
+  await hours.press('Escape')
+  await expect(hours).toHaveValue('23')
+  await minutes.fill('')
+  await minutes.press('Tab')
+  await expect(minutes).toHaveValue('59')
+})
+
+test('standalone precision controls work without WebGL and respect disabled and read-only dates', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (kind: string, ...args: unknown[]) {
+      if (kind.includes('webgl')) return null
+      return original.apply(this, [kind, ...args] as Parameters<typeof original>)
+    } as typeof original
+  })
+  await page.goto('./?time')
+  await expect(page.getByText('3D view unavailable')).toBeVisible()
+  await page.getByRole('spinbutton', { name: 'Minutes', exact: true }).fill('07')
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('slider')).toHaveAttribute('aria-valuenow', '1207')
+  for (const query of ['readonly', 'disabled']) {
+    await page.goto(`./?time&${query}`)
+    await expect(page.getByRole('spinbutton', { name: 'Hours', exact: true })).toBeDisabled()
+    await expect(page.getByRole('spinbutton', { name: 'Minutes', exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Increase minutes' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Minutes', exact: true })).toBeDisabled()
+    await expect(page.getByRole('slider')).toHaveAttribute('aria-disabled', 'true')
+  }
+})
+
+test('minute controls have touch-sized targets and fit a narrow screen', async ({ browser }) => {
+  test.skip(browser.browserType().name() === 'firefox', 'Firefox does not support mobile touch emulation.')
+  const context = await browser.newContext({ viewport: { width: 320, height: 844 }, hasTouch: true, isMobile: true })
+  const page = await context.newPage()
+  await page.goto('http://127.0.0.1:4175/package-demo/?time')
+  await page.getByRole('button', { name: 'Minutes', exact: true }).tap()
+  await page.getByRole('button', { name: 'Increase minutes' }).tap()
+  await expect(page.getByRole('spinbutton', { name: 'Minutes', exact: true })).toHaveValue('01')
+  const target = (await page.getByRole('button', { name: 'Increase minutes' }).boundingBox())!
+  expect(target.width).toBeGreaterThanOrEqual(44)
+  expect(target.height).toBeGreaterThanOrEqual(44)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: `screenshots/earth-precision-${browser.browserType().name()}-mobile.png`, fullPage: true, animations: 'disabled' })
+  await context.close()
+})

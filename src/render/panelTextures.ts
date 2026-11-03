@@ -3,11 +3,11 @@ import * as THREE from 'three'
 
 /** Higher-resolution maps for the Earth and Moon panels, loaded on demand. */
 export const PANEL_TEXTURES = {
-  earthDay: { url: '/textures/earth_2k.jpg', srgb: true },
-  earthNight: { url: '/textures/earth_night_2k.jpg', srgb: true },
-  earthRough: { url: '/textures/earth_rough_2k.jpg', srgb: false },
-  moon: { url: '/textures/moon_2k.jpg', srgb: true },
-  moonNormal: { url: '/textures/moon_normal_1k.jpg', srgb: false },
+  earthDay: { url: new URL('../../public/textures/earth_2k.jpg?no-inline', import.meta.url).href, srgb: true },
+  earthNight: { url: new URL('../../public/textures/earth_night_2k.jpg?no-inline', import.meta.url).href, srgb: true },
+  earthRough: { url: new URL('../../public/textures/earth_rough_2k.jpg?no-inline', import.meta.url).href, srgb: false },
+  moon: { url: new URL('../../public/textures/moon_2k.jpg?no-inline', import.meta.url).href, srgb: true },
+  moonNormal: { url: new URL('../../public/textures/moon_normal_1k.jpg?no-inline', import.meta.url).href, srgb: false },
 } as const
 
 export type PanelTextureKey = keyof typeof PANEL_TEXTURES

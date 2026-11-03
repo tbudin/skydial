@@ -1,8 +1,9 @@
+import { zoneLabel } from './format.js'
 import { useMemo } from 'react'
-import { earthView, sunTimes } from '../astro/observer'
-import type { Place } from '../astro/places'
-import { civilParts, zonedToUtc } from '../astro/time'
-import { EARTH_CAMERA_DISTANCE, EARTH_FOV, EarthGlobe } from '../render/EarthGlobe'
+import { earthView, sunTimes } from '../astro/observer.js'
+import type { Place } from '../astro/places.js'
+import { civilParts, zonedToUtc } from '../astro/time.js'
+import { EARTH_CAMERA_DISTANCE, EARTH_FOV, EarthGlobe } from '../render/EarthGlobe.js'
 
 const pad = (n: number) => String(Math.floor(n)).padStart(2, '0')
 
@@ -24,15 +25,6 @@ function fmtHours(h: number) {
 
 /** Apparent radius of the globe as a fraction of the half-size of the panel. */
 export const GLOBE_FRACTION = Math.tan(Math.asin(1 / EARTH_CAMERA_DISTANCE)) / Math.tan(((EARTH_FOV / 2) * Math.PI) / 180)
-
-export function zoneLabel(tz: string, at: number) {
-  try {
-    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(new Date(at))
-    return parts.find((p) => p.type === 'timeZoneName')?.value ?? tz
-  } catch {
-    return tz
-  }
-}
 
 export function EarthPanel({ place, now }: { place: Place; now: number }) {
   const tz = place.timeZone

@@ -1,5 +1,5 @@
-import { PLANETS, type PlanetId } from '../astro/bodies'
-import { helioEcliptic } from '../astro/ephemeris'
+import { PLANETS, type PlanetId } from '../astro/bodies.js'
+import { helioEcliptic } from '../astro/ephemeris.js'
 
 /**
  * The single projection used by everything in the orrery: planets, orbits,

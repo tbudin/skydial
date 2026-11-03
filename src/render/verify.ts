@@ -1,12 +1,12 @@
 import * as THREE from 'three'
 import type { RefObject } from 'react'
 import type { Line2 } from 'three-stdlib'
-import { PLANETS, PLANET_BY_ID, type PlanetId, type YearPlanetId } from '../astro/bodies'
-import type { CalendarScale, YearScale } from '../astro/clockScales'
-import { normaliseAngle } from '../astro/ephemeris'
-import { sampleOrbit } from '../geometry/projection'
-import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS } from './planetFactory'
-import { simClock } from '../sim/clock'
+import { PLANETS, PLANET_BY_ID, type PlanetId, type YearPlanetId } from '../astro/bodies.js'
+import type { CalendarScale, YearScale } from '../astro/clockScales.js'
+import { normaliseAngle } from '../astro/ephemeris.js'
+import { sampleOrbit } from '../geometry/projection.js'
+import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS } from './planetFactory.js'
+import type { SimClock } from '../sim/clock.js'
 
 /**
  * Runtime alignment check, measured in screen pixels from the rendered
@@ -15,6 +15,7 @@ import { simClock } from '../sim/clock'
  */
 
 interface Ctx {
+  clock: SimClock
   camera: THREE.Camera
   size: { width: number; height: number }
   objects: Record<PlanetId, { root: THREE.Object3D }>
@@ -169,7 +170,7 @@ export function installVerifier(ctx: Ctx) {
 
   window.__celestialClock = {
     verify: () => {
-      const t = simClock.now()
+      const t = ctx.clock.now()
       const earth = handReport('earth', ctx.earthHand.current, t)
       const dayIndex = sectorIndex(
         ctx.calendar.ticks.map((x) => x.lon),

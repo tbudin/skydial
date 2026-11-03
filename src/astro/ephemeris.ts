@@ -85,8 +85,8 @@ export function bodyAxes(body: string, timeMs: number): BodyAxes {
   nx /= nl
   ny /= nl
   // n × node
-  const qx = n.y * 0 - n.z * ny
-  const qy = n.z * nx - n.x * 0
+  const qx = -n.z * ny
+  const qy = n.z * nx
   const qz = n.x * ny - n.y * nx
   const w = (info.spin * Math.PI) / 180
   const c = Math.cos(w)

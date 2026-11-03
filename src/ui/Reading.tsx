@@ -1,6 +1,6 @@
-import type { YearPlanetId } from '../astro/bodies'
-import { PLANET_BY_ID } from '../astro/bodies'
-import { MONTH_NAMES, type CivilParts } from '../astro/time'
+import type { YearPlanetId } from '../astro/bodies.js'
+import { PLANET_BY_ID } from '../astro/bodies.js'
+import { MONTH_NAMES, type CivilParts } from '../astro/time.js'
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const pad = (n: number) => String(n).padStart(2, '0')
