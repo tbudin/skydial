@@ -30,6 +30,10 @@ for (const variant of ['celestial', 'lcd']) {
     await preview.hover()
     const audit = await new AxeBuilder({ page }).include('.celestial-form-picker').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
     expect(audit.violations.map(({ id }) => id)).toEqual([])
+    // The accessibility checker opens a temporary tab, ending hover in headed Firefox.
+    await page.bringToFront()
+    await page.mouse.move(point.x, point.y)
+    await preview.hover()
     await expect(preview).toHaveText('15 Jun 2028')
     await page.keyboard.press('Escape')
     await expect(preview).toHaveCount(0)
