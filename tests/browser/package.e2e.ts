@@ -51,6 +51,7 @@ test('turning Earth selects hours, crosses midnight and updates synchronized car
   await expect(earth).toBeVisible()
   const independent = page.getByTestId('independent').locator('.widget-caption')
   const before = await independent.innerText()
+  await earth.scrollIntoViewIfNeeded()
   const box = (await earth.boundingBox())!
   await page.mouse.move(box.x + box.width * .25, box.y + box.height * .5)
   await page.mouse.down()
