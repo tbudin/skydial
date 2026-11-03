@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { previewHeader, setDesignStyle } from './preview.js'
+import { previewHeader, setDesignStyle, openSettings } from './preview.js'
 
 test('date, time and combined popups fit without scrolling their content', async ({ page }) => {
   test.setTimeout(180000)
@@ -40,6 +40,7 @@ test('date, time and combined popups fit without scrolling their content', async
 test('city-facing Earth retains its geography while the high contrast night hemisphere moves', async ({ page }) => {
   await page.goto('./picker/?style=lcd')
   await page.getByRole('group', { name: 'Picker presets' }).getByRole('button', { name: 'Time', exact: true }).click()
+  await openSettings(page)
   const settings = page.getByRole('region', { name: 'Configure your picker' })
   await expect(settings.getByRole('combobox', { name: 'Earth view', exact: true })).toHaveValue('city')
   await settings.getByRole('combobox', { name: 'Time zone / city', exact: true }).selectOption('Singapore')

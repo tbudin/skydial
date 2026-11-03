@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
-import { setDesignStyle } from './preview.js'
+import { setDesignStyle, openSettings } from './preview.js'
 
 const allUnits = ['year', 'month', 'day', 'hour', 'minute', 'second']
 async function configure(page: Page, units: string[]) {
+  await openSettings(page)
   const settings = page.getByRole('region', { name: 'Configure your picker' })
   for (const unit of units) await settings.getByRole('checkbox', { name: unit, exact: true }).check()
   for (const unit of allUnits.filter((unit) => !units.includes(unit))) await settings.getByRole('checkbox', { name: unit, exact: true }).uncheck()

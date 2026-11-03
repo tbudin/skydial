@@ -76,6 +76,7 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
   const field = useRef<HTMLButtonElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const panel = useRef<HTMLDivElement>(null)
+  const pointerInside = useRef(false)
   const [windowState, setWindowState] = useState({ open: false, disabled, presentation })
   const open = windowState.open
   const setOpen = (next: boolean) => setWindowState({ open: next, disabled, presentation })
@@ -112,6 +113,8 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
   useLayoutEffect(() => {
     if (!open) return
     const element = panel.current!
+    pointerInside.current = false
+    let pointerTimer: ReturnType<typeof setTimeout> | undefined
     element.showPopover()
     const position = () => {
       const anchor = field.current!.getBoundingClientRect()
@@ -160,7 +163,30 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
     const initial = element.querySelector<HTMLElement>('[role="listbox"][tabindex="0"]') ?? element.querySelector<HTMLElement>('input:not(:disabled), button:not(:disabled)')
     initial?.focus({ preventScroll: true })
     initial?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+    const pointerStart = (event: globalThis.PointerEvent) => {
+      clearTimeout(pointerTimer)
+      pointerInside.current = event.target instanceof Node && element.contains(event.target)
+    }
+    const pointerEnd = () => {
+      // Safari may blur the current wheel to the document before activating a
+      // button. Keep the internal gesture alive through its ensuing click.
+      pointerTimer = setTimeout(() => { pointerInside.current = false }, 0)
+    }
+    const focusOutside = (event: FocusEvent) => {
+      if (event.target === document.body || event.target === document.documentElement) return
+      if (!pointerInside.current && event.target instanceof Node && !element.contains(event.target) && event.target !== field.current) setOpen(false)
+    }
+    document.addEventListener('pointerdown', pointerStart, true)
+    document.addEventListener('pointerup', pointerEnd, true)
+    document.addEventListener('pointercancel', pointerEnd, true)
+    document.addEventListener('focusin', focusOutside)
     return () => {
+      clearTimeout(pointerTimer)
+      pointerInside.current = false
+      document.removeEventListener('pointerdown', pointerStart, true)
+      document.removeEventListener('pointerup', pointerEnd, true)
+      document.removeEventListener('pointercancel', pointerEnd, true)
+      document.removeEventListener('focusin', focusOutside)
       observer.disconnect()
       window.removeEventListener('resize', position)
       window.visualViewport?.removeEventListener('resize', position)
@@ -193,9 +219,8 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
         <span id={`${key}-value`} {...part('value', empty ? 'picker-form-placeholder' : '')}>{variant === 'lcd' && value ? <DigitalText>{value.replace('T', ' · ')}</DigitalText> : value ? value.replace('T', ' · ') : placeholder}</span><svg {...part('indicator', 'picker-form-indicator')} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       {open && <div ref={panel} id={`${key}-panel`} popover="auto" role="dialog" aria-label={label} {...part('panel', `picker-form-panel ${customControls ? 'picker-form-scene-panel' : ''}`)}
-        onBlurCapture={(event) => { if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget) && event.relatedTarget !== field.current) close() }}
         onToggle={(event) => { if ((event.nativeEvent as ToggleEvent).newState === 'closed') setOpen(false) }}
-        onKeyDown={(event) => { if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); close(true) } }}>
+        onKeyDown={(event) => { pointerInside.current = false; if (event.key === 'Escape' && !event.defaultPrevented) { event.preventDefault(); close(true) } }}>
         {controls}
       </div>}
     </> : <div id={fieldId} {...part('panel', 'picker-form-inline')} role="group" aria-label={label}>{controls}</div>}

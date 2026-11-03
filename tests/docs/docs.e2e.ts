@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { previewHeader } from './preview.js'
+import { previewHeader, openSettings } from './preview.js'
 
 test('package-site pages mount live examples and keep nested assets working', async ({ page }) => {
   const errors: string[] = []
@@ -11,14 +11,8 @@ test('package-site pages mount live examples and keep nested assets working', as
   await expect(page.getByRole('slider', { name: 'Rotate Earth to set time' })).toBeVisible()
   const earth = page.getByRole('region', { name: 'Earth time picker' })
   await earth.getByRole('button', { name: 'Minutes', exact: true }).click()
-  await earth.getByRole('button', { name: 'Increase minutes' }).click()
-  await expect(earth.getByRole('spinbutton', { name: 'Minutes', exact: true })).toHaveValue('01')
-  await page.getByRole('combobox', { name: 'Year planet', exact: true }).selectOption('saturn')
-  await expect(page.getByRole('radio', { name: /Saturn/ })).toHaveAttribute('aria-checked', 'true')
-  await earth.getByRole('combobox', { name: 'Earth view', exact: true }).selectOption('city')
-  await earth.getByRole('combobox', { name: 'City in view', exact: true }).selectOption('Paris')
-  await expect(earth.locator('.earth-view-location')).toHaveText('Paris · 48.86° N, 2.35° E')
-  await expect(earth.locator('.earth-city-reticle')).toBeVisible()
+  await page.getByRole('listbox', { name: 'Minutes', exact: true }).press('ArrowDown')
+  await expect(page.getByRole('listbox', { name: 'Minutes', exact: true }).getByRole('option', { selected: true })).toHaveText('01')
   await page.getByRole('region', { name: 'Earth time picker' }).screenshot({ path: 'screenshots/earth-precision-desktop.png', animations: 'disabled' })
   await page.goto('./widgets/')
   await expect(page.locator('[data-widget-example]')).toHaveCount(4)
@@ -29,13 +23,14 @@ test('package-site pages mount live examples and keep nested assets working', as
   const solarExample = page.locator('[data-widget-example="orrery"]')
   for (const example of [earthExample, moonExample, yearExample, solarExample]) {
     await expect(example.locator('.celestial-card')).toHaveCount(1)
+    await example.locator('.component-settings > summary').click()
     await expect(example.getByRole('button', { name: 'Small', exact: true })).toBeVisible()
     await expect(example.getByRole('button', { name: 'Medium', exact: true })).toBeVisible()
     await expect(example.getByRole('button', { name: 'Large', exact: true })).toBeVisible()
   }
-  await yearExample.getByRole('combobox', { name: 'Year hand planet' }).selectOption('saturn')
+  await yearExample.getByRole('group', { name: 'Year hand planet' }).getByRole('button', { name: 'Saturn', exact: true }).click()
   await expect(yearExample.locator('.widget-caption')).toHaveText('29.5-year orbit')
-  await expect(yearExample.locator('pre')).toContainText('defaultPlanet="saturn"')
+  await expect(yearExample.locator('pre')).toContainText('planet="saturn"')
   await page.getByRole('combobox', { name: 'Observer city', exact: true }).selectOption('Singapore')
   await expect(earthExample.locator('.widget-value')).toHaveText('20:00')
   await page.getByLabel('Time (UTC)', { exact: true }).fill('13:15')
@@ -66,6 +61,7 @@ test('a clean picker shows Earth and one configured year planet with synchronize
   page.on('pageerror', (error) => errors.push(error.message))
   await page.setViewportSize({ width: 1280, height: 720 })
   await page.goto('./picker/')
+  await openSettings(page)
   const settings = page.getByRole('region', { name: 'Configure your picker' })
   const example = page.getByRole('region', { name: 'Website form example' })
   const field = example.getByRole('button', { name: 'Starts', exact: true })
@@ -141,6 +137,7 @@ test('picker builder configures compact fields, reusable elements and real form 
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('./picker/')
+  await openSettings(page)
   const settings = page.getByRole('region', { name: 'Configure your picker' })
   const example = page.getByRole('region', { name: 'Website form example' })
   await settings.getByRole('combobox', { name: 'Control', exact: true }).selectOption('wheel')
@@ -193,15 +190,18 @@ test('the standalone orrery has its own exploration page', async ({ page }) => {
   await page.goto('./orrery/')
   await expect(page.getByRole('heading', { name: 'Orrery playground', exact: true })).toBeVisible()
   await expect(page.getByRole('region', { name: 'Orbital date picker', exact: true })).toBeVisible()
-  await expect(page.getByRole('radio', { name: /Jupiter/ })).toHaveAttribute('aria-checked', 'true')
-  await page.getByRole('combobox', { name: 'Year planet', exact: true }).selectOption('neptune')
-  await expect(page.getByRole('radio', { name: /Neptune/ })).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByRole('slider', { name: 'Year on Jupiter’s orbit', exact: true })).toBeVisible()
+  await page.locator('.orrery-playground .component-settings > summary').click()
+  await page.getByRole('group', { name: 'Year planet', exact: true }).getByRole('button', { name: 'Neptune', exact: true }).click()
+  await expect(page.getByRole('slider', { name: 'Year on Neptune’s orbit', exact: true })).toBeVisible()
+  await expect(page.locator('input[type=range]')).toHaveCount(0)
   await expect(page.getByRole('slider', { name: 'Rotate Earth to set time', exact: true })).toHaveCount(0)
 })
 
 
 test('the builder applies and exports styles for every named part and orbital appearance', async ({ page }) => {
   await page.goto('./picker/')
+  await openSettings(page)
   const settings = page.getByRole('region', { name: 'Configure your picker' })
   const example = page.getByRole('region', { name: 'Website form example' })
   await settings.getByRole('textbox', { name: 'CSS properties', exact: true }).fill('{"borderRadius":18,"borderColor":"#8b5cf6"}')

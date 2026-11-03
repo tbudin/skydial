@@ -6,7 +6,7 @@ import { useCelestialTime } from '../sim/hooks.js'
 import { useSimNow } from '../ui/hooks.js'
 import { DEFAULT_PLACE } from './defaults.js'
 import type { CelestialWidgetProps } from './types.js'
-import { PickerAppearanceContext, usePickerParts, type PickerAppearance } from './appearance.js'
+import { PickerAppearanceContext, usePickerParts, usePickerVariant, type PickerAppearance } from './appearance.js'
 import { ScrollWheel } from './ScrollWheel.js'
 import { pickerColorStyle } from './colors.js'
 
@@ -63,15 +63,16 @@ export function PickerControls({ control, place = DEFAULT_PLACE, size = 'small',
 function ScrollUnit({ label, unit, values, value, now, zone, min, max, disabled, rowHeight, rows, onSelect }: {
   label: string; unit: PickerUnit; values: number[]; value: number; now: number; zone: string; min: number; max: number; disabled: boolean; rowHeight: number; rows: 3 | 5; onSelect: (value: number) => void
 }) {
+  const variant = usePickerVariant()
   const key = values.join(',')
   const p = civilParts(now, zone)
   const level = PICKER_UNITS.indexOf(unit)
   // A unit's allowed interval depends only on larger units, not every live clock tick.
   const reference = zonedToUtc(zone, level === 0 ? 2000 : p.year, level <= 1 ? 1 : p.month, level <= 2 ? 1 : p.day, level <= 3 ? 0 : p.hour, level <= 4 ? 0 : p.minute)
   const items = useMemo(() => key.split(',').map(Number).map((number) => ({
-    value: String(number), label: unit === 'month' ? MONTH_SHORT[number - 1] : unit === 'year' ? String(number) : String(number).padStart(2, '0'),
+    value: String(number), label: unit === 'month' && variant !== 'lcd' ? MONTH_SHORT[number - 1] : unit === 'year' ? String(number) : String(number).padStart(2, '0'),
     disabled: !pickerUnitAllowed(reference, unit, number, zone, { min, max }),
-  })), [key, unit, reference, zone, min, max])
+  })), [key, unit, reference, zone, min, max, variant])
   return <div data-unit={unit}><ScrollWheel selectionKey={now} label={label} items={items} value={String(value)} disabled={disabled} rowHeight={rowHeight} rows={rows} unit={unit} onSelect={(next) => onSelect(Number(next))} /></div>
 }
 

@@ -47,12 +47,12 @@ export function LcdOrrery({ now, width, height, calendar, yearScale, yearPlanet,
     if (compact) return []
     const day = calendar.ticks[currentDayIndex]?.day ?? 1
     const labels: LabelSpec[] = []
-    if (showCalendar) labels.push({ id: 'date-pill', kind: 'date-pill', text: showDays ? `${day}${showMonths ? ` ${MONTH_SHORT[currentMonth - 1].toUpperCase()}` : ''}` : MONTH_SHORT[currentMonth - 1].toUpperCase(), lon: 0, radius: CALENDAR_RADIUS })
+    if (showCalendar) labels.push({ id: 'date-pill', kind: 'date-pill', text: showDays ? `${String(day).padStart(2, '0')}${showMonths ? `/${String(currentMonth).padStart(2, '0')}` : ''}` : String(currentMonth).padStart(2, '0'), lon: 0, radius: CALENDAR_RADIUS })
     if (showYears) labels.push({ id: 'year-pill', kind: 'year-pill', text: String(currentYear ?? yearScale.fromYear), lon: 0, radius: 0 })
     for (let m = 1; showMonths && m <= 12; m++) {
       const start = calendar.ticks.find((t) => t.month === m && t.day === 1)!
       const end = m === 12 ? calendar.ticks[calendar.ticks.length - 1] : calendar.ticks.find((t) => t.month === m + 1 && t.day === 1)!
-      labels.push({ id: `m${m}`, kind: 'month', text: MONTH_SHORT[m - 1].toUpperCase(), value: m, active: m === currentMonth,
+      labels.push({ id: `m${m}`, kind: 'month', text: String(m).padStart(2, '0'), value: m, active: m === currentMonth,
         lon: start.lon + normaliseAngle(end.lon - start.lon) / 2, radius: CALENDAR_RADIUS })
     }
     for (const marker of showYears ? yearScale.markers : []) {
@@ -124,7 +124,7 @@ export function LcdOrrery({ now, width, height, calendar, yearScale, yearPlanet,
         const Element = select ? 'button' : 'span'
         return <Element key={s.id} type={select ? 'button' : undefined} onClick={select} tabIndex={select && pos.visible ? 0 : -1}
           aria-hidden={select && !pos.visible ? true : undefined} aria-label={select ? s.kind === 'month' ? `Select ${MONTH_SHORT[s.value! - 1]} ${calendar.year}` : `Select year ${s.value}` : undefined}
-          data-label={s.id} data-kind={s.kind} data-visible={String(pos.visible)}
+          data-label={s.id} data-kind={s.kind} data-longitude={s.lon} data-visible={String(pos.visible)}
           {...part(s.kind === 'month' ? 'monthLabel' : s.kind === 'year' ? 'yearLabel' : s.kind === 'date-pill' ? 'dateBadge' : 'yearBadge', `scale-label ${s.kind}${s.active ? ' active' : ''}`,
             { transform: `translate3d(${pos.cx - pos.w / 2}px, ${pos.cy - pos.h / 2}px, 0)` }, { selected: s.active })}>{s.text}</Element>
       })}

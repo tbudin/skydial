@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useSyncExternalStore } from 'react'
 import { ClockContext } from './context.js'
 
 export function useCelestialTime() {
@@ -9,4 +9,12 @@ export function useCelestialTime() {
 
 export function useCelestialClock() {
   return useCelestialTime().clock
+}
+
+const noVisualClock = () => null
+
+/** Internal renderer clock. Forms and callbacks always use the committed selection. */
+export function useVisualClock() {
+  const { clock, motion } = useCelestialTime()
+  return useSyncExternalStore(motion.subscribe, motion.getVisualClock, noVisualClock) ?? clock
 }

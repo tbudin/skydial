@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { CelestialInput, CelestialPicker, CelestialScrollPicker, CelestialStepper, CelestialDatePicker, CelestialTimePicker, CelestialProvider, EarthWidget, MoonWidget, YearWidget, OrreryWidget, OrreryClock, type PickerUnit } from 'skydial/react'
+import { CelestialInput, CelestialPicker, CelestialScrollPicker, CelestialStepper, CelestialDatePicker, CelestialTimePicker, CelestialProvider, CelestialDisplay, CelestialBody, EarthWidget, MoonWidget, YearWidget, OrreryWidget, OrreryClock, type PickerUnit } from 'skydial/react'
 import type { Place, YearPlanetId } from 'skydial/astro'
 import type { EarthPickerView } from 'skydial/react'
 import 'skydial/style.css'
@@ -94,12 +94,16 @@ function FormDemo() {
 
 function CelestialInputDemo() {
   const query = new URLSearchParams(window.location.search)
+  const configuredUnits = query.get('units')?.split(',').filter((unit): unit is PickerUnit => ['year', 'month', 'day', 'hour', 'minute', 'second'].includes(unit))
+  const placement = (['auto', 'bottom-start', 'bottom-end', 'top-start', 'top-end'] as const).find((item) => item === query.get('placement')) ?? 'auto'
   const [value, setValue] = useState<Date | null>(new Date('2028-01-31T15:59:00Z'))
   const [result, setResult] = useState('')
   return <main style={{ maxWidth: 360, padding: 16 }}><form onSubmit={(event) => { event.preventDefault(); setResult(JSON.stringify(Object.fromEntries(new FormData(event.currentTarget)))) }}>
     <CelestialInput variant={query.has('lcd') ? 'lcd' : 'celestial'} presentation={query.has('inline') ? 'inline' : 'popover'} control={query.has('stepper') ? 'stepper' : query.has('wheel') ? 'wheel' : 'both'} label="Appointment" name="when" value={value} onChange={query.has('readonly') ? undefined : setValue}
-      mode={query.has('timeonly') ? 'time' : query.has('combined') ? 'datetime' : 'date'} precision={query.has('year') ? 'year' : query.has('seconds') ? 'second' : undefined}
+      mode={query.has('timeonly') ? 'time' : query.has('combined') ? 'datetime' : 'date'} units={configuredUnits?.length ? configuredUnits : undefined} precision={query.has('year') ? 'year' : query.has('seconds') ? 'second' : undefined}
       scene={query.has('moon') ? 'moon' : query.has('planet') ? 'planet' : 'auto'} theme={query.has('system') ? 'auto' : query.has('dark') ? 'dark' : 'light'}
+      size={query.has('large') ? 'large' : query.has('medium') ? 'medium' : 'small'}
+      popoverPlacement={placement}
       wheelRowHeight={query.has('custom') ? 48 : undefined} wheelRows={query.has('custom') ? 5 : 3}
       styles={query.has('custom') ? {
         field: { borderRadius: 18, borderColor: '#8b5cf6' }, panel: { background: '#faf5ff', padding: 12 },
@@ -111,7 +115,20 @@ function CelestialInputDemo() {
     <button type="submit">Submit appointment</button><label>Notes<input name="notes" /></label></form><output data-testid="input-date">{value?.toISOString()}</output><output data-testid="input-result">{result}</output></main>
 }
 
-if (new URLSearchParams(window.location.search).has('input')) {
+function StylingDemo() {
+  const variant = new URLSearchParams(window.location.search).has('lcd') ? 'lcd' : 'celestial'
+  return <main className="styling-example"><h1>Consumer styling</h1><CelestialProvider date={initial}>
+    <CelestialInput label="Custom date" scene={false} classNames={{ field: 'consumer-field' }} styles={{ field: { borderRadius: 19 } }} variant={variant} />
+    <EarthWidget variant={variant} className="consumer-card" classNames={{ label: 'consumer-label' }} styles={{ value: { fontSize: 27 } }} />
+    <CelestialDisplay variant={variant} bodies={[]} className="consumer-display" classNames={{ date: 'consumer-date' }} />
+    <CelestialBody body="moon" variant={variant} styles={{ root: { background: '#f2e4cc', borderRadius: 8 } }} />
+    <CelestialBody body="mars" variant={variant} className="consumer-body" />
+  </CelestialProvider></main>
+}
+
+if (new URLSearchParams(window.location.search).has('styling')) {
+  createRoot(document.getElementById('root')!).render(<StylingDemo />)
+} else if (new URLSearchParams(window.location.search).has('input')) {
   createRoot(document.getElementById('root')!).render(<CelestialInputDemo />)
 } else if (new URLSearchParams(window.location.search).has('form')) {
   createRoot(document.getElementById('root')!).render(<FormDemo />)

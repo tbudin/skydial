@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useCelestialTime } from '../sim/hooks.js'
 import { clampTime } from '../astro/selection.js'
+import { SimClock } from '../sim/clock.js'
 
-/** Animate a click through astronomical time; direct drags remain under the pointer. */
+/** Commit once, then animate the celestial view. Direct drags stay under the pointer. */
 export function useTimeMotion() {
   const { clock, selectDate, readOnly, motion } = useCelestialTime()
   const frame = useRef(0)
@@ -16,20 +17,21 @@ export function useTimeMotion() {
   useEffect(() => cancel, [cancel])
   const choose = useCallback((target: number, animate = false) => {
     if (readOnly) return
+    const from = (motion.getVisualClock() ?? clock).now()
     motion.cancel()
     cancel()
     const end = clampTime(target)
+    latest.current(end)
     if (!animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      latest.current(end)
       return
     }
-    motion.start(cancel, end)
-    const from = clock.now()
+    const visualClock = new SimClock(from)
+    motion.start(cancel, end, visualClock)
     const started = performance.now()
     const tick = (at: number) => {
-      const p = Math.min(1, (at - started) / 420)
+      const p = Math.min(1, (at - started) / 260)
       const eased = p * p * (3 - 2 * p)
-      latest.current(p === 1 ? end : from + (end - from) * eased, true)
+      visualClock.setTime(p === 1 ? end : from + (end - from) * eased)
       if (p < 1) frame.current = requestAnimationFrame(tick)
       else motion.finish(cancel)
     }

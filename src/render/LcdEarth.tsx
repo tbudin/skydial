@@ -1,6 +1,6 @@
 import { useId, useMemo, useState } from 'react'
 import { earthView, type Location, type V3 } from '../astro/observer.js'
-import { useSimNow } from '../ui/hooks.js'
+import { useVisualNow } from '../ui/hooks.js'
 import { cameraBasis, DEG, dot, illuminatedPath, noise, stippleDisc, surfaceCoordinates, surfacePath } from './lcdGeometry.js'
 import { LCD_LAND, LCD_LAKES, lcdLandAt } from './lcdLand.js'
 
@@ -15,7 +15,7 @@ const coastlines = [...LCD_LAND, ...LCD_LAKES].map(coastCoordinates)
 
 /** Detailed geographic dots retain the computed Earth frame and day/night boundary. */
 export function LcdEarth({ location, view = 'observer' }: { location: Location; view?: 'observer' | 'rotation' }) {
-  const now = useSimNow(33)
+  const now = useVisualNow(33)
   const key = useId().replaceAll(':', '')
   const [epoch] = useState(now)
   const { latitude, longitude, elevationM } = location

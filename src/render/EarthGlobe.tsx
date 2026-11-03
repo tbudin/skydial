@@ -5,7 +5,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { bodyFrameEqj, observerOf, type Location } from '../astro/observer.js'
 import * as Astronomy from 'astronomy-engine'
-import { useCelestialClock } from '../sim/hooks.js'
+import { useVisualClock } from '../sim/hooks.js'
 import { applyAxesInWorld } from './planetFactory.js'
 import { usePanelTextures } from './panelTextures.js'
 import { earthCameraVector, type EarthCameraView } from './earthCamera.js'
@@ -42,7 +42,7 @@ export function EarthGlobe({ location, view = 'observer', cameraDistance = EARTH
 }
 
 function EarthScene({ location, textures, view, cameraDistance }: { view: EarthCameraView; location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>>; cameraDistance: number }) {
-  const simClock = useCelestialClock()
+  const simClock = useVisualClock()
   const [viewEpoch] = useState(() => simClock.now())
   const earth = useRef<THREE.Group>(null)
   const light = useRef<THREE.DirectionalLight>(null)

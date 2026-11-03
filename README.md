@@ -92,8 +92,24 @@ drag the orrery's calendar ring to select a day, or its gold year orbit to selec
 a year. The visible planet selector defaults to Jupiter and also offers Saturn,
 Uranus and Neptune. Click selections animate through astronomical time.
 
+For smaller readouts in a header or toolbar:
+
+```tsx
+import { CelestialDisplay, CelestialDateDisplay, CelestialTimeDisplay, CelestialBody } from 'skydial/react'
+
+<CelestialDisplay bodies={['earth', 'moon']} variant="lcd" theme="light" />
+<CelestialDateDisplay bodies={['jupiter']} dateFormat={{ year: 'numeric' }} />
+<CelestialTimeDisplay timeFormat={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }} />
+<CelestialBody body="saturn" size={32} />
+```
+
+These read-only displays have no input or popup. Date and time formats accept
+`Intl.DateTimeFormatOptions` or `false`; `place` sets the time zone, and `bodies`
+chooses any planets and the Moon. Both styles support custom colours, CSS
+variables and named part styles/classes through `WIDGET_PARTS`.
+
 Compact website widgets come in small, medium and large sizes, with Earth,
-Moon, orrery and planetary-year variants. Each standalone widget owns its time. Wrap widgets in `CelestialProvider` to
+Moon, orrery and planetary-year variants. Configure `planet` through props; cards contain no selector. Each size reserves separate reading and artwork areas. Each standalone widget owns its time. Wrap widgets in `CelestialProvider` to
 synchronize them. Textures ship in the package and load relative to its assets;
 there is no public-folder copying step. Surface textures are mapped onto real
 sphere meshes; orientation and lighting come from the astronomy calculations.

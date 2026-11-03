@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0
+
+- Add compact date, time and year displays and standalone planet/Moon components in both 3D and LCD styles, with configurable Intl formats and observer time zones.
+- Expose named widget styling hooks, custom classes, CSS variables and part styles. Keep standalone body backgrounds overridable.
+- Rework all widget sizes to reserve separate reading and artwork areas. Planet choice now belongs in component settings; cards render no selector. The defaultPlanet alias remains supported; onPlanetChange is deprecated for cards.
+- Keep picker windows open during internal precision-tab clicks and transient browser focus changes. Use numeric LCD months consistently.
+- Preserve the current month/day when selecting a year, clamp leap days and keep January year ticks stable as bodies move to the selected instant.
+- Improve orbital selection with circular focus cues, separate mouse/touch handles, month arcs, keyboard and focused-wheel steps, and a date magnifier during day drags.
+- Commit selected values immediately while animating only the visible bodies; interrupt animation on new input and respect reduced motion.
+- Share the appearance toolbar across every documentation page and combine palette presets with custom colours. Put component options in separate settings sections.
+- Replace the playground's legacy slider and controls with the current inline celestial picker.
+- Expand consumer styling, cross-browser interaction, responsive layout and accessibility coverage.
+
 ## 0.1.0
 
 - Package name: Skydial (`skydial`), with updated imports, examples, documentation and application branding.

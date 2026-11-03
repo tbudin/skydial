@@ -1,12 +1,12 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeColours, openColours, previewHeader, setDesignStyle } from './preview.js'
+import { closeColours, openColours, previewHeader, setDesignStyle, setPalette } from './preview.js'
 
 test('custom LCD colours follow all controls, themes and form selection', async ({ page }) => {
   await page.goto('./picker/?style=lcd')
   const example = page.getByRole('region', { name: 'Website form example' })
   const field = example.getByRole('button', { name: 'Starts', exact: true })
-  await previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true }).selectOption('Ice blue')
+  await setPalette(page, 'Ice blue')
   const colours = await openColours(page)
   await colours.getByLabel('LCD ink colour code', { exact: true }).fill('#102f38')
   await colours.getByLabel('LCD screen', { exact: true }).fill('#cdebe0')
@@ -56,14 +56,14 @@ test('celestial colours reach the input and orbital labels without JSON editing'
   await expect(panel.locator('.scale-label.year-pill')).toHaveCSS('background-color', 'rgb(144, 94, 34)')
   await panel.getByRole('button', { name: 'Done', exact: true }).click()
   await setDesignStyle(page, 'lcd')
-  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveValue('Theme defaults')
+  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true, includeHidden: true })).toHaveValue('Theme defaults')
   await setDesignStyle(page, 'celestial')
   await expect((await openColours(page)).getByLabel('Background', { exact: true })).toHaveValue('#fff8ef')
 })
 
 test('widget colours and copied options update together and fit narrow screens', async ({ page }) => {
   await page.goto('./widgets/?style=lcd')
-  await page.getByRole('combobox', { name: 'Colour palette', exact: true }).selectOption('Amber')
+  await setPalette(page, 'Amber')
   for (const kind of ['earth', 'moon', 'year', 'orrery']) {
     const section = page.locator(`[data-widget-example="${kind}"]`)
     await expect(section.locator('.celestial-card')).toHaveCSS('background-color', 'rgb(243, 223, 175)')
@@ -81,7 +81,7 @@ test('widget colours and copied options update together and fit narrow screens',
     await expect(page.locator('[data-gallery-host="year"] .widget-value')).toHaveCSS('color', 'rgb(52, 39, 25)')
   }
   await setDesignStyle(page, 'lcd')
-  await expect(page.getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveValue('Amber')
+  await expect(page.getByRole('combobox', { name: 'Colour palette', exact: true, includeHidden: true })).toHaveValue('Amber')
   await page.setViewportSize({ width: 320, height: 740 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await (await openColours(page)).getByRole('button', { name: 'Use theme colours', exact: true }).click()

@@ -9,6 +9,7 @@ import type { CelestialTimePickerProps } from '../lib/timePicker.js'
 import type { CelestialCardProps } from '../lib/cards.js'
 import type { CelestialWidgetProps, OrreryClockProps } from '../lib/widgets.js'
 import type { CelestialClockProps } from '../App.js'
+import { CelestialDisplay, CelestialBody, type CelestialDisplayProps, type CelestialBodyProps } from '../lib/display.js'
 
 export interface CelestialComponentMap {
   input: CelestialInputProps
@@ -18,13 +19,15 @@ export interface CelestialComponentMap {
   picker: CelestialDatePickerProps
   time: CelestialTimePickerProps
   widget: CelestialCardProps
+  display: CelestialDisplayProps
+  body: CelestialBodyProps
   clock: CelestialClockProps
   earth: CelestialWidgetProps
   moon: CelestialWidgetProps
   orrery: OrreryClockProps
 }
 export type CelestialComponent = keyof CelestialComponentMap
-const components = { input: CelestialInput, field: CelestialPicker, scroll: CelestialScrollPicker, stepper: CelestialStepper, picker: CelestialDatePicker, time: CelestialTimePicker, widget: CelestialWidget, clock: CelestialClock, earth: EarthClock, moon: MoonClock, orrery: OrreryClock }
+const components = { input: CelestialInput, field: CelestialPicker, scroll: CelestialScrollPicker, stepper: CelestialStepper, picker: CelestialDatePicker, time: CelestialTimePicker, widget: CelestialWidget, display: CelestialDisplay, body: CelestialBody, clock: CelestialClock, earth: EarthClock, moon: MoonClock, orrery: OrreryClock }
 const roots = new WeakMap<HTMLElement, Root>()
 
 export interface CelestialMount<K extends CelestialComponent> {

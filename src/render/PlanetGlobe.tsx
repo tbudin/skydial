@@ -2,16 +2,18 @@ import { SceneCanvas } from './SceneCanvas.js'
 import { ClockFrames } from './ClockFrames.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import type { YearPlanetId } from '../astro/bodies.js'
+import type { PlanetId } from '../astro/bodies.js'
 import { PLANET_BY_ID } from '../astro/bodies.js'
 import { bodyAxes } from '../astro/ephemeris.js'
 import { applyBodyAxes, createPlanetObject, DISPLAY_RADIUS } from './planetFactory.js'
 import { loadTextures, type TextureSet } from './textures.js'
-import { useCelestialClock } from '../sim/hooks.js'
+import { useVisualClock } from '../sim/hooks.js'
 
-export function PlanetGlobe({ planet }: { planet: YearPlanetId }) {
+type GlobePlanet = Exclude<PlanetId, 'earth'>
+
+export function PlanetGlobe({ planet }: { planet: GlobePlanet }) {
   const [textures, setTextures] = useState<TextureSet | null>(null)
-  const [ready, setReady] = useState<YearPlanetId | null>(null)
+  const [ready, setReady] = useState<GlobePlanet | null>(null)
   useEffect(() => {
     let active = true
     loadTextures().then((result) => { if (active) setTextures(result.textures) })
@@ -24,8 +26,8 @@ export function PlanetGlobe({ planet }: { planet: YearPlanetId }) {
   </SceneCanvas></div>
 }
 
-function PlanetMesh({ planet, textures, onReady }: { planet: YearPlanetId; textures: TextureSet; onReady: () => void }) {
-  const clock = useCelestialClock()
+function PlanetMesh({ planet, textures, onReady }: { planet: GlobePlanet; textures: TextureSet; onReady: () => void }) {
+  const clock = useVisualClock()
   const presented = useRef(false)
   const readyFrame = useRef(0)
   useEffect(() => () => cancelAnimationFrame(readyFrame.current), [])

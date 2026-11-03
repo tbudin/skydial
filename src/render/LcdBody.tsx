@@ -2,7 +2,7 @@ import { useId } from 'react'
 import type { PlanetId } from '../astro/bodies.js'
 import { bodyAxes } from '../astro/ephemeris.js'
 import { moonView, type BodyFrame, type Location } from '../astro/observer.js'
-import { useSimNow } from '../ui/hooks.js'
+import { useVisualNow } from '../ui/hooks.js'
 import { cameraBasis, DEG, dot, illuminatedPath, norm, project, stippleDisc, surfaceCoordinates, surfacePath, type LcdCamera } from './lcdGeometry.js'
 import { JUPITER_STORM_LON, NEPTUNE_STORM_LON, LUNAR_CRATERS, moonSurface, planetSurface } from './lcdSurface.js'
 
@@ -34,7 +34,7 @@ function RingSystem({ frame, camera, radius, near = false, narrow = false }: { f
 
 /** Original engraved surfaces, projected onto spheres with the computed body rotation. */
 export function LcdBody({ body, location }: { body: LcdBodyId; location: Location }) {
-  const now = useSimNow(100)
+  const now = useVisualNow(100)
   const key = useId().replaceAll(':', '')
   const moon = body === 'moon' ? moonView(location, now) : null
   const frame = moon?.moonFrame ?? bodyAxes(body[0].toUpperCase() + body.slice(1), now)

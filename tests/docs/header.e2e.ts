@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeColours, openColours, previewHeader, setDesignStyle } from './preview.js'
+import { closeColours, openColours, previewHeader, setDesignStyle, setPalette } from './preview.js'
 
 test('header comparisons retain the selected date and carry palettes between pages', async ({ page }) => {
   await page.goto('./picker/?style=celestial')
@@ -14,7 +14,7 @@ test('header comparisons retain the selected date and carry palettes between pag
   await expect(example.locator('input[name="startsAt"]')).toHaveValue('2027-03-20')
   await setDesignStyle(page, 'lcd')
   await header.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption('light')
-  await header.getByRole('combobox', { name: 'Colour palette', exact: true }).selectOption('Amber')
+  await setPalette(page, 'Amber')
   await expect(example.locator('input[name="startsAt"]')).toHaveValue('2027-03-20')
   await field.click()
   const panel = page.getByRole('dialog', { name: 'Starts', exact: true })
@@ -31,14 +31,14 @@ test('header comparisons retain the selected date and carry palettes between pag
   await panel.getByRole('button', { name: 'Done', exact: true }).click()
   await page.getByRole('navigation', { name: 'Library components' }).getByRole('link', { name: 'Website widgets', exact: true }).click()
   await expect(previewHeader(page).getByRole('button', { name: 'LCD', exact: true })).toHaveAttribute('aria-pressed', 'true')
-  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveValue('Amber')
+  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true, includeHidden: true })).toHaveValue('Amber')
   await expect(page.locator('[data-gallery-host="earth"] .celestial-card')).toHaveCSS('background-color', 'rgb(243, 223, 175)')
   await setDesignStyle(page, 'celestial')
-  await previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true }).selectOption('Ice blue')
+  await setPalette(page, 'Ice blue')
   await setDesignStyle(page, 'lcd')
-  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveValue('Amber')
+  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true, includeHidden: true })).toHaveValue('Amber')
   await page.reload()
-  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveValue('Amber')
+  await expect(previewHeader(page).getByRole('combobox', { name: 'Colour palette', exact: true, includeHidden: true })).toHaveValue('Amber')
 })
 
 test('appearance controls remain in the header and accessible on desktop and phones', async ({ page }) => {
@@ -48,7 +48,7 @@ test('appearance controls remain in the header and accessible on desktop and pho
     await page.setViewportSize({ width, height: 900 })
     const header = previewHeader(page)
     await expect(header.getByRole('button', { name: 'LCD', exact: true })).toBeVisible()
-    await expect(header.getByRole('combobox', { name: 'Colour palette', exact: true })).toBeVisible()
+    await expect(header.getByRole('button', { name: 'Colours', exact: true })).toBeVisible()
     for (const theme of ['light', 'dark']) {
       await header.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
       const colours = await openColours(page)

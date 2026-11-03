@@ -998,9 +998,15 @@
 .celestial-clock .orbit-pick-layer { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
 .celestial-clock .orbit-hit { pointer-events: stroke; cursor: grab; touch-action: none; outline: none; }
 .celestial-clock .orbit-hit:active { cursor: grabbing; }
+.celestial-clock .orbit-handle-target { fill: transparent; stroke: none; pointer-events: all; cursor: grab; touch-action: none; }
+.celestial-clock .orbit-handle-target:active { cursor: grabbing; }
+@media (pointer: fine) {
+  /* Fine pointers can choose neighbouring day ticks; touch keeps the 44px grip. */
+  .celestial-clock .orbit-handle-target[data-orbit-kind="day"] { r: 6px; }
+}
 .celestial-clock .orbit-hit-day:hover, .celestial-clock .orbit-hit-day:focus-visible { stroke: color-mix(in srgb, var(--green) 12%, transparent); }
 .celestial-clock .orbit-hit-year:hover, .celestial-clock .orbit-hit-year:focus-visible { stroke: color-mix(in srgb, var(--gold) 12%, transparent); }
-.celestial-clock .orbit-hit:focus-visible { stroke-width: 32px; }
+.celestial-clock .orbit-hit:focus, .celestial-clock .orbit-hit:focus-visible { outline: none; }
 .celestial-clock .orbit-hit[aria-disabled="true"] { cursor: default; }
 .celestial-clock .orbit-preview { position: absolute; z-index: 3; max-width: calc(100% - 8px); padding: 6px 9px; border: 1px solid currentColor; border-radius: var(--picker-radius, 6px); color: var(--green); background: var(--bg); box-shadow: 0 3px 12px #02050b20; font-family: var(--picker-font, inherit); font-size: 12px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .celestial-clock .orbit-preview[data-kind="year"] { color: var(--gold); }
@@ -1014,59 +1020,54 @@
 }
 .celestial-clock .orbit-range-navigation { display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--gold); font-size: 11px; }
 .celestial-clock .orbit-range-navigation .chip { padding: 3px 10px; }
+.celestial-clock .orbit-interaction { --orbit-color: var(--orbit-day-color, var(--green)); }
+.celestial-clock .orbit-interaction[data-kind="year"] { --orbit-color: var(--orbit-year-color, var(--gold)); }
+.celestial-clock .orbit-focus-ring { fill: none; stroke: var(--orbit-color); stroke-width: 2; opacity: 0; pointer-events: none; }
+.celestial-clock .orbit-interaction:has(.orbit-hit:focus) .orbit-focus-ring { opacity: 1; }
+.celestial-clock .orbit-hit:hover:not([aria-disabled="true"]) { stroke: color-mix(in srgb, var(--orbit-color) 9%, transparent); }
+.celestial-clock .orbit-selection-handle { pointer-events: none; color: var(--orbit-color); }
+.celestial-clock .orbit-handle-disc { fill: var(--bg); stroke: currentColor; stroke-width: 2; }
+.celestial-clock .orbit-handle-dot { fill: currentColor; }
+.celestial-clock .orbit-interaction[data-kind="year"] .orbit-handle-disc { fill: none; }
+.celestial-clock .orbit-interaction:has(.orbit-hit:focus, .orbit-hit:hover, .orbit-handle-target:hover) .orbit-handle-disc { stroke-width: 3; }
+.celestial-clock .orbit-interaction:has([aria-disabled="true"]) .orbit-selection-handle { opacity: .45; }
+.celestial-clock .orbit-month-arc { fill: none; stroke: var(--orbit-day-color, var(--green)); stroke-width: 3; stroke-linecap: round; pointer-events: none; }
+.celestial-clock .orrery-control .scale-label.month { font-size: 11px; letter-spacing: .035em; }
+.celestial-clock .orrery-control .scale-label.month.active { font-weight: 700; }
+.celestial-clock .orrery-control .scale-label.year { font-size: 10.5px; letter-spacing: .02em; }
+.celestial-clock .orbit-range-navigation { gap: 8px; font-variant-numeric: tabular-nums; }
+.celestial-clock .orbit-range-navigation .chip { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; padding: 0; border-radius: var(--picker-radius, 8px); transition: background-color .12s, border-color .12s; }
+.celestial-clock .orbit-range-navigation .chip:hover:not(:disabled) { background: color-mix(in srgb, var(--gold) 9%, var(--bg)); border-color: var(--gold); }
+.celestial-clock .orbit-range-years { font-weight: 600; }
+.celestial-clock .orbit-range-caption { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; text-align: center; white-space: nowrap; line-height: 1.2; }
+.celestial-clock .orbit-range-planet { font-size: .9em; }
+.celestial-clock .orbit-date-lens { position: absolute; z-index: 4; top: min(calc(50% + 22px), calc(100% - 68px)); left: 50%; transform: translateX(-50%); display: flex; gap: 2px; max-width: calc(100% - 16px); padding: 4px; border: 1px solid var(--green); border-radius: calc(var(--picker-radius, 8px) + 4px); background: var(--bg); color: var(--green); box-shadow: 0 5px 18px #02050b20; pointer-events: none; }
+.celestial-clock .orbit-date-lens .orbit-lens-day { display: flex; flex: 1 1 0; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 0; width: 40px; min-height: 48px; padding: 5px 4px; border: 1px solid transparent; border-radius: var(--picker-radius, 8px); background: transparent; color: inherit; font: inherit; }
+.celestial-clock .orbit-date-lens .orbit-lens-day span { font-size: 9px; text-transform: uppercase; letter-spacing: .03em; }
+.celestial-clock .orbit-date-lens .orbit-lens-day strong { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+.celestial-clock .orbit-date-lens .orbit-lens-day[data-selected="true"] { background: var(--green); color: var(--bg); }
+.celestial-clock .orbit-date-lens .orbit-lens-day[data-unavailable="true"] { visibility: hidden; }
+.celestial-clock[data-picker-style="lcd"] .orbit-interaction { --orbit-color: var(--lcd-ink); }
+.celestial-clock[data-picker-style="lcd"] .orbit-handle-disc { fill: var(--lcd-paper); }
+.celestial-clock[data-picker-style="lcd"] .orbit-month-arc { stroke: var(--lcd-ink); }
+.celestial-clock[data-picker-style="lcd"] .orbit-date-lens { border-color: var(--lcd-ink); background: var(--lcd-paper); color: var(--lcd-ink); box-shadow: 0 3px 0 var(--lcd-ink); }
+.celestial-clock[data-picker-style="lcd"] .orbit-date-lens .orbit-lens-day[data-selected="true"] { background: var(--lcd-ink); color: var(--lcd-paper); }
+@media (forced-colors: active) {
+  .celestial-clock .orbit-interaction { --orbit-color: Highlight; }
+  .celestial-clock .orbit-focus-ring { stroke: Highlight; stroke-width: 3; forced-color-adjust: none; }
+  .celestial-clock .orbit-date-lens { border-color: CanvasText; color: CanvasText; background: Canvas; }
+  .celestial-clock .orbit-date-lens .orbit-lens-day[data-selected="true"] { color: HighlightText; background: Highlight; forced-color-adjust: none; }
+}
+@media (pointer: coarse) {
+  .celestial-clock .orbit-date-lens .orbit-lens-day { width: 44px; min-height: 44px; }
+  .celestial-clock .orbit-range-navigation .chip { min-width: 44px; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .celestial-clock .orbit-range-navigation .chip { transition: none; } }
 .celestial-clock .picker-exact { border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
 .celestial-clock .picker-exact summary { cursor: pointer; padding: 16px 24px; }
 .celestial-clock .picker-exact .date-selection { border: 0; padding-top: 0; }
 .celestial-clock .orrery-section > .planet-selector { margin: 0 8px 12px; }
 
-/* Website cards keep the reading and the 3D scene in separate areas. */
-.celestial-card { position: relative; isolation: isolate; flex-shrink: 0; overflow: hidden; border: 1px solid var(--widget-border, #b5c7e51c); border-radius: 24px; background: var(--widget-background, radial-gradient(ellipse at 100% 100%, #1c304a, #0b111d 80%)); box-shadow: 0 8px 24px #06102514; max-width: 100%; }
-.celestial-card.widget-small { width: 176px; height: 176px; }
-.celestial-card.widget-medium { width: 368px; height: 176px; }
-.celestial-card.widget-large { width: 368px; height: 368px; }
-.celestial-card .widget-copy { position: absolute; inset: 18px 20px; z-index: 2; display: flex; align-items: flex-start; flex-direction: column; gap: 7px; pointer-events: none; }
-.celestial-card .widget-eyebrow { color: var(--widget-muted, #acbdd4); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.celestial-card .widget-value { color: var(--widget-foreground, #edf5ff); font-size: 38px; line-height: 1.1; letter-spacing: -.05em; font-weight: 450; font-variant-numeric: tabular-nums; }
-.celestial-card .widget-caption { font-size: 11px; color: var(--widget-muted, #c0ccdf); max-width: 142px; line-height: 1.4; }
-.celestial-card .widget-detail { font-size: 9px; color: var(--widget-muted, #8e9fb8); max-width: 155px; line-height: 1.5; }
-.celestial-card .widget-scene { position: absolute; width: 240px; height: 240px; top: -32px; right: -24px; z-index: 1; pointer-events: none; }
-.celestial-card.widget-medium .widget-copy { right: 170px; }
-.celestial-card.widget-moon { background: var(--widget-background, radial-gradient(ellipse at 100% 100%, #292d3c, #10121d 80%)); }
-.celestial-card.widget-year { background: var(--widget-background, radial-gradient(ellipse at 100% 100%, #3b3026, #171418 80%)); }
-.celestial-card.widget-year .widget-value { color: var(--widget-foreground, #ecd29d); }
-.celestial-card .widget-planet-select { position: absolute; z-index: 3; bottom: 14px; left: 20px; }
-.celestial-card .widget-planet-select select { width: 112px; min-height: 32px; font-size: 10px; border: 1px solid var(--widget-border, #ecd29d40); border-radius: 99px; padding: 5px 10px; color: var(--widget-foreground, #ecd29d); background: var(--widget-background, #201c20); font-family: inherit; }
-.celestial-card.widget-year .widget-detail, .celestial-card.widget-orrery .widget-detail { display: none; }
-.celestial-card.widget-orrery { background: var(--widget-background, radial-gradient(ellipse at 80% 70%, #202c32, #0b1119 80%)); }
-.celestial-card.widget-orrery .widget-scene { width: 172px; height: 160px; top: 8px; right: 8px; }
-.celestial-card .widget-scene .orrery-stage { width: 100%; height: 100%; }
-.celestial-card .widget-loading { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 10px; color: var(--muted); text-align: center; }
-.celestial-card.widget-orrery .widget-caption { max-width: 140px; }
-.celestial-card.widget-small .widget-copy { inset: 16px; gap: 6px; }
-.celestial-card.widget-small .widget-value { font-size: 32px; }
-.celestial-card.widget-small .widget-eyebrow { max-width: 130px; font-size: 8px; }
-.celestial-card.widget-small .widget-scene { width: 156px; height: 156px; top: auto; right: -20px; bottom: -24px; }
-.celestial-card.widget-small .widget-caption { margin-top: auto; max-width: 65px; font-size: 10px; }
-.celestial-card.widget-small .widget-detail { display: none; }
-.celestial-card.widget-small .widget-planet-select { top: 10px; right: 12px; bottom: auto; left: auto; }
-.celestial-card.widget-small .widget-planet-select select { width: 82px; min-height: 28px; font-size: 9px; padding: 4px 5px; }
-.celestial-card.widget-small.widget-year .widget-eyebrow { max-width: 42px; }
-.celestial-card.widget-small.widget-orrery .widget-value { font-size: 24px; }
-.celestial-card.widget-small.widget-orrery .widget-scene { width: 110px; height: 110px; right: 2px; bottom: 2px; }
-.celestial-card.widget-small.widget-orrery .widget-planet-select { left: 12px; top: auto; right: auto; bottom: 12px; }
-.celestial-card.widget-small.widget-orrery .widget-planet-select select { width: 72px; }
-.celestial-card.widget-small.widget-orrery .widget-caption { display: none; }
-.celestial-card.widget-large .widget-copy { inset: 24px; gap: 9px; }
-.celestial-card.widget-large .widget-value { font-size: 52px; }
-.celestial-card.widget-large .widget-scene { width: 310px; height: 310px; top: 74px; right: -16px; }
-.celestial-card.widget-large .widget-caption { margin-top: auto; font-size: 12px; max-width: 155px; }
-.celestial-card.widget-large .widget-detail { display: block; max-width: 270px; }
-.celestial-card.widget-large.widget-year .widget-caption { margin-top: 0; }
-.celestial-card.widget-large .widget-planet-select { bottom: auto; left: auto; top: 20px; right: 20px; }
-.celestial-card.widget-large.widget-orrery .widget-value { font-size: 28px; }
-.celestial-card.widget-large.widget-orrery .widget-scene { inset: 78px 12px 30px; width: auto; height: auto; }
-.celestial-card.widget-large.widget-orrery .widget-caption { display: none; }
-.celestial-card.widget-large.widget-orrery .widget-detail { margin-top: auto; }
 @media (max-width: 650px) {
   .celestial-clock .direct-picker-layout { grid-template-columns: minmax(0, 1fr); }
   .celestial-clock .direct-picker-heading { padding: 22px 20px 0; }
@@ -1092,26 +1093,6 @@
 .celestial-clock .earth-coordinates label { min-width: 0; font-size: 10px; color: var(--muted); }
 .celestial-clock .earth-coordinates input { width: 100%; min-height: 40px; margin-top: 5px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: #101722; color: var(--text); font: inherit; }
 .celestial-clock .earth-coordinates button { grid-column: 1 / -1; }
-
-.celestial-card { container-type: inline-size; }
-@container (max-width: 320px) {
-  .celestial-card.widget-medium .widget-copy { left: 16px; right: 110px; }
-  .celestial-card.widget-medium .widget-value { font-size: 32px; }
-  .celestial-card.widget-medium .widget-caption, .celestial-card.widget-medium .widget-detail { max-width: 118px; }
-  .celestial-card.widget-medium .widget-scene { width: 190px; height: 190px; right: -32px; top: -7px; }
-  .celestial-card.widget-medium.widget-orrery .widget-scene { width: 128px; height: 128px; right: 6px; top: 24px; }
-}
-
-.celestial-card.widget-medium.widget-moon .widget-scene { width: 208px; height: 208px; right: -14px; top: -16px; }
-.celestial-card.widget-small .widget-scene { right: -30px; }
-.celestial-card.widget-small.widget-moon .widget-scene { width: 132px; height: 132px; right: -14px; bottom: -10px; }
-.celestial-card.widget-small.widget-orrery .widget-scene { right: 2px; }
-@container (max-width: 320px) {
-  .celestial-card.widget-medium.widget-moon .widget-scene { width: 168px; height: 168px; right: -10px; top: 4px; }
-}
-.celestial-card.widget-small.widget-year[data-planet="saturn"] .widget-scene { width: 120px; height: 120px; right: 5px; bottom: 3px; }
-.celestial-card.widget-medium.widget-year[data-planet="saturn"] .widget-scene { width: 208px; height: 208px; right: 0; top: -16px; }
-.celestial-card.widget-large.widget-year[data-planet="saturn"] .widget-scene { right: 0; }
 
 .celestial-clock .label-layer { z-index: 2; }
 .celestial-clock .orbit-pick-layer { z-index: 1; }

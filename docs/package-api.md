@@ -125,7 +125,7 @@ The same `variant` works with `CelestialPicker`, `CelestialScrollPicker`,
 olive screen; dark mode inverts the display. `theme="auto"` follows the system.
 Use `colors.background` and `colors.foreground` for the screen and ink. The input
 builder and widget gallery share a sticky preview header with 3D/LCD buttons,
-light/dark/system appearance, a palette selector and a custom-colours panel.
+light/dark/system appearance and one Colours panel containing palette presets and custom colour fields.
 Choices persist between those pages; switching styles preserves the selected
 instant. The panel exposes swatches, editable CSS colour codes and theme reset. Chosen colours are included in the generated code.
 Custom colours stay fixed when changing themes; omit them to follow the theme.
@@ -177,8 +177,28 @@ selection, stepInput, stepButtons, stepButton, footer, timezone, actions, nowBut
 clearButton, doneButton, description, error, scene, earth, earthPrecision,
 earthPrecisionButton, globe, reticle, orrery, orbitStage, orbitLabels, monthLabel,
 yearLabel, dateBadge, yearBadge, rangeNavigation, rangeButton, rangeLabel,
-orbitPreview and orbitPreviewMarker.
+orbitPreview, orbitPreviewMarker, orbitTrack, orbitHandle, orbitMonthArc,
+orbitLens and orbitLensDay.
 The same control parts work with `CelestialScrollPicker` and `CelestialStepper`.
+
+The orbital picker preserves the day when a month label is chosen, clamping to
+the destination month's last day when necessary. Selection and form values
+commit immediately; only the celestial illustration animates. Drags, keyboard
+edits and reduced-motion selections apply directly.
+
+Year ticks are fixed to local 1 January boundaries. Choosing another year keeps
+the selected month, day and time (with leap-day clamping); refining the day moves
+Earth and every other visible body to the same instant without rotating the year
+scale. LCD months use `01`–`12`, including the segmented scroll selection, orbital
+labels, date badge and drag magnifier. The 3D style retains abbreviated month names.
+
+Focus follows the circular ring. Focused rings accept trackpad or mouse-wheel
+steps without capturing ordinary page scrolling. Arrow keys use the configured
+day/month/year steps, Page Up/Down jumps a month (or ten year steps), and Home/End
+selects the ends of the relevant scale within the allowed date bounds. A temporary
+strip magnifies nearby dates while dragging the day ring; it is a visual guide
+during the captured gesture. The exact scrollers
+and step controls remain available alongside the illustration.
 
 `orbitalStyle.palette` accepts background, orbit, orbitOpacity, tick, tickMajor,
 label, labelActive, earthHand and yearHand. `orbitWidth` and `tickWidth` multiply
@@ -451,8 +471,8 @@ import { EarthWidget, MoonWidget, YearWidget, OrreryWidget } from 'skydial/react
 
 <EarthWidget size="small" place={singapore} />
 <MoonWidget size="small" />
-<YearWidget size="medium" defaultPlanet="jupiter" />
-<OrreryWidget size="large" defaultPlanet="saturn" />
+<YearWidget size="medium" planet="jupiter" />
+<OrreryWidget size="large" planet="saturn" />
 ```
 
 These home-screen-style cards are distinct from the full `EarthClock` and
@@ -468,11 +488,56 @@ scene with full 3D planets and hands, omitting the full clock's dense scale labe
 Readings and scenes occupy separate areas; Saturn's rings fit all three sizes.
 The documentation widgets page shows all four kinds directly, with inline size
 controls, descriptions, synchronized observer/time controls and copyable examples.
-Year and orrery cards include a planet dropdown, defaulting to Jupiter.
+Set `planet` in component settings (Jupiter by default). Cards never render a planet selector. The legacy `defaultPlanet` alias remains accepted. All cards accept `styles` and `classNames` for the named `WIDGET_PARTS`, plus CSS variables such as `--widget-radius`.
 
 Paused scenes redraw on state changes. Live or accelerated scenes request frames
 at roughly 30 fps while visible and stop continuous drawing while offscreen.
 These are embeddable website widgets, not native iOS WidgetKit extensions.
+
+## Compact date/time displays and bodies
+
+`CelestialDisplay` is a read-only inline component for headers, toolbars and dashboards;
+it mounts no input, picker, selector or popup. `CelestialDateDisplay` and
+`CelestialTimeDisplay` set the other reading to `false` by default. `CelestialBody`
+provides a standalone decorative body with a readable image name.
+
+```tsx
+import { CelestialDisplay, CelestialDateDisplay, CelestialTimeDisplay, CelestialBody } from 'skydial/react'
+
+<CelestialDisplay
+  bodies={['earth', 'moon']}
+  dateFormat={{ year: 'numeric', month: '2-digit', day: '2-digit' }}
+  timeFormat={{ hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }}
+  place={singapore}
+  variant="lcd" theme="light"
+/>
+<CelestialDateDisplay bodies={['jupiter']} dateFormat={{ year: 'numeric' }} />
+<CelestialTimeDisplay bodies={['moon']} />
+<CelestialBody body="saturn" size={32} />
+```
+
+`dateFormat` and `timeFormat` accept `Intl.DateTimeFormatOptions`, or `false` to hide
+that reading. `locale` defaults to `en-GB`; the observer's `place.timeZone` always
+applies. Default formats use numeric dates and 24-hour minutes in both styles.
+The semantic `<time datetime>` contains the complete UTC instant. Both readings
+may be hidden for a body-only composition, and `bodies={[]}` gives a text-only one.
+
+`bodies` accepts all eight planet IDs and `moon`, in display order. Artwork uses
+real computed orientation and observer-aware Earth/Moon illumination; 3D planet
+lighting is illustrative. Bodies inherit the same provider/date/clock contracts
+as widgets. LCD uses SVG only; each 3D body uses a demand-rendered canvas.
+
+Displays come in `small`, `medium` and `large` typography/body sizes, with `inline`
+or `stacked` layout. They wrap to their container instead of clipping. `colors`,
+`style`, `styles`, `className` and `classNames` expose the same customization as
+cards. `WIDGET_PARTS` lists the hooks: root, layout, content, label, value, caption,
+detail, scene, bodies, body, date and time. CSS variables include
+`--display-body-size`, `--display-font-size`, `--display-gap`, `--display-body-gap`,
+`--display-padding` and `--display-radius`.
+
+Vanilla and Svelte use `component: 'display'` or `'body'` with the same options;
+Vue exports `CelestialDisplay` and `CelestialBody` with an `options` prop. The
+widgets page includes a live settings section and copyable examples.
 
 ## Simulation and rotation
 
@@ -550,7 +615,7 @@ const date = ref(new Date('2026-06-01T12:00:00Z'))
 ```
 
 Exports: `CelestialInput`, `CelestialPicker`, `CelestialScrollPicker`, `CelestialStepper`, `CelestialDatePicker`, `CelestialDateTimePicker`, `CelestialTimePicker`,
-`CelestialWidget`, `CelestialClock`, `EarthClock`, `MoonClock`, `OrreryClock`.
+`CelestialWidget`, `CelestialDisplay`, `CelestialBody`, `CelestialClock`, `EarthClock`, `MoonClock`, `OrreryClock`.
 The Vue components mount on the client, watch options and destroy on unmount.
 Server rendering produces a host container.
 
@@ -565,7 +630,7 @@ let date = $state(new Date('2026-06-01T12:00:00Z'))
 <div use:celestial={{ component: 'picker', options: { date, onDateChange: value => date = value } }}></div>
 ```
 
-The action's `component` accepts `field`, `scroll`, `stepper`, `picker`, `time`, `widget`, `clock`, `earth`,
+The action's `component` accepts `field`, `scroll`, `stepper`, `picker`, `time`, `widget`, `display`, `body`, `clock`, `earth`,
 `moon` and `orrery`. It updates the existing mount, replaces it if its component
 kind changes and tears down on element removal. It does not run during SSR.
 
@@ -631,3 +696,48 @@ in [NASA’s Jupiter facts](https://science.nasa.gov/jupiter/jupiter-facts/),
 [Neptune facts](https://science.nasa.gov/neptune/neptune-facts/) and
 [ice-giant overview](https://www.nasa.gov/solar-system/examining-ice-giants-with-nasas-webb-telescope/).
 No external images or map datasets are included in the LCD rendering.
+
+## Documentation preview settings
+
+Every page shares the 3D/LCD and appearance toolbar. The single Colours panel
+contains both palette presets and editable colour values; settings persist for
+the browser session. Component settings are in their own collapsible sections,
+outside the rendered components. The orrery playground uses `CelestialInput`
+with `presentation="inline"` and no legacy range slider.
+
+## Overriding the default stylesheet
+
+Skydial's CSS is a default, not a locked theme. Import it first, then your own
+stylesheet. Components render in the regular document, without a shadow root.
+Use `className`/`classNames`, stable `data-picker-part`/`data-widget-part` selectors,
+CSS variables, or the `style`/`styles` props. Named part styles merge after defaults.
+Normal CSS cascade and specificity rules apply to external stylesheets.
+Colours, typography, spacing, borders, shadows and layouts are customizable in
+both variants. Canvas geometry and colours use `orbitalStyle`; CSS cannot change
+the pixels inside a WebGL canvas. Wheel row geometry uses `wheelRowHeight` and
+`wheelRows` so the selection and scrolling stay aligned.
+
+```tsx
+import 'skydial/style.css'
+import './my-sky.css'
+
+<CelestialDisplay
+  className="my-sky"
+  classNames={{ date: 'my-date' }}
+  styles={{ label: { fontWeight: 700 } }}
+/>
+```
+
+```css
+.my-sky {
+  --display-padding: 10px 18px;
+  --display-gap: 16px;
+  --display-radius: 12px;
+  --widget-radius: 12px;
+}
+.my-sky .my-date { font-family: Georgia, serif; font-size: 20px; }
+```
+
+For standalone bodies, set `--body-background` or use a root background style.
+Accessibility preferences such as reduced motion and forced colours remain
+honoured by the default stylesheet.

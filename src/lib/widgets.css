@@ -1,0 +1,76 @@
+/* Cards reserve distinct areas for readings and artwork at every size. */
+.celestial-clock.celestial-card {
+  container-type: inline-size; position: relative; isolation: isolate; flex-shrink: 1;
+  max-width: 100%; overflow: hidden; border: 1px solid var(--widget-border, #6e819b);
+  border-radius: var(--widget-radius, 22px); color: var(--widget-foreground, #edf5ff);
+  background: var(--widget-background, linear-gradient(135deg, #142236, #0a111c));
+  box-shadow: var(--widget-shadow, 0 8px 24px #06102514);
+}
+.celestial-card.widget-small { width: 176px; height: 176px; }
+.celestial-card.widget-medium { width: 368px; height: 176px; }
+.celestial-card.widget-large { width: 368px; height: 368px; }
+.celestial-card .widget-layout { width: 100%; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 4px; padding: 14px; }
+.celestial-card .widget-copy { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; }
+.celestial-card .widget-eyebrow { color: var(--widget-muted, #b5c5dc); font-size: 10px; line-height: 1.3; letter-spacing: .1em; text-transform: uppercase; overflow-wrap: anywhere; }
+.celestial-card .widget-value { display: block; color: var(--widget-foreground, #edf5ff); font-size: 30px; line-height: 1.1; letter-spacing: -.035em; font-weight: 450; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.celestial-card .widget-caption, .celestial-card .widget-detail { color: var(--widget-muted, #b5c5dc); font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.celestial-card .widget-detail { display: none; }
+.celestial-card .widget-scene { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+.celestial-card .widget-body { height: 100%; max-width: 100%; aspect-ratio: 1; }
+.celestial-card .widget-scene .orrery-stage { width: 100%; height: 100%; }
+.celestial-card .widget-loading { display: grid; place-items: center; width: 100%; height: 100%; color: inherit; font-size: 10px; text-align: center; }
+.celestial-card.widget-small .widget-copy { gap: 3px; }
+.celestial-card.widget-small .widget-caption { font-size: 10px; }
+.celestial-card.widget-small.widget-orrery .widget-value { font-size: 20px; }
+.celestial-card.widget-small.widget-orrery .widget-caption { display: none; }
+.celestial-card.widget-medium .widget-layout { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; padding: 18px; }
+.celestial-card.widget-medium .widget-value { font-size: clamp(24px, 10cqi, 38px); }
+.celestial-card.widget-medium .widget-detail { display: block; font-size: 10px; }
+.celestial-card.widget-medium.widget-orrery .widget-value { font-size: clamp(18px, 6.5cqi, 24px); }
+.celestial-card.widget-large .widget-layout { padding: 22px; gap: 12px; }
+.celestial-card.widget-large .widget-value { font-size: clamp(32px, 13cqi, 48px); }
+.celestial-card.widget-large .widget-detail { display: block; font-size: 11px; }
+.celestial-card.widget-large.widget-orrery .widget-value { font-size: 28px; }
+@container (max-width: 280px) {
+  .celestial-card.widget-medium .widget-layout { padding: 12px; gap: 6px; }
+  .celestial-card.widget-medium .widget-detail { display: none; }
+  .celestial-card.widget-medium .widget-caption { font-size: 10px; }
+}
+
+/* Small readouts wrap in their host rather than clipping dates or body artwork. */
+.celestial-clock.celestial-display { --display-body-size: 32px; --display-font-size: 14px; display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--display-gap, 10px); max-width: 100%; padding: var(--display-padding, 8px 12px); border: 1px solid var(--widget-border, #6e819b); border-radius: var(--display-radius, 12px); background: var(--widget-background, #0e1928); color: var(--widget-foreground, #edf5ff); }
+.celestial-display.display-medium { --display-body-size: 44px; --display-font-size: 18px; }
+.celestial-display.display-large { --display-body-size: 56px; --display-font-size: 22px; }
+.celestial-display .display-bodies { display: flex; flex-wrap: wrap; align-items: center; gap: var(--display-body-gap, 4px); min-width: 0; }
+.celestial-display .display-body { display: block; flex: none; width: var(--display-body-size); height: var(--display-body-size); }
+.celestial-display .display-copy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.celestial-display .display-label { color: var(--widget-muted, #b5c5dc); font-size: 10px; line-height: 1.4; letter-spacing: .08em; text-transform: uppercase; overflow-wrap: anywhere; }
+.celestial-display .display-value { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: var(--display-font-size); line-height: 1.4; font-variant-numeric: tabular-nums; }
+.celestial-display .display-date, .celestial-display .display-time { overflow-wrap: anywhere; }
+.celestial-display.display-stacked { flex-direction: column; align-items: flex-start; }
+.celestial-display.display-stacked .display-value { flex-direction: column; gap: 2px; align-items: flex-start; }
+.celestial-clock.celestial-body { display: inline-block; flex: none; margin: 0; max-width: 100%; aspect-ratio: 1; background: transparent; color: var(--widget-foreground, #edf5ff); }
+.display-body-scene { display: block; width: 100%; height: 100%; }
+.celestial-display .celestial-fallback, .celestial-body .celestial-fallback, .celestial-card .celestial-fallback { min-height: 0; padding: 0; justify-content: center; }
+.celestial-display .celestial-fallback p, .celestial-display .celestial-fallback small, .celestial-body .celestial-fallback p, .celestial-body .celestial-fallback small, .celestial-card .celestial-fallback p, .celestial-card .celestial-fallback small { display: none; }
+
+:where(.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="celestial"][data-picker-theme="light"]) { --widget-foreground: #243044; --widget-muted: #526177; }
+.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="celestial"][data-picker-theme="light"] { background: var(--widget-background, #f4f7fb); color: var(--widget-foreground); }
+@media (prefers-color-scheme: light) {
+  :where(.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="celestial"][data-picker-theme="auto"]) { --widget-foreground: #243044; --widget-muted: #526177; }
+  .celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="celestial"][data-picker-theme="auto"] { background: var(--widget-background, #f4f7fb); color: var(--widget-foreground); }
+}
+:where(.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="lcd"]) { --lcd-paper: #c9cfb4; --lcd-ink: #263426; --widget-foreground: var(--lcd-ink); --widget-muted: var(--lcd-ink); }
+.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="lcd"] { background: var(--lcd-paper); color: var(--lcd-ink); font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+:where(.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="lcd"][data-picker-theme="dark"]) { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
+@media (prefers-color-scheme: dark) {
+  :where(.celestial-clock:is(.celestial-card, .celestial-display, .celestial-body)[data-picker-style="lcd"][data-picker-theme="auto"]) { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
+}
+.celestial-clock:is(.celestial-card, .celestial-display)[data-picker-style="lcd"] { border: 4px double var(--lcd-ink); border-radius: var(--widget-radius, 4px); box-shadow: var(--widget-shadow, 2px 2px 0 var(--lcd-ink)); }
+.celestial-card[data-picker-style="lcd"] .widget-value { letter-spacing: 0; }
+.celestial-card[data-picker-style="lcd"] .widget-caption { text-transform: uppercase; font-size: 10px; }
+.celestial-display .lcd-digital-text > [aria-hidden="true"] { flex-wrap: wrap; }
+.celestial-clock.celestial-body[data-picker-style][data-picker-theme] { background: var(--body-background, transparent); }
+@media (forced-colors: active) {
+  .celestial-clock:is(.celestial-card, .celestial-display, .celestial-body) { --lcd-paper: Canvas !important; --lcd-ink: CanvasText !important; --widget-background: Canvas !important; --widget-foreground: CanvasText !important; --widget-muted: CanvasText !important; --widget-border: CanvasText !important; }
+}

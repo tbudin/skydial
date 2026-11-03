@@ -8,14 +8,17 @@ async function show(state, main) {
   mounted = undefined
   const host = main.querySelector('[data-demo]')
   if (!host) return
-  const { mountCelestial } = await import(new URL('../runtime/runtime.js', import.meta.url))
+  const runtime = await import(new URL('../runtime/runtime.js', import.meta.url))
+  const { mountCelestial } = runtime
   if (ticket !== generation || !host.isConnected) return
   const options = {
-    defaultDate: new Date('2026-03-20T12:00:00Z'), defaultPlanet: state.planet ?? 'jupiter',
-    ...(host.dataset.demo === 'orrery-picker' ? { includeTime: false, showInputs: true } : {}),
+    ...(host.dataset.demo === 'input' ? { defaultValue: new Date('2026-03-20T12:00:00Z'), mode: 'datetime', presentation: 'inline', label: 'Date and time' } : { defaultDate: new Date('2026-03-20T12:00:00Z') }), defaultPlanet: state.planet ?? 'jupiter',
+
     ...(host.dataset.demo === 'widget' ? { kind: state.kind ?? 'earth', size: state.size ?? 'medium' } : {}),
   }
-  mounted = mountCelestial(host, host.dataset.demo === 'orrery-picker' ? 'picker' : host.dataset.demo, options)
+  const instance = mountCelestial(host, host.dataset.demo, { ...options, ...runtime.getPreviewAppearance() })
+  const unsubscribe = runtime.subscribePreviewSettings(() => instance.update({ ...options, ...runtime.getPreviewAppearance() }))
+  mounted = { destroy: () => { unsubscribe(); instance.destroy() } }
 }
 async function showWidgets(_state, main) {
   const ticket = ++generation
@@ -33,18 +36,24 @@ async function showPickers(_state, main) {
   if (ticket !== generation || !main.isConnected) return
   mounted = mountPickerGallery(main, runtime)
 }
+async function showOrrery(_state, main) {
+  const ticket = ++generation
+  mounted?.destroy()
+  mounted = undefined
+  const runtime = await import(new URL('../runtime/runtime.js', import.meta.url))
+  if (ticket !== generation || !main.isConnected) return
+  mounted = runtime.mountOrreryPlayground(main.querySelector('[data-orrery-playground]'))
+}
 const preview = (kind) => `<div class="celestial-demo" data-demo="${kind}"><p class="celestial-doc-placeholder">A real 3D celestial ${kind === 'picker' ? 'date and time picker' : 'website widget'} loads here. Positions, illumination and rotation are computed from the selected moment. Exact date and time controls remain available without WebGL.</p></div>`
-const planets = [['jupiter', 'Jupiter'], ['saturn', 'Saturn'], ['uranus', 'Uranus'], ['neptune', 'Neptune']]
-const planetControl = { k: 'planet', label: 'Year planet', type: 'select', options: planets, v: 'jupiter' }
 const css = `import 'skydial/style.css'`
 
-export const pages = [
+const definitions = [
   {
     id: 'start', group: 'Start', title: 'A small universe. In your hands.',
     description: 'Interactive 3D date and time pickers, compact celestial widgets and shared astronomy for React, Vue, Svelte and vanilla JavaScript.',
     lead: 'Turn Earth to choose a time. Touch its orbital calendar to select a day. Follow Jupiter, Saturn, Uranus or Neptune to choose a year. These are real sphere meshes with surface maps, astronomical orientation and computed illumination—not phase pictures or decorative constant spins.',
-    controls: [planetControl], render: () => preview('picker'), onShow: show,
-    code: (s) => `import { CelestialDateTimePicker } from 'skydial/react'\n${css}\n\n<CelestialDateTimePicker defaultPlanet="${s.planet}" />`,
+    hidePlay: true, before: () => preview('input'), onShow: show,
+    code: () => `import { CelestialInput } from 'skydial/react'\n${css}\n\n<CelestialInput presentation="inline" mode="datetime" planet="jupiter" />`,
     after: () => '<p>Install the package and the visual renderer peers: <code>npm install skydial react react-dom three @react-three/fiber @react-three/drei</code>. Astronomy-only and simulation consumers need no renderer peers. Each widget owns its time unless an explicit provider or clock synchronizes it.</p>',
     faq: [{ q: 'Are these native iPhone widgets?', a: 'These are compact website cards with home-screen proportions. A native mobile app is a separate project.' }, { q: 'What does the year hand mean?', a: 'The selected planet points along a scale calibrated to real positions on 1 January of successive years. Jupiter is the default. The displayed cycle removes the ambiguity of repeated revolutions.' }],
   },
@@ -62,15 +71,15 @@ export const pages = [
     description: 'Embed compact Earth, Moon, planetary-year and solar-system widgets in small, medium and large home-screen-style website cards.',
     lead: 'Four small windows into the sky. Explore each widget below, try its three sizes, and copy the component into your website. Use the header to switch between textured 3D and duotone LCD, choose colours and change appearance. Every view responds to the moment you choose.',
     hidePlay: true, before: widgetGallery, onShow: showWidgets,
-    ref: [['kind', 'earth', 'earth, moon, year or orrery'], ['size', 'small', '176×176, 368×176 or 368×368; constrained by the container width.'], ['date / defaultDate', 'live', 'Controlled or initially paused time.'], ['clock', 'independent', 'Explicit SimClock for synchronization.'], ['className / style', '—', 'Container customization.']],
-    after: () => '<p>Convenience exports include EarthWidget, MoonWidget, YearWidget and OrreryWidget. Full telemetry panels remain available as EarthClock and MoonClock. Year and orrery cards include a planet dropdown, defaulting to Jupiter. Paused scenes redraw on changes; live scenes stop continuous drawing while offscreen.</p>',
+    ref: [['kind', 'earth', 'earth, moon, year or orrery'], ['size', 'small', '176×176, 368×176 or 368×368; constrained by the container width.'], ['date / defaultDate', 'live', 'Controlled or initially paused time.'], ['clock', 'independent', 'Explicit SimClock for synchronization.'], ['planet', 'jupiter', 'Year-hand planet, set through component settings.'], ['styles / classNames', '—', 'Customize every named widget part.'], ['dateFormat / timeFormat', 'Intl options', 'Compact displays accept any Intl date/time format, or false to hide a reading.'], ['bodies', 'earth, moon', 'Compact displays accept any planets and the Moon in display order.'], ['className / style', '—', 'Container customization.']],
+    after: () => '<p>Convenience exports include EarthWidget, MoonWidget, YearWidget and OrreryWidget. Full telemetry panels remain available as EarthClock and MoonClock. Configure the year planet through props; cards contain no dropdown. CelestialDisplay, CelestialDateDisplay, CelestialTimeDisplay and CelestialBody provide smaller building blocks with configurable formats and bodies. Paused scenes redraw on changes; live scenes stop continuous drawing while offscreen.</p>',
   },
   {
     id: 'orrery', group: 'Components', title: 'Orrery playground',
     description: 'An interactive solar system to explore dates and planetary years independently of a form input or website widget.',
     lead: 'Explore the orbital calendar on its own. Click month and year labels, drag the calendar ring or follow a planet through its year. Jupiter is the default; choose another planet to change the scale.',
-    controls: [planetControl], render: () => preview('orrery-picker'), onShow: show,
-    code: (s) => `import { CelestialDatePicker } from 'skydial/react'\n${css}\n\n<CelestialDatePicker includeTime={false} defaultPlanet="${s.planet}" showInputs />`,
+    hidePlay: true, before: () => '<div data-orrery-playground></div>', onShow: showOrrery,
+
     after: () => '<p>This is the standalone exploration view. For a compact field opening a designed date/time picker with scrollers, use CelestialInput. For small website cards, explore A place on your website.</p>',
   },
   {
@@ -121,3 +130,22 @@ export const pages = [
     code: () => `<CelestialDateTimePicker showInputs />\n\n// Deterministic server output:\n<EarthWidget date={Date.UTC(2026, 0, 1)} place={observer} />`,
   },
 ]
+
+
+// Every documentation route has the same appearance controls, including reference pages.
+export const pages = definitions.map((page) => ({
+  ...page,
+  onShow: async (state, main) => {
+    const runtime = await import(new URL('../runtime/runtime.js', import.meta.url))
+    runtime.mountPreviewHeader()
+    if (page.onShow) return page.onShow(state, main)
+    ++generation
+    mounted?.destroy()
+    mounted = undefined
+  },
+}))
+
+// The generated changelog has no onShow callback, but imports this module too.
+if (typeof document !== 'undefined') {
+  void import(new URL('../runtime/runtime.js', import.meta.url)).then((runtime) => runtime.mountPreviewHeader())
+}

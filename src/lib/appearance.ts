@@ -10,7 +10,8 @@ export const PICKER_PARTS = [
   'nowButton', 'clearButton', 'doneButton', 'description', 'error', 'scene', 'earth',
   'earthPrecision', 'earthPrecisionButton', 'globe', 'reticle', 'orrery', 'orbitStage',
   'orbitLabels', 'monthLabel', 'yearLabel', 'dateBadge', 'yearBadge', 'rangeNavigation',
-  'rangeButton', 'rangeLabel', 'orbitPreview', 'orbitPreviewMarker',
+  'rangeButton', 'rangeLabel', 'orbitPreview', 'orbitPreviewMarker', 'orbitTrack',
+  'orbitHandle', 'orbitMonthArc', 'orbitLens', 'orbitLensDay',
 ] as const
 export type PickerPart = typeof PICKER_PARTS[number]
 export type PickerPartState = { unit?: PickerUnit; selected?: boolean; disabled?: boolean; direction?: number }

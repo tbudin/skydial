@@ -1,10 +1,10 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useThree } from '@react-three/fiber'
-import { useCelestialClock } from '../sim/hooks.js'
+import { useVisualClock } from '../sim/hooks.js'
 
 /** Paused widgets draw on change; moving clocks draw only while visible. */
 export function ClockFrames() {
-  const clock = useCelestialClock()
+  const clock = useVisualClock()
   const state = useSyncExternalStore(clock.subscribe, clock.getState, clock.getState)
   const { invalidate, gl } = useThree()
   const visible = useRef(true)

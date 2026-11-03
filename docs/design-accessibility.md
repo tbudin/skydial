@@ -114,3 +114,69 @@ Reproduce with `npm run check`, `npm run check:docs`, `npm run test:browser` and
 `npm run test:docs`. Test sources: `tests/browser/design.e2e.ts` and
 `tests/docs/design.e2e.ts`, alongside the existing form, location, package,
 composable and picker browser suites.
+
+## Local interaction follow-up — 3 November 2026
+
+The orrery review separates committed form values from illustration
+motion. Year marks now use fixed local 1 January boundaries; choosing a year
+preserves the month/day (with leap-day clamping), and refining the day updates
+all visible bodies without rotating the year scale. Circular focus and touch
+grips accompany keyboard and focused wheel adjustments. A nearby-date magnifier
+appears only during a day drag. Fine pointers retain access to neighbouring ticks.
+
+Internal pointer gestures and transient document focus no longer dismiss the
+nonmodal input popover. Intentional outside focus, outside clicks, Done and
+Escape retain their dismissal behaviour. LCD month values use `01`–`12` in the
+segmented selection, orbital labels, date badge, previews and magnifier.
+
+Validation passed: 109 unit/SSR checks, package/consumer/demo builds, package
+exports and the 11-page documentation check. The configuration sweep exercises
+all 63 nonempty unit combinations in both designs, varying wheel/stepper/both,
+inline/popover, themes, sizes, placement and desktop/phone/landscape viewports.
+It verifies precision tabs, exact edits, Clear, Now and Done. Focus transitions,
+shared astronomical time, year/day selection, form flows and existing standalone
+windows also pass across Chromium, Firefox and WebKit. The documentation suites
+cover 40 default no-scroll combinations, both styles' month/button appearance,
+unit composition, precision drags, city illumination and hover previews.
+
+This review was validated locally before the 0.2.0 release. The
+assistive-technology and physical-device limits above still apply.
+
+### Widget and documentation follow-up — 3 November 2026
+
+- Replaced fixed, overlapping widget artwork with a grid that reserves separate
+  reading and scene areas in small, medium and large cards. Verified all four
+  widget kinds across both styles, light/dark themes and desktop, tablet and
+  320px screens, including actual text overflow and reading/artwork intersections.
+- Removed rendered planet selectors. Planet choice is a component prop, exposed
+  in the documentation's separate Component settings section. Added named
+  `WIDGET_PARTS` styles/classes for cards and compact displays.
+- Added `CelestialDisplay`, date/time convenience exports and `CelestialBody`.
+  Formats use Intl options, observer time zones and semantic time elements;
+  body artwork has readable names. Tested all nine bodies, numeric LCD readings,
+  seconds, year-only/date-only/time-only presets, custom formats and narrow layouts.
+- Every documentation route, including the generated changelog, now shares the
+  appearance toolbar. Palette presets and custom colour fields occupy one Colours
+  panel. Checked its keyboard targets and accessibility at 1440px, 768px and 320px;
+  the narrow layout hides the redundant palette caption to preserve target width.
+- The playground and home preview now use the current CelestialInput component.
+  The playground presents its inline picker with settings outside the component,
+  without the legacy range slider. Removed a duplicate named region found during
+  verification.
+- Validation: npm run check passed (114 unit/SSR checks), consumer/site types and
+  documentation build checks passed. All 27 documentation browser scenarios are
+  covered by the final runs: 23 passed in the full sweep, the four corrected cases
+  passed in the follow-up, and the 40-layout popup sweep was repeated successfully.
+  Existing physical-device and manual assistive-technology limitations still apply.
+
+The validation above was performed on the local preview before release.
+Attribution and collaborator settings were unchanged.
+
+### Release styling checks — 0.2.0
+
+Consumer CSS, variables, custom classes and named part styles pass in both
+variants across Chromium, Firefox and WebKit (six browser cases), without
+consumer !important declarations. Standalone body backgrounds are overridable;
+widget palette defaults use low-specificity variables. Package checks pass with
+114 unit/SSR cases, package/type validation and clean archive installation.
+Production dependency audit reports no vulnerabilities.

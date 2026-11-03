@@ -66,7 +66,7 @@ export default function PickerConfigurator() {
     <nav className="picker-library-sections" aria-label="Library components"><a href="./">Date & time inputs</a><a href="../widgets/">Website widgets</a><a href="../orrery/">Orrery playground</a></nav>
     <div className="picker-presets" role="group" aria-label="Picker presets">{Object.entries(presets).map(([name, fields]) => <button key={name} type="button" aria-pressed={JSON.stringify(fields) === JSON.stringify(units)} onClick={() => setUnits(fields)}>{name}</button>)}</div>
     <div className="picker-builder-grid">
-      <section className="picker-builder-settings" aria-label="Configure your picker">
+      <details className="component-settings"><summary>Component settings</summary><section className="picker-builder-settings" aria-label="Configure your picker">
         <h2>Make it fit</h2>
         <fieldset><legend>Units</legend><div className="picker-unit-checks">{PICKER_UNITS.map((unit) => <label key={unit}><input type="checkbox" checked={units.includes(unit)} disabled={units.length === 1 && units[0] === unit} onChange={(event) => setUnits(PICKER_UNITS.filter((candidate) => candidate === unit ? event.target.checked : units.includes(candidate)))} />{unit}</label>)}</div></fieldset>
         <div className="picker-settings-pair">
@@ -119,7 +119,7 @@ export default function PickerConfigurator() {
           <label><input type="checkbox" checked={bounded} onChange={(event) => setBounded(event.target.checked)} />Limit range</label>
         </div>
         {bounded && <div className="picker-settings-pair"><label>Earliest date<input type="date" min="1600-01-01" max={maximum} value={minimum} onChange={(event) => { if (event.target.value && event.target.value <= maximum) setMinimum(event.target.value) }} /></label><label>Latest date<input type="date" min={minimum} max="2400-12-31" value={maximum} onChange={(event) => { if (event.target.value && event.target.value >= minimum) setMaximum(event.target.value) }} /></label></div>}
-      </section>
+      </section></details>
       <div className="picker-builder-preview">
         <section className="picker-form-example" data-preview-theme={theme} aria-label="Website form example">
           <span className="picker-example-eyebrow">YOUR WEBSITE</span><h2>Create an event</h2><p>{celestial ? hasCalendar ? `Earth’s revolution selects ${units.includes('day') ? 'the day' : 'the month'}.${hasYear ? ' Your year planet sets the year range.' : ''} Scrolling columns and −/+ steps stay in sync.` : hasYear ? 'Your chosen planet sets the year range. Scrolling columns and −/+ steps stay in sync.' : 'Click the time to open Earth, scrolling columns and exact −/+ steps together.' : 'Click the field to open precise scrolling and step controls.'}</p>

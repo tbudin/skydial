@@ -157,15 +157,15 @@
   .celestial-control .scale-label.date-pill, .celestial-control .scale-label.year-pill { color: CanvasText !important; background: Canvas !important; outline: 1px solid CanvasText; }
 }
 /* LCD: two configurable inks, an inverse display and vector seven-segment digits. */
-.celestial-clock.celestial-control[data-picker-style="lcd"], .celestial-clock.celestial-card[data-picker-style="lcd"] {
+.celestial-clock.celestial-control[data-picker-style="lcd"] {
   --lcd-paper: #c9cfb4; --lcd-ink: #263426;
   --bg: var(--lcd-paper); --text: var(--lcd-ink); --muted: var(--lcd-ink); --line: var(--lcd-ink);
   --hour: var(--lcd-ink); --green: var(--lcd-ink); --gold: var(--lcd-ink); --picker-accent: var(--lcd-ink);
   --picker-error: var(--lcd-ink); --picker-surface: var(--lcd-paper); --picker-radius: 2px;
   color: var(--lcd-ink); font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Consolas, monospace;
 }
-.celestial-clock[data-picker-style="lcd"][data-picker-theme="dark"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
-@media (prefers-color-scheme: dark) { .celestial-clock[data-picker-style="lcd"][data-picker-theme="auto"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; } }
+.celestial-clock.celestial-control[data-picker-style="lcd"][data-picker-theme="dark"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
+@media (prefers-color-scheme: dark) { .celestial-clock.celestial-control[data-picker-style="lcd"][data-picker-theme="auto"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; } }
 .celestial-control[data-picker-style="lcd"] .picker-form-trigger { border: 2px solid var(--lcd-ink); background: var(--lcd-paper); box-shadow: inset 0 0 0 2px var(--lcd-paper), inset 0 0 0 3px var(--lcd-ink); padding-inline: 10px; }
 .celestial-control[data-picker-style="lcd"] .picker-form-label, .celestial-control[data-picker-style="lcd"] .picker-wheel-label { color: var(--lcd-ink); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; }
 .celestial-control[data-picker-style="lcd"] .picker-form-panel, .celestial-control[data-picker-style="lcd"] .picker-form-inline, .celestial-control[data-picker-style="lcd"].celestial-control-surface {
@@ -206,23 +206,6 @@
 }
 .celestial-control[data-picker-style="lcd"] .picker-step-buttons button:active:not(:disabled), .celestial-control[data-picker-style="lcd"] .picker-form-actions button:active:not(:disabled), .celestial-control[data-picker-style="lcd"] .chip:active:not(:disabled) { color: var(--lcd-paper); background: var(--lcd-ink); box-shadow: inset 0 0 0 2px var(--lcd-paper); }
 .celestial-control[data-picker-style="lcd"] .picker-step-buttons button:focus-visible, .celestial-control[data-picker-style="lcd"] .picker-form-actions button:focus-visible, .celestial-control[data-picker-style="lcd"] .chip:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
-.celestial-clock.celestial-card[data-picker-style="lcd"] { background: var(--lcd-paper); color: var(--lcd-ink); border: 4px double var(--lcd-ink); border-radius: 5px; box-shadow: 3px 3px 0 var(--lcd-ink); }
-.celestial-card[data-picker-style="lcd"] .widget-copy { gap: 8px; }
-.celestial-card[data-picker-style="lcd"] .widget-eyebrow, .celestial-card[data-picker-style="lcd"] .widget-value, .celestial-card[data-picker-style="lcd"] .widget-caption, .celestial-card[data-picker-style="lcd"] .widget-detail { color: var(--lcd-ink); }
-.celestial-card[data-picker-style="lcd"] .widget-eyebrow { font-size: 10px; }
-.celestial-card[data-picker-style="lcd"] .widget-value { letter-spacing: 0; }
-.celestial-card[data-picker-style="lcd"] .widget-caption { font-size: 10px; text-transform: uppercase; }
-.celestial-card[data-picker-style="lcd"] .widget-planet-select select { color: var(--lcd-ink); background: var(--lcd-paper); border: 1px solid var(--lcd-ink); border-radius: 2px; font-family: inherit; min-height: 32px; }
-.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] { background: var(--widget-background, #f4f7fb); border-color: var(--widget-border, #78879a); }
-.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-eyebrow, .celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-value { color: var(--widget-foreground, #243044); }
-.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-caption, .celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-detail { color: var(--widget-muted, #526177); }
-.celestial-card[data-picker-theme="light"][data-picker-style="celestial"] .widget-planet-select select { color: var(--widget-foreground, #243044); background: var(--widget-background, #fff); border-color: var(--widget-border, #78879a); }
-@media (prefers-color-scheme: light) {
-  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] { background: var(--widget-background, #f4f7fb); border-color: var(--widget-border, #78879a); }
-  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-eyebrow, .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-value { color: var(--widget-foreground, #243044); }
-  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-caption, .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-detail { color: var(--widget-muted, #526177); }
-  .celestial-card[data-picker-theme="auto"][data-picker-style="celestial"] .widget-planet-select select { color: var(--widget-foreground, #243044); background: var(--widget-background, #fff); border-color: var(--widget-border, #78879a); }
-}
 @media (forced-colors: active) {
   .celestial-clock[data-picker-style="lcd"] { --lcd-paper: Canvas !important; --lcd-ink: CanvasText !important; }
   .celestial-control[data-picker-style="lcd"] .picker-wheel-selection { color: HighlightText; background: Highlight; forced-color-adjust: none; }
@@ -235,7 +218,7 @@
 .celestial-clock.celestial-control.celestial-form-picker > .picker-form-error { font-weight: 600; }
 @media (pointer: coarse) { .celestial-control[data-picker-style="lcd"] .picker-form-actions button { min-height: 44px; } }
 @media (forced-colors: active) {
-  .celestial-clock.celestial-control[data-picker-style="lcd"], .celestial-clock.celestial-card[data-picker-style="lcd"] { --lcd-paper: Canvas !important; --lcd-ink: CanvasText !important; }
+  .celestial-clock.celestial-control[data-picker-style="lcd"] { --lcd-paper: Canvas !important; --lcd-ink: CanvasText !important; }
 }
 @media (max-width: 560px) {
   .celestial-control .picker-composed-content > .picker-exact-content { order: -1; padding: 2px 0 14px; border-top: 0; border-bottom: 1px solid var(--line); }
@@ -250,9 +233,10 @@
 /* Custom ARIA controls retain a focus cue with each browser's keyboard heuristics. */
 .celestial-control .picker-wheel:focus { outline: none; }
 .celestial-control .picker-wheel-frame:has(.picker-wheel:focus) > .picker-wheel-selection { outline: 2px solid var(--picker-accent); outline-offset: -2px; }
-.celestial-clock .earth-turner:focus, .celestial-clock .orbit-hit:focus { outline: 2px solid var(--hour); outline-offset: 3px; }
+.celestial-clock .earth-turner:focus { outline: 2px solid var(--hour); outline-offset: 3px; }
+.celestial-clock.celestial-control .orbit-hit:focus, .celestial-clock.celestial-control .orbit-hit:focus-visible { outline: none; }
 @media (forced-colors: active) {
-  .celestial-control .picker-wheel-frame:has(.picker-wheel:focus) > .picker-wheel-selection, .celestial-clock .earth-turner:focus, .celestial-clock .orbit-hit:focus { outline: 3px solid Highlight; }
+  .celestial-control .picker-wheel-frame:has(.picker-wheel:focus) > .picker-wheel-selection, .celestial-clock .earth-turner:focus { outline: 3px solid Highlight; }
 }
 /* The combined input keeps its two celestial views and all units in one frame. */
 .celestial-control .picker-form-scene-panel:has([data-combined="true"]) { width: var(--picker-panel-width, min(720px, calc(100vw - 16px))); }
@@ -297,7 +281,3 @@
   .celestial-control [data-combined="true"] .orbit-range-navigation { gap: 4px; font-size: 8px; flex-wrap: wrap; }
   .celestial-control [data-combined="true"] .orbit-range-navigation .chip { padding-inline: 5px; }
 }
-/* Keep the enlarged LCD artwork clear of the large widget's reading. */
-.celestial-card[data-picker-style="lcd"].widget-large .widget-detail { max-width: 125px; }
-.celestial-card[data-picker-style="lcd"].widget-large.widget-year .widget-detail { display: none; }
-.celestial-card[data-picker-style="lcd"].widget-large.widget-year .widget-scene { width: 290px; height: 290px; top: 112px; right: 0; }

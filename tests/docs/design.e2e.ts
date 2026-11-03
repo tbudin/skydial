@@ -48,6 +48,7 @@ test('the live builder exposes LCD, custom inks and all precision presets', asyn
 test('widgets stay readable and accessible in both styles, themes and three sizes', async ({ page }) => {
   test.setTimeout(180000)
   await page.goto('./widgets/?style=lcd')
+  for (const kind of ['earth', 'moon', 'year', 'orrery']) await page.locator(`[data-widget-example="${kind}"] .component-settings > summary`).click()
   for (const width of [1440, 768, 320]) {
     await page.setViewportSize({ width, height: 1000 })
     for (const variant of ['celestial', 'lcd']) for (const theme of ['light', 'dark']) {
@@ -61,12 +62,15 @@ test('widgets stay readable and accessible in both styles, themes and three size
           const layout = await card.evaluate((element) => {
             const bounds = element.getBoundingClientRect()
             const host = element.parentElement!.getBoundingClientRect()
-            return { fits: bounds.width <= host.width + 1, clippedText: [...element.querySelectorAll<HTMLElement>('.widget-copy > *, select')].filter((el) => getComputedStyle(el).display !== 'none').filter((el) => {
+            const reading = element.querySelector('.widget-copy')!.getBoundingClientRect()
+            const scene = element.querySelector('.widget-scene')!.getBoundingClientRect()
+            const overlap = reading.left < scene.right - 1 && reading.right > scene.left + 1 && reading.top < scene.bottom - 1 && reading.bottom > scene.top + 1
+            return { fits: bounds.width <= host.width + 1, overlap, clippedText: [...element.querySelectorAll<HTMLElement>('.widget-copy > *, select')].filter((el) => getComputedStyle(el).display !== 'none').filter((el) => {
               const box = el.getBoundingClientRect()
-              return box.width > 0 && (box.left < bounds.left || box.right > bounds.right + 1 || box.top < bounds.top || box.bottom > bounds.bottom + 1)
+              return box.width > 0 && (box.left < bounds.left || box.right > bounds.right + 1 || box.top < bounds.top || box.bottom > bounds.bottom + 1 || el.scrollWidth > el.clientWidth + 1)
             }).map((el) => el.className || el.tagName) }
           })
-          expect(layout, `${variant}/${theme}/${size}/${kind}/${width}`).toEqual({ fits: true, clippedText: [] })
+          expect(layout, `${variant}/${theme}/${size}/${kind}/${width}`).toEqual({ fits: true, overlap: false, clippedText: [] })
           if (variant === 'lcd') await expect(card.locator('canvas')).toHaveCount(0)
         }
         const audit = await new AxeBuilder({ page }).include('[data-gallery-host]').withTags(tags).analyze()
@@ -81,7 +85,8 @@ test('widgets stay readable and accessible in both styles, themes and three size
 test('standalone orbital controls retain keyboard access and adequate targets', async ({ page }) => {
   await page.goto('./orrery/')
   const control = page.getByRole('region', { name: 'Orbital date picker', exact: true })
-  const audit = await new AxeBuilder({ page }).include('.celestial-date-picker').withTags(tags).analyze()
+  await expect(control).toBeVisible()
+  const audit = await new AxeBuilder({ page }).include('.orrery-playground').withTags(tags).analyze()
   expect(summary(audit.violations)).toEqual([])
   await control.getByRole('slider', { name: 'Year on Jupiter’s orbit', exact: true }).press('ArrowRight')
   await expect(control.getByRole('slider', { name: 'Year on Jupiter’s orbit', exact: true })).toHaveAttribute('aria-valuenow', '2027')

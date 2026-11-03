@@ -27,6 +27,32 @@
 .widget-example-options p { font-size: 12px; line-height: 1.8; color: var(--muted); }
 .widget-example-component { margin-top: 16px; font-size: 10px !important; }
 .widget-example > .code { margin: 0; }
+.widget-planet-settings { border: 0; padding: 0; margin: 20px 0 0; min-width: 0; }
+.widget-planet-settings legend { padding: 0; margin-bottom: 10px; color: var(--muted); font-size: 11px; }
+.compact-section { padding: 44px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 90px; }
+.compact-section > h2 { font: 30px var(--f-head); margin: 10px 0 14px; }
+.compact-section > p { color: var(--muted); font-size: 13px; line-height: 1.8; max-width: 720px; }
+.compact-presets { margin: 24px 0 16px; }
+.compact-builder-grid { display: grid; grid-template-columns: minmax(240px, .9fr) minmax(0, 1.1fr); gap: 20px; }
+.compact-settings { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 20px; min-width: 0; }
+.compact-settings h3 { font-size: 14px; font-weight: 500; margin: 0 0 20px; }
+.compact-settings fieldset { border: 0; padding: 0; margin: 0 0 24px; min-width: 0; }
+.compact-settings legend { color: var(--muted); font-size: 11px; padding: 0; margin: 0 0 12px; }
+.compact-body-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.compact-body-options label { display: flex; align-items: center; gap: 6px; font-size: 11px; min-height: 30px; }
+.compact-body-options input { accent-color: var(--accent); margin: 0; }
+.compact-settings-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.compact-settings-pair label { display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 11px; min-width: 0; }
+.compact-settings-pair select, .compact-settings-pair input { width: 100%; min-width: 0; min-height: 38px; padding: 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; }
+.compact-preview-column { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.compact-preview { min-height: 160px; padding: 22px; border: 1px solid var(--line); background: var(--panel); border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 22px; }
+.compact-preview-kicker { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.compact-code { min-width: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.compact-code > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px; background: var(--panel); color: var(--muted); font-size: 11px; }
+.compact-code button { min-height: 32px; padding: 4px 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; border-radius: 6px; cursor: pointer; }
+.compact-code pre { max-height: 310px; overflow: auto; margin: 0; padding: 16px; font: 11px/1.8 var(--f-mono, monospace); }
+@media (max-width: 1050px) { .compact-builder-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .compact-settings { padding: 16px; } .compact-body-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } .compact-preview { padding: 14px; } }
 .widget-example pre { font-size: 11px; line-height: 1.8; }
 .widget-footprints { padding: 40px 0; }
 .widget-footprints h2 { font: 28px var(--f-head); margin: 0 0 12px; }
@@ -166,6 +192,28 @@
 .preview-colours-heading button { border: 1px solid var(--line-strong); border-radius: 5px; min-height: 32px; padding: 4px 10px; background: var(--bg); }
 .preview-colours-panel .colour-settings { margin: 0; padding: 0; border: 0; }
 .preview-colours-panel .colour-settings legend { display: none; }
+.preview-palette-name { color: var(--muted); font-size: 10px; }
+.preview-colours-panel .colour-settings > label { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; font-size: 11px; color: var(--muted); }
+.preview-colours-panel .colour-settings select { max-width: none; width: 100%; background: var(--bg); color: var(--fg); border: 1px solid var(--line-strong); border-radius: 5px; }
+.component-settings { min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.component-settings > summary { min-height: 44px; padding: 13px 16px; cursor: pointer; font-size: 12px; color: var(--fg); }
+.component-settings > summary:hover { color: var(--accent); }
+.component-settings > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; border-radius: inherit; }
+.component-settings[open] > summary { border-bottom: 1px solid var(--line); }
+.component-settings .picker-builder-settings, .component-settings .compact-settings { border: 0; }
+.picker-builder-grid, .compact-builder-grid { grid-template-columns: minmax(0, 1fr); }
+.widget-example-row { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.widget-settings-content { padding: 18px; }
+.widget-settings-content > p { margin-bottom: 0; }
+.orrery-playground { margin-top: 28px; display: grid; gap: 20px; }
+.orrery-settings { padding: 20px; }
+.orrery-settings fieldset { border: 0; margin: 0 0 22px; padding: 0; min-width: 0; }
+.orrery-settings legend { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+.orrery-settings .widget-size-choices label { display: flex; align-items: center; gap: 8px; min-height: 32px; font-size: 12px; text-transform: capitalize; margin-right: 16px; }
+.orrery-settings input { accent-color: var(--accent); }
+.orrery-preview { min-width: 0; }
+.orrery-preview > .celestial-form-picker, .celestial-demo[data-demo="input"] > .celestial-form-picker { width: 100%; }
+.orrery-code { font: 11px/1.8 var(--f-mono, monospace); overflow-x: auto; padding: 20px; border: 1px solid var(--line); border-radius: 12px; margin: 0; }
 .preview-colours-panel .colour-fields { margin-top: 0; }
 .preview-colours-panel .colour-settings details .colour-fields { margin-top: 12px; }
 .preview-colours-panel .colour-settings input, .preview-colours-panel .colour-settings > button { border-color: var(--line-strong); }
@@ -185,6 +233,7 @@
   .preview-style-switch { flex-shrink: 0; }
   .preview-style-switch button { min-width: 42px; padding-inline: 7px; }
   .preview-colours-button { padding: 6px 8px; }
+  .preview-palette-name { display: none; }
   .preview-toolbar > label:has([aria-label="Colour palette"]) { order: 3; flex: 1 0 calc(100% - 100px); }
   .preview-colours-button { order: 4; }
 }

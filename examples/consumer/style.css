@@ -29,3 +29,12 @@ body { margin: 0; background: #f4f1ea; color: #23302c; font-family: system-ui, s
 @media (max-width: 700px) { .host-grid { grid-template-columns: minmax(0, 1fr); } }
 .adapter-host { padding: 24px; }
 .adapter-host button { margin: 0 12px 16px 0; padding: 8px 12px; }
+
+/* Consumer CSS loads after Skydial's defaults, with no !important rules. */
+.styling-example { display: grid; justify-items: start; gap: 20px; padding: 24px; }
+.styling-example .consumer-field[data-picker-part="field"] { border-color: #80512a; font-family: Georgia, serif; }
+.styling-example .consumer-card { --widget-background: #f2e4cc; --widget-foreground: #302011; --lcd-paper: #f2e4cc; --lcd-ink: #302011; --widget-radius: 17px; }
+.styling-example .consumer-label { font-size: 13px; letter-spacing: 2px; }
+.styling-example .consumer-display { --display-gap: 18px; --display-padding: 11px 23px; --display-radius: 15px; --widget-radius: 15px; }
+.styling-example .consumer-date { font-family: Georgia, serif; font-size: 21px; }
+.styling-example .consumer-body { --body-background: #dce6f0; }

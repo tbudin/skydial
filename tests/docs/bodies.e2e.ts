@@ -1,3 +1,4 @@
+import { setPalette } from './preview.js'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
@@ -33,6 +34,7 @@ test('detailed LCD bodies stay compact, rotate and retain two configurable inks'
   page.on('request', (request) => { if (/\.(png|jpg)(\?|$)/.test(request.url())) textures.push(request.url()) })
   await page.goto('./widgets/?style=lcd')
   const year = page.locator('[data-widget-example="year"]')
+  await year.locator('.component-settings > summary').click()
   const artwork: { name: string; svg: string }[] = []
   const capture = async (kind: string, name: string) => {
     const svg = page.locator(`[data-widget-example="${kind}"] svg.lcd-body`)
@@ -43,7 +45,7 @@ test('detailed LCD bodies stay compact, rotate and retain two configurable inks'
   }
   await capture('earth', 'Earth')
   for (const planet of ['jupiter', 'saturn', 'uranus', 'neptune']) {
-    await year.getByRole('combobox', { name: 'Year hand planet', exact: true }).selectOption(planet)
+    await year.getByRole('group', { name: 'Year hand planet', exact: true }).getByRole('button', { name: planet[0].toUpperCase() + planet.slice(1), exact: true }).click()
     await expect(year.locator('svg.lcd-body')).toHaveAttribute('data-lcd-body', planet)
     await capture('year', planet[0].toUpperCase() + planet.slice(1))
     if (planet === 'saturn' || planet === 'uranus') await expect(year.locator('[data-lcd-feature="rings-front"]')).toHaveCount(1)
@@ -58,7 +60,7 @@ test('detailed LCD bodies stay compact, rotate and retain two configurable inks'
   await expect(year.locator('[data-lcd-feature="atmosphere"]')).not.toHaveAttribute('d', before!)
   for (const appearance of ['light', 'dark']) {
     await page.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(appearance)
-    await page.getByRole('combobox', { name: 'Colour palette', exact: true }).selectOption('Ice blue')
+    await setPalette(page, 'Ice blue')
     await expect(year.locator('.lcd-body')).toHaveCSS('color', 'rgb(24, 55, 71)')
     await expect(year.locator('.lcd-paper-fill').first()).toHaveCSS('fill', 'rgb(220, 235, 241)')
   }

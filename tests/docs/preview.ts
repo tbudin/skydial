@@ -13,3 +13,11 @@ export async function closeColours(page: Page) {
   const panel = page.getByRole('dialog', { name: 'Preview colours', exact: true })
   if (await panel.isVisible()) await panel.getByRole('button', { name: 'Close', exact: true }).click()
 }
+export async function setPalette(page: Page, name: string) {
+  await (await openColours(page)).getByRole('combobox', { name: 'Colour palette', exact: true }).selectOption(name)
+  await closeColours(page)
+}
+export async function openSettings(page: Page, root = '.picker-builder') {
+  const details = page.locator(`${root} .component-settings`).first()
+  if (await details.getAttribute('open') === null) await details.locator(':scope > summary').click()
+}

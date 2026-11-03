@@ -20,7 +20,7 @@ import {
   radialScale,
   sampleOrbit,
 } from '../geometry/projection.js'
-import { useCelestialClock } from '../sim/hooks.js'
+import { useVisualClock } from '../sim/hooks.js'
 import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory.js'
 import { SATURN_RING_OUTER } from '../astro/bodies.js'
 import { layoutLabels, radialCandidates, type Disc, type LabelRequest, type Pt, type Seg } from '../geometry/labelLayout.js'
@@ -188,6 +188,7 @@ export function Orrery(props: OrreryProps) {
             }}
             data-label={s.id}
             data-kind={s.kind}
+            data-longitude={s.lon}
             {...part(s.kind === 'month' ? 'monthLabel' : s.kind === 'year' ? 'yearLabel' : s.kind === 'date-pill' ? 'dateBadge' : 'yearBadge', `scale-label ${s.kind}${s.active ? ' active' : ''}`, s.kind === 'month' ? { color: s.active ? palette.labelActive : palette.label } : s.kind === 'year' ? { color: palette.yearHand } : { background: s.kind === 'date-pill' ? palette.earthHand : palette.yearHand }, { selected: s.active })}
           >
             {s.text}
@@ -248,7 +249,7 @@ function fitCamera(cam: THREE.OrthographicCamera, size: { width: number; height:
 }
 
 function Sun({ textures, scale }: { textures: TextureSet; scale: number }) {
-  const simClock = useCelestialClock()
+  const simClock = useVisualClock()
   const ref = useRef<THREE.Mesh>(null)
   const halo = useMemo(() => {
     const c = document.createElement('canvas')
@@ -436,7 +437,7 @@ function PlanetsAndHands({
   specs: LabelSpec[]
   store: LabelStore
 }) {
-  const simClock = useCelestialClock()
+  const simClock = useVisualClock()
   const objects = useMemo(() => {
     const map = {} as Record<PlanetId, ReturnType<typeof createPlanetObject>>
     for (const p of PLANETS) map[p.id] = createPlanetObject(p.id, textures, p.id === 'jupiter' || p.id === 'saturn' ? 96 : 64)

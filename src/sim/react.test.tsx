@@ -7,6 +7,7 @@ import { CelestialDatePicker } from '../lib/datePicker.js'
 import { EarthWidget, YearWidget } from '../lib/cards.js'
 import { MoonClock } from '../lib/widgets.js'
 import { CelestialTimePicker } from '../lib/timePicker.js'
+import { CelestialScrollPicker } from '../lib/PickerControls.js'
 
 function ClockProbe() {
   return <output>{new Date(useCelestialClock().now()).toISOString()}</output>
@@ -39,6 +40,14 @@ describe('server-renderable clock components', () => {
 })
 
 describe('compact cards and direct picker server markup', () => {
+  it('renders LCD months as two segmented digits while keeping 3D month names', () => {
+    const lcd = renderToStaticMarkup(<CelestialScrollPicker variant="lcd" units={['month']} date={Date.UTC(2026, 2, 20)} />)
+    const celestial = renderToStaticMarkup(<CelestialScrollPicker units={['month']} date={Date.UTC(2026, 2, 20)} />)
+    expect(lcd).toMatch(/aria-selected="true"[^>]*>03<\/div>/)
+    expect(lcd.match(/class="lcd-digit"/g)).toHaveLength(2)
+    expect(lcd).not.toContain('>Mar<')
+    expect(celestial).toMatch(/aria-selected="true"[^>]*>Mar<\/div>/)
+  })
   it('renders a chosen camera city on the server while keeping the clock time zone', () => {
     const html = renderToStaticMarkup(<CelestialTimePicker date={Date.UTC(2026, 0, 1)} defaultEarthView="city"
       earthPlace={{ name: 'New York', latitude: 40.7128, longitude: -74.006, timeZone: 'America/New_York', source: 'city' }} />)

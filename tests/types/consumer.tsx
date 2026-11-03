@@ -5,6 +5,7 @@ import { type PickerColors, CelestialInput, CelestialPicker, CelestialScrollPick
 import { SimClock } from 'skydial/clock'
 import { civilDateValue, type Place } from 'skydial/astro'
 import { createMoonObject, createSunObject, createPlanetObject, loadCelestialTextures } from 'skydial/three'
+import { CelestialDisplay, CelestialDateDisplay, CelestialTimeDisplay, CelestialBody, WIDGET_PARTS } from 'skydial/react'
 
 const colors: PickerColors = { background: '#dcebf1', foreground: '#183747', yearHand: '#905e22' }
 const date = new Date('2026-06-01T12:00:00Z')
@@ -23,6 +24,10 @@ export const example = <CelestialProvider clock={clock}>
   <CelestialTimePicker date={date} onDateChange={() => {}} earthView="city" onEarthViewChange={(view) => { const mode: 'rotation' | 'city' = view; void mode }} onEarthPlaceChange={(value) => { const city: Place = value; void city }} />
   <EarthWidget colors={colors} size="small" place={place} />
   <YearWidget size="medium" defaultPlanet="jupiter" />
+  <CelestialDisplay bodies={['earth', 'mars', 'moon']} dateFormat={{ year: 'numeric' }} timeFormat={false} styles={{ date: { color: 'gold' }, body: { width: 36 } }} />
+  <CelestialDateDisplay bodies={['saturn']} dateFormat={{ month: '2-digit', day: '2-digit' }} />
+  <CelestialTimeDisplay timeFormat={{ hour: '2-digit', minute: '2-digit', second: '2-digit' }} />
+  <CelestialBody body="mercury" size={32} />
   <MoonClock date={date} />
   <OrreryClock planet="saturn" />
   <CelestialDatePicker date={date} onDateChange={(value: Date) => clock.setTime(value.getTime())} />
@@ -48,3 +53,4 @@ export function vanillaExample(element: HTMLElement) {
   mounted.destroy()
 }
 void celestial
+void WIDGET_PARTS

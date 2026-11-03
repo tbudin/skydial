@@ -4,7 +4,7 @@ import { useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { moonView, type Location } from '../astro/observer.js'
-import { useCelestialClock } from '../sim/hooks.js'
+import { useVisualClock } from '../sim/hooks.js'
 import { applyAxesInWorld } from './planetFactory.js'
 import { usePanelTextures } from './panelTextures.js'
 
@@ -40,7 +40,7 @@ export function MoonGlobe({ location }: { location: Location }) {
 }
 
 function MoonScene({ location, textures }: { location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>> }) {
-  const simClock = useCelestialClock()
+  const simClock = useVisualClock()
   const moon = useRef<THREE.Group>(null)
   const light = useRef<THREE.DirectionalLight>(null)
   const { camera } = useThree()

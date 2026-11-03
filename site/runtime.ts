@@ -7,9 +7,13 @@ import { createRoot } from 'react-dom/client'
 import { createElement } from 'react'
 import PickerConfigurator from './PickerConfigurator.js'
 import PreviewHeader from './PreviewHeader.js'
+import DisplayConfigurator from './DisplayConfigurator.js'
+import OrreryPlayground from './OrreryPlayground.js'
+import type { Place } from 'skydial/astro'
 export { getPreviewAppearance, subscribePreviewSettings } from './previewSettings.js'
 
 export function mountPreviewHeader() {
+  if (document.querySelector('[data-preview-header]')) return { destroy: () => {} }
   const header = document.querySelector<HTMLElement>('header.top')!
   const element = document.createElement('div')
   element.className = 'preview-header-host'
@@ -29,4 +33,15 @@ export function mountPickerConfigurator(element: HTMLElement) {
   const root = createRoot(element)
   root.render(createElement(PickerConfigurator))
   return { destroy: () => { root.unmount(); header.destroy() } }
+}
+export function mountDisplayConfigurator(element: HTMLElement, options: { date: Date; place: Place }) {
+  const root = createRoot(element)
+  const update = (next: typeof options) => root.render(createElement(DisplayConfigurator, next))
+  update(options)
+  return { update, destroy: () => root.unmount() }
+}
+export function mountOrreryPlayground(element: HTMLElement) {
+  const root = createRoot(element)
+  root.render(createElement(OrreryPlayground))
+  return { destroy: () => root.unmount() }
 }
