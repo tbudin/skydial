@@ -48,17 +48,17 @@ export function SelectionWheels({ place, date = false, time = false, day = false
   }
   return <div className="picker-wheels" aria-label="Scroll to select">
     {date && <div className="picker-wheel-group" role="group" aria-label="Date wheels">
-      <ScrollWheel label="Day" items={days} value={String(parts.day)} disabled={locked} onSelect={(value) => chooseDatePart('day', value)} />
-      <ScrollWheel label="Month" items={months} value={String(parts.month)} disabled={locked} onSelect={(value) => chooseDatePart('month', value)} />
-      <ScrollWheel label="Year" items={years} value={String(parts.year)} disabled={locked} onSelect={(value) => chooseDatePart('year', value)} />
+      <ScrollWheel selectionKey={now} label="Day" items={days} value={String(parts.day)} disabled={locked} onSelect={(value) => chooseDatePart('day', value)} />
+      <ScrollWheel selectionKey={now} label="Month" items={months} value={String(parts.month)} disabled={locked} onSelect={(value) => chooseDatePart('month', value)} />
+      <ScrollWheel selectionKey={now} label="Year" items={years} value={String(parts.year)} disabled={locked} onSelect={(value) => chooseDatePart('year', value)} />
     </div>}
     {time && <div className="picker-wheel-group" role="group" aria-label="Time wheels">
-      {day && <ScrollWheel label="Day" items={adjacentDays} value={dateValue} disabled={locked} onSelect={(value) => {
+      {day && <ScrollWheel selectionKey={now} label="Day" items={adjacentDays} value={dateValue} disabled={locked} onSelect={(value) => {
         const next = selectCivilDate(value, clock.now(), place.timeZone)
         if (!locked && next !== null) selectDate(next)
       }} />}
-      <ScrollWheel label="Hours" items={hours} value={String(parts.hour)} disabled={locked} onSelect={(value) => chooseTimePart('hour', value)} />
-      <ScrollWheel label="Minutes" items={minutes} value={String(parts.minute)} disabled={locked} onSelect={(value) => chooseTimePart('minute', value)} />
+      <ScrollWheel selectionKey={now} label="Hours" items={hours} value={String(parts.hour)} disabled={locked} onSelect={(value) => chooseTimePart('hour', value)} />
+      <ScrollWheel selectionKey={now} label="Minutes" items={minutes} value={String(parts.minute)} disabled={locked} onSelect={(value) => chooseTimePart('minute', value)} />
     </div>}
   </div>
 }

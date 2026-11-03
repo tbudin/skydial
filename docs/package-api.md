@@ -1,8 +1,9 @@
-# Package API (development)
+# Package API
 
-This API is implemented and tested locally. The package is still private and
-has not been published. Build with `npm run build:lib`; use `npm pack` to create
-an installable archive for a local consumer.
+Skydial exposes independent entries for form controls, celestial visuals,
+astronomy, simulation and framework adapters. See the
+[live documentation](https://tbudin.github.io/skydial/) for interactive examples.
+Build with `npm run build:lib`; use `npm pack` to create a local installable archive.
 
 ## Entries and requirements
 

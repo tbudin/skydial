@@ -5,8 +5,12 @@ that show celestial positions. React components, Vue components, a Svelte action
 share one renderer. Astronomy, simulation time and Three.js models are also
 available independently.
 
-**Skydial 0.1.0 release candidate; not yet published on npm.**
-The package-site documentation and interactive consumer playground are built.
+**Skydial 0.1.0** · [Documentation and live examples](https://tbudin.github.io/skydial/)
+
+Install `skydial` plus the peers required by your chosen entry. The celestial
+React entry needs `react react-dom three @react-three/fiber @react-three/drei`;
+the form-only entry needs `react react-dom`. Astronomy and clock consumers can
+install `skydial` alone.
 The native mobile app remains a separate next project.
 
 For regular website forms, use the form-only entry (React and React DOM; no

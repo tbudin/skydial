@@ -72,7 +72,7 @@ function ScrollUnit({ label, unit, values, value, now, zone, min, max, disabled,
     value: String(number), label: unit === 'month' ? MONTH_SHORT[number - 1] : unit === 'year' ? String(number) : String(number).padStart(2, '0'),
     disabled: !pickerUnitAllowed(reference, unit, number, zone, { min, max }),
   })), [key, unit, reference, zone, min, max])
-  return <div data-unit={unit}><ScrollWheel label={label} items={items} value={String(value)} disabled={disabled} rowHeight={rowHeight} rows={rows} unit={unit} onSelect={(next) => onSelect(Number(next))} /></div>
+  return <div data-unit={unit}><ScrollWheel selectionKey={now} label={label} items={items} value={String(value)} disabled={disabled} rowHeight={rowHeight} rows={rows} unit={unit} onSelect={(next) => onSelect(Number(next))} /></div>
 }
 
 function StepUnit({ label, unit, value, min, max, disabled, decrementDisabled, incrementDisabled, onSelect, onStep }: {

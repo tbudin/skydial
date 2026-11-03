@@ -26,14 +26,15 @@
   in Chromium, Firefox and WebKit, with touch in the supported emulators.
 - Eleven-page package-site documentation with real live playgrounds, code examples,
   framework guides, metadata, markdown twins, search, sitemap and changelog.
-- CI, protected manual npm release and GitHub Pages workflow definitions.
+- CI, manual npm staging and GitHub Pages deployment workflows.
 
 ## Final publication steps
 
 The npm name is `skydial`, and its repository is `tbudin/skydial`. Commit the
 reviewed release and publish from an authenticated account. See [releasing](releasing.md). Browser
-and CI checks described here are locally executed or prepared; no remote CI run,
-registry publication or website deployment is implied.
+and CI checks validate the package before publication. The
+[live documentation](https://tbudin.github.io/skydial/) is deployed; npm staging
+and approval are separate release steps.
 
 ## After the first release
 

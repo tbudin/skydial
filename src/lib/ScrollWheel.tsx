@@ -6,9 +6,9 @@ import { useEffect, useId, useLayoutEffect, useRef } from 'react'
 export interface WheelItem { value: string; label: string; disabled?: boolean }
 
 /** Native scrolling with an explicit guard for programmatic synchronization. */
-export function ScrollWheel({ label, items, value, disabled, onSelect, rowHeight = 44, rows = 5, unit }: {
+export function ScrollWheel({ label, items, value, disabled, onSelect, rowHeight = 44, rows = 5, unit, selectionKey = value }: {
   label: string; items: WheelItem[]; value: string; disabled: boolean; onSelect: (value: string) => void
-  rowHeight?: number; rows?: 3 | 5; unit?: PickerUnit
+  rowHeight?: number; rows?: 3 | 5; unit?: PickerUnit; selectionKey?: number | string
 }) {
   const part = usePickerParts()
   const variant = usePickerVariant()
@@ -20,10 +20,14 @@ export function ScrollWheel({ label, items, value, disabled, onSelect, rowHeight
   const index = Math.max(0, items.findIndex((item) => item.value === value))
   useLayoutEffect(() => {
     const element = list.current!
+    // Consume a native-scroll update once. A change from another unit must stop
+    // the previous wheel's momentum, even when this unit's value is unchanged.
+    const fromScroll = emitted.current === value
+    emitted.current = null
     const synchronize = () => {
       // Children mount before the parent opens its native popover. Scrolling a
       // hidden list is ignored; observe its first visible layout before paint.
-      if (!element.clientHeight || emitted.current === value && Math.round(element.scrollTop / rowHeight) === index) return
+      if (!element.clientHeight || fromScroll && Math.round(element.scrollTop / rowHeight) === index) return
       syncing.current = true
       element.scrollTo({ top: index * rowHeight, behavior: 'instant' })
     }
@@ -31,7 +35,7 @@ export function ScrollWheel({ label, items, value, disabled, onSelect, rowHeight
     const observer = new ResizeObserver(synchronize)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [value, index, items, rowHeight, rows])
+  }, [value, index, items, rowHeight, rows, selectionKey])
   useEffect(() => () => clearTimeout(settle.current), [value, items])
   const select = (next: number) => {
     if (disabled) return

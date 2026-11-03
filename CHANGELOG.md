@@ -31,4 +31,5 @@
 - Every enabled date/time unit has a matching control, including seconds tabs, year-only orbits and independently composable scroll/step elements.
 - Date/time popups adapt to narrow and short screens without scrolling their default content; wheel selection bands stay fixed during celestial drags.
 - Consistent LCD month typography, centred step icons and theme-aware hover, pressed and keyboard-focus states.
+- Pending wheel momentum is cancelled when another date/time control changes the selection, preventing stale scroll events from undoing precise edits.
 - Hover previews show the day or year before orbital selection, with snapping markers, date bounds, keyboard dismissal and public styling hooks.

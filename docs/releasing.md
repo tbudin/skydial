@@ -1,8 +1,9 @@
 # Releasing 0.1.0
 
 The package, adapters, static documentation, CI definitions and local release
-checks are prepared. No registry publication or website deployment has been
-performed. The selected package name is `skydial`, hosted in `tbudin/skydial`. The code
+checks are prepared. The [live documentation](https://tbudin.github.io/skydial/)
+is deployed through GitHub Pages. npm publication requires the authenticated
+maintainer to stage and approve the reviewed version. The selected package name is `skydial`, hosted in `tbudin/skydial`. The code
 copyright and website ownership belong to Plain Matter Pte Ltd. Thomas Budin is
 the sole human author and committer.
 
@@ -26,7 +27,9 @@ assets. Browser installation may require `--with-deps` on Linux.
 Chromium, Firefox and WebKit are automated. Firefox's unsupported mobile-touch
 emulation case is explicitly skipped; touch is tested in Chromium and WebKit.
 Physical devices cannot be certified by desktop automation and remain a manual
-smoke check for the supported device policy.
+smoke check for the supported device policy. Linux CI runs Firefox with a virtual
+display to exercise WebGL; wrap the release suite in `xvfb-run --auto-servernum`
+when running it with `CI=true` on Linux.
 
 ## Finalize naming and metadata
 
@@ -47,7 +50,7 @@ deliberately not bypassed while final release validation is incomplete.
 
 ## Publish and deploy
 
-`.github/workflows/release.yml` is manually dispatched, uses the protected `npm`
+`.github/workflows/release.yml` is manually dispatched, uses the `npm`
 environment, runs the full suite and stages the package with provenance using
 npm 11.21.0 and trusted GitHub OIDC authentication. It follows the staged release
 approach used by package-trends; no long-lived npm token is configured.

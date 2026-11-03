@@ -49,6 +49,7 @@ test('native mouse and trackpad scrolling selects a precise time with a coupled 
   await expect(dialog.getByRole('spinbutton', { name: 'Hours', exact: true })).toHaveValue('00')
   await expect(dialog.getByRole('spinbutton', { name: 'Minutes', exact: true })).toHaveValue('58')
   await dialog.getByRole('button', { name: 'Increase minutes' }).click()
+  await expect(page.getByTestId('popup-date')).toHaveText('2028-01-31T16:59:00.000Z')
   await expect(minutes.getByRole('option', { selected: true })).toHaveText('59')
   await dialog.getByRole('combobox', { name: 'Earth view', exact: true }).selectOption('city')
   await dialog.getByRole('combobox', { name: 'City in view', exact: true }).selectOption('Paris')
