@@ -1,52 +1,39 @@
-# Package status
+# Package status and next work
 
-## 0.1.0 release candidate
+Skydial 0.3.0 is the current release. The repository is `tbudin/skydial`; the live
+[documentation](https://tbudin.github.io/skydial/) describes the published release.
+Thomas Budin is the sole author and committer. Plain Matter Pte Ltd holds the
+code copyright and owns the website. Required third-party texture notices remain.
 
-- Compact form fields with selectable date/time units, year-only precision,
-  scroll or editable step controls, configurable increments, bounds and themes.
-- Independent CelestialScrollPicker and CelestialStepper elements; a form-only
-  React entry and stylesheet without the Three.js renderer.
-- Nullable/controlled values, native named submission, required/range validation,
-  clear/reset behavior and a live UI configurator with real form examples.
-- Direct month/year label selection and date-calibrated picker year scales.
+The released package provides celestial and LCD date/time inputs, independent
+scroll/step controls, inline picker windows, configurable precision and styling,
+website widgets, compact displays and standalone bodies. React, Vue, Svelte and
+vanilla integrations share a renderer; astronomy and simulation have independent
+framework-free entries. See [the API](package-api.md) and [changelog](../CHANGELOG.md).
 
-- Real Sun, Moon and planetary sphere meshes, Saturn rings/shadow, IAU spin,
-  computed illumination, lunar orientation and actual ephemerides.
-- Direct Earth time/day manipulation, orbital day/year selection, animated and
-  reduced-motion transitions, keyboard/exact input and visible year-planet
-  selection (Jupiter by default).
-- Small, medium and large Earth, Moon, year and orrery website cards.
-- Independent and explicitly synchronized clocks; controlled dates and planets.
-- React components, Vue components, a Svelte action and a vanilla DOM mount API.
-  Visual adapters share the React/Three.js renderer; astronomy and clock remain
-  framework-free. The Three.js entry also supports direct non-React rendering.
-- Readable fallback for missing/lost WebGL2 and demand/visibility-aware drawing.
-- Relative bundled textures, retained attribution and MIT code licensing.
-- Package/type validation, clean archive installs and automated browser coverage
-  in Chromium, Firefox and WebKit, with touch in the supported emulators.
-- Eleven-page package-site documentation with real live playgrounds, code examples,
-  framework guides, metadata, markdown twins, search, sitemap and changelog.
-- CI, manual npm staging and GitHub Pages deployment workflows.
+## Scheduling and production improvements in 0.3.0
 
-## Final publication steps
+This release adds six scheduling and production improvements:
 
-The npm name is `skydial`, and its repository is `tbudin/skydial`. Commit the
-reviewed release and publish from an authenticated account. See [releasing](releasing.md). Browser
-and CI checks validate the package before publication. The
-[live documentation](https://tbudin.github.io/skydial/) is deployed; npm staging
-and approval are separate release steps.
+1. One-window date/time ranges with explicit endpoints and orbital highlights.
+2. Shared availability rules and whole-range validation.
+3. Localized controls, AM/PM and RTL support.
+4. A renderer-free LCD React entry, selective textures and rendering budgets.
+5. Explicit civil dates, local times, instants and zoned values with DST policies.
+6. Expanded accessibility/reflow checks and a user-tested iPhone VoiceOver flow.
 
-## After the first release
+It also sharpens 3D illustrations, simplifies picker frames, evens column spacing
+and adds discrete wheel/trackpad/touch selection.
+[Scheduling guide](scheduling.md) · [Accessibility record](accessibility-testing.md).
 
-- Physical mobile-device verification and GPU measurements.
-- Additional visual styles and native renderer adapters where worthwhile.
-- The native mobile app, reusing the astronomy and simulation modules.
+## Queued components
 
-Display sizes/distances are exaggerated, and the top-down orrery flattens orbital
-latitude. Texture licenses remain separate from the code license. Thomas Budin
-is the package author and configured local Git author/committer. With explicit
-approval, the five published commits were corrected to his personal GitHub email;
-GitHub identifies him as both author and committer. No additional contributor
-or AI/agent credit appears in the corrected main history. The code licence and website
-ownership credit name Plain Matter Pte Ltd. Required third-party notices remain with
-the bundled textures and dependency information.
+- Daylight widget using the existing sunrise, sunset and solar-noon calculations.
+- Lunar calendar with selectable phases.
+- Synchronized world-clock strip for several cities.
+- Celestial countdown toward an event's date and astronomical positions.
+
+The native mobile app remains a separate project reusing `/astro` and `/clock`.
+Further work includes physical GPU/battery measurements and additional device and
+screen-reader combinations. Viewports and automated accessibility scans do not
+constitute certification on those devices.

@@ -1,20 +1,29 @@
-import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { ClockScope } from '../sim/react.js'
 import { ClockContext } from '../sim/context.js'
 import { useSimNow } from '../ui/hooks.js'
 import { useCelestialTime } from '../sim/hooks.js'
-import { clampPickerTime, pickerBounds, pickerFormValue, pickerUnits } from '../astro/picker.js'
+import { clampPickerTime, pickerBounds, pickerFormValue, pickerUnits, pickerTimeAllowed } from '../astro/picker.js'
 import { PickerAppearanceContext, usePickerParts } from './appearance.js'
 import { DigitalText } from './DigitalText.js'
 import { pickerColorStyle } from './colors.js'
 import { DEFAULT_PLACE } from './defaults.js'
 import { PickerControls, type CelestialControlProps, type PickerControl } from './PickerControls.js'
+import { PickerLocalizationProvider, localizedPickerValue, usePickerLocale } from './localization.js'
+import { SelectionGuard } from './SelectionGuard.js'
 
 export interface CelestialPickerProps extends Omit<CelestialControlProps, 'date' | 'defaultDate' | 'onDateChange'> {
   /** Nullable, controlled instant; omitting value creates an uncontrolled form field. */
   value?: Date | number | null
   defaultValue?: Date | number | null
+  /** Initial view for an empty field; this does not select or submit a value. */
+  referenceDate?: Date | number
   onChange?: (value: Date | null) => void
+  /** Optional field formatter; submission remains a stable civil ISO value. */
+  formatValue?: (value: Date | null) => string
+  /** Host/server validation is applied to the native form and accessible error. */
+  validationMessage?: string
+  onReset?: () => void
   label?: string
   placeholder?: string
   name?: string
@@ -25,17 +34,17 @@ export interface CelestialPickerProps extends Omit<CelestialControlProps, 'date'
   control?: PickerControl
   /** Celestial content displayed alongside synchronized scroll/step controls. */
   children?: ReactNode
+  /** Optional controls above the shared selection surface. */
+  toolbar?: ReactNode
   presentation?: 'popover' | 'inline'
   description?: string
   /** Preferred side/alignment, with automatic viewport collision handling. */
   popoverPlacement?: 'auto' | 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
   popoverOffset?: number
-  /** Localized action text; unit labels are configured separately with labels. */
-  messages?: { now?: string; clear?: string; done?: string; required?: string; range?: string; instructions?: string; requiredHint?: string; readOnlyHint?: string }
 }
 
 /** A production form field. Scrolling and stepping are also available as separate components. */
-export function CelestialPicker({ value, defaultValue, onChange, clock, ...props }: CelestialPickerProps) {
+export function CelestialPicker({ value, defaultValue, onChange, clock, onReset, ...props }: CelestialPickerProps) {
   const parent = useContext(ClockContext)
   const inherit = Boolean(parent && value === undefined && defaultValue === undefined && !clock && !onChange)
   const controlled = value !== undefined
@@ -51,26 +60,31 @@ export function CelestialPicker({ value, defaultValue, onChange, clock, ...props
   const commit = (next: Date | null) => {
     if (locked || props.disabled) return
     const bounded = next === null ? null : new Date(clampPickerTime(Number(next), range))
+    if (bounded && !pickerTimeAllowed(Number(bounded), (props.place ?? DEFAULT_PLACE).timeZone, props)) return
     if (!controlled) setOwned(bounded)
     onChange?.(bounded)
   }
   const time = inherit ? {} : clock ? { clock, onDateChange: (next: Date) => onChange?.(next) }
-    : { date: selected === null ? fallback : Number(selected), onDateChange: locked ? undefined : (next: Date) => commit(next) }
-  return <PickerAppearanceContext.Provider value={{ styles: props.styles, classNames: props.classNames, variant: props.variant, colors: props.colors }}><ClockScope {...time}>
+    : { date: selected === null ? clampPickerTime(Number(props.referenceDate ?? fallback), range) : Number(selected), onDateChange: locked ? undefined : (next: Date) => commit(next) }
+  return <PickerLocalizationProvider locale={props.locale} hourCycle={props.hourCycle} dir={props.dir} messages={props.messages} labels={props.labels}><PickerAppearanceContext.Provider value={{ styles: props.styles, classNames: props.classNames, variant: props.variant, colors: props.colors }}><ClockScope {...time}><SelectionGuard configuration={props} timeZone={(props.place ?? DEFAULT_PLACE).timeZone}>
     <FormPicker {...props} empty={empty} locked={Boolean(locked)} canClear={!inherit && !clock} onClear={() => commit(null)}
-      onReset={() => { if (!controlled && !inherit && !clock) setOwned(initial.current) }} />
-  </ClockScope></PickerAppearanceContext.Provider>
+      onReset={() => { if (!controlled && !inherit && !clock) setOwned(initial.current); onReset?.() }} />
+  </SelectionGuard></ClockScope></PickerAppearanceContext.Provider></PickerLocalizationProvider>
 }
 
-function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date', placeholder = 'Choose a value', name, id, form,
-  required = false, clearable = false, control = 'wheel', children, presentation = 'popover', description, styles: _styles, classNames: _classNames, messages, popoverPlacement = 'auto', popoverOffset = 6,
+function FormPicker({ empty, locked, canClear, onClear, onReset, label: customLabel, placeholder: customPlaceholder, name, id, form, formatValue, validationMessage,
+  required = false, clearable = false, control = 'wheel', children, toolbar, presentation = 'popover', description, styles: _styles, classNames: _classNames, locale, hourCycle, dir: _dir, messages: _messages, popoverPlacement = 'auto', popoverOffset = 6,
   place = DEFAULT_PLACE, size = 'small', theme = 'dark', variant = 'celestial', colors, className = '', style, disabled = false, ...configuration
 }: Omit<CelestialPickerProps, 'value' | 'defaultValue' | 'onChange' | 'clock'> & {
   empty: boolean; locked: boolean; canClear: boolean; onClear: () => void; onReset: () => void
 }) {
   const part = usePickerParts()
+  const i18n = usePickerLocale()
+  const messages = i18n.messages
+  const label = customLabel ?? (configuration.mode === 'time' ? messages.time : messages.date)
+  const placeholder = customPlaceholder ?? messages.choose
   const now = useSimNow()
-  const { selectDate, readOnly } = useCelestialTime()
+  const { readOnly } = useCelestialTime()
   const key = useId()
   const fieldId = id ?? `${key}-field`
   const field = useRef<HTMLButtonElement>(null)
@@ -79,14 +93,17 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
   const pointerInside = useRef(false)
   const [windowState, setWindowState] = useState({ open: false, disabled, presentation })
   const open = windowState.open
-  const setOpen = (next: boolean) => setWindowState({ open: next, disabled, presentation })
+  const setOpen = useCallback((next: boolean) => setWindowState({ open: next, disabled, presentation }), [disabled, presentation, setWindowState])
   if (windowState.disabled !== disabled || windowState.presentation !== presentation) setOpen(false)
   const [attempted, setAttempted] = useState(false)
   const units = pickerUnits(configuration)
   const range = pickerBounds(configuration)
   const value = empty ? '' : pickerFormValue(now, place.timeZone, units)
+  const localized = locale || hourCycle && units.includes('hour')
+  const displayValue = formatValue ? formatValue(empty ? null : new Date(now)) : localized && value ? localizedPickerValue(now, place.timeZone, units, { locale, hourCycle }, variant === 'lcd') : value.replace('T', ' · ')
   const outside = !empty && (now < range.min || now > range.max)
-  const error = outside ? messages?.range ?? 'Choose a value within the allowed range.' : required && empty ? messages?.required ?? 'Choose a value.' : ''
+  const unavailable = !empty && !pickerTimeAllowed(now, place.timeZone, configuration)
+  const error = validationMessage || (outside ? messages.range : unavailable ? messages.unavailable : required && empty ? messages.required : '')
   const frozen = locked || readOnly
   const customControls = children != null && children !== false
   const close = (restore = false) => { setOpen(false); if (restore) field.current?.focus({ preventScroll: true }) }
@@ -143,7 +160,7 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
       const available = useViewport ? viewportSpace : topSide ? above : below
       element.style.setProperty('--picker-available-height', `${available}px`)
       const height = element.getBoundingClientRect().height
-      const end = popoverPlacement.endsWith('end') || popoverPlacement === 'auto' && anchor.left + width > viewLeft + viewWidth - padding
+      const end = popoverPlacement === 'auto' ? i18n.dir === 'rtl' || anchor.left + width > viewLeft + viewWidth - padding : i18n.dir === 'rtl' ? !popoverPlacement.endsWith('end') : popoverPlacement.endsWith('end')
       const left = end ? anchor.right - width : anchor.left
       element.style.left = `${Math.max(viewLeft + padding, Math.min(left, viewLeft + viewWidth - width - padding))}px`
       const desiredTop = topSide ? anchor.top - offset - height : anchor.bottom + offset
@@ -176,10 +193,21 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
       if (event.target === document.body || event.target === document.documentElement) return
       if (!pointerInside.current && event.target instanceof Node && !element.contains(event.target) && event.target !== field.current) setOpen(false)
     }
+    const escape = (event: KeyboardEvent) => {
+      // WebKit may leave keyboard focus on the document after a pointer click.
+      // Handle Escape there too, before the native popover dismisses itself.
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      const active = document.activeElement
+      if (active && active !== document.body && active !== document.documentElement && active !== field.current && !element.contains(active)) return
+      event.preventDefault()
+      setOpen(false)
+      field.current?.focus({ preventScroll: true })
+    }
     document.addEventListener('pointerdown', pointerStart, true)
     document.addEventListener('pointerup', pointerEnd, true)
     document.addEventListener('pointercancel', pointerEnd, true)
     document.addEventListener('focusin', focusOutside)
+    document.addEventListener('keydown', escape)
     return () => {
       clearTimeout(pointerTimer)
       pointerInside.current = false
@@ -187,6 +215,7 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
       document.removeEventListener('pointerup', pointerEnd, true)
       document.removeEventListener('pointercancel', pointerEnd, true)
       document.removeEventListener('focusin', focusOutside)
+      document.removeEventListener('keydown', escape)
       observer.disconnect()
       window.removeEventListener('resize', position)
       window.visualViewport?.removeEventListener('resize', position)
@@ -194,29 +223,30 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
       window.removeEventListener('scroll', scroll, true)
       if (element.matches(':popover-open')) element.hidePopover()
     }
-  }, [open, popoverPlacement, popoverOffset])
+  }, [open, popoverPlacement, popoverOffset, setOpen, i18n.dir])
   const controls = <>
+    {toolbar}
     <div {...part('content', customControls ? 'picker-composed-content' : 'picker-controls-content')}>
       {customControls && <div {...part('visual', 'picker-visual-content')}>{children}</div>}
-      <div {...part('controls', 'picker-exact-content')}><PickerControls {...configuration} place={place} disabled={disabled} readOnly={frozen} size={size} control={control} /></div>
+      <div {...part('controls', 'picker-exact-content')}><PickerControls {...configuration} locale={locale} hourCycle={hourCycle} place={place} disabled={disabled} readOnly={frozen} size={size} control={control} /></div>
     </div>
     <div {...part('footer', 'picker-form-actions')}><span {...part('timezone')}>{place.timeZone}</span><div {...part('actions')}>
-      <button {...part('nowButton', '', undefined, { disabled: disabled || frozen })} type="button" disabled={disabled || frozen} onClick={() => selectDate(clampPickerTime(Date.now(), range))}>{messages?.now ?? 'Now'}</button>
+      <NowButton disabled={disabled || frozen} configuration={configuration} timeZone={place.timeZone} />
       {clearable && canClear && <button {...part('clearButton', '', undefined, { disabled: disabled || frozen || empty })} type="button" disabled={disabled || frozen || empty} onClick={onClear}>{messages?.clear ?? 'Clear'}</button>}
       {presentation === 'popover' && <button type="button" {...part('doneButton', 'picker-form-done')} onClick={() => close(true)}>{messages?.done ?? 'Done'}</button>}
     </div></div>
   </>
-  return <div {...part('root', `celestial-clock celestial-control celestial-form-picker ${className}`, { ...pickerColorStyle(colors, variant), ...style })} data-picker-theme={theme} data-picker-size={size} data-picker-style={variant}>
+  return <div {...part('root', `celestial-clock celestial-control celestial-form-picker ${className}`, { ...pickerColorStyle(colors, variant), ...style })} dir={i18n.dir} lang={i18n.locale} data-picker-theme={theme} data-picker-size={size} data-picker-style={variant}>
     <label {...part('label', 'picker-form-label')} htmlFor={presentation === 'popover' ? fieldId : undefined}>{label}{required && <span aria-hidden="true"> *</span>}</label>
     <span id={`${key}-keyboard`} className="picker-sr-only">{required ? messages?.requiredHint ?? 'Required. ' : ''}{frozen ? messages?.readOnlyHint ?? 'Read only. ' : ''}{messages?.instructions ?? 'Use arrow keys in each scroll column or the minus and plus buttons. Escape closes the picker.'}</span>
     <input ref={input} className="picker-form-value" type="text" name={name} form={form} value={value} onChange={() => {}} tabIndex={-1} aria-hidden="true" required={required} disabled={disabled}
       onInvalid={(event) => { event.preventDefault(); setAttempted(true); (field.current ?? input.current?.parentElement?.querySelector<HTMLElement>('[role="listbox"], [role="spinbutton"]'))?.focus() }} />
     {presentation === 'popover' ? <>
       <button ref={field} id={fieldId} type="button" {...part('field', 'picker-form-trigger', undefined, { disabled, selected: open })} disabled={disabled}
-        aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? `${key}-panel` : undefined} aria-invalid={outside || attempted && Boolean(error) || undefined}
+        aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? `${key}-panel` : undefined} aria-invalid={outside || unavailable || Boolean(validationMessage) || attempted && Boolean(error) || undefined}
         aria-describedby={[`${key}-value`, `${key}-keyboard`, description ? descriptionId : '', attempted && error ? errorId : ''].filter(Boolean).join(' ') || undefined}
         onClick={() => setOpen(!open)} onKeyDown={(event) => { if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true) } }}>
-        <span id={`${key}-value`} {...part('value', empty ? 'picker-form-placeholder' : '')}>{variant === 'lcd' && value ? <DigitalText>{value.replace('T', ' · ')}</DigitalText> : value ? value.replace('T', ' · ') : placeholder}</span><svg {...part('indicator', 'picker-form-indicator')} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <span id={`${key}-value`} {...part('value', empty && !formatValue ? 'picker-form-placeholder' : '')}>{variant === 'lcd' && displayValue ? <DigitalText>{displayValue}</DigitalText> : displayValue || placeholder}</span><svg {...part('indicator', 'picker-form-indicator')} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       {open && <div ref={panel} id={`${key}-panel`} popover="auto" role="dialog" aria-label={label} {...part('panel', `picker-form-panel ${customControls ? 'picker-form-scene-panel' : ''}`)}
         onToggle={(event) => { if ((event.nativeEvent as ToggleEvent).newState === 'closed') setOpen(false) }}
@@ -225,6 +255,16 @@ function FormPicker({ empty, locked, canClear, onClear, onReset, label = 'Date',
       </div>}
     </> : <div id={fieldId} {...part('panel', 'picker-form-inline')} role="group" aria-label={label}>{controls}</div>}
     {description && <p {...part('description', 'picker-form-description')} id={descriptionId}>{description}</p>}
-    {attempted && error && <p {...part('error', 'picker-form-error')} id={errorId} role="alert">{error}</p>}
+    {(attempted || validationMessage) && error && <p {...part('error', 'picker-form-error')} id={errorId} role="alert">{error}</p>}
   </div>
+}
+
+function NowButton({ disabled, configuration, timeZone }: { disabled: boolean; configuration: CelestialControlProps; timeZone: string }) {
+  const [systemNow, setSystemNow] = useState(() => Date.now())
+  const { selectDate } = useCelestialTime()
+  const { messages } = usePickerLocale()
+  const part = usePickerParts()
+  useEffect(() => { const timer = setInterval(() => setSystemNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
+  const blocked = disabled || !pickerTimeAllowed(clampPickerTime(systemNow, configuration), timeZone, configuration)
+  return <button {...part('nowButton', '', undefined, { disabled: blocked })} type="button" disabled={blocked} onClick={() => selectDate(clampPickerTime(Date.now(), configuration))}>{messages.now}</button>
 }

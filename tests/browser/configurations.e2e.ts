@@ -35,12 +35,12 @@ for (const variant of ['celestial', 'lcd']) {
     }
   })
 
-  test(`${variant} all 63 unit combinations keep internal controls usable`, async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'The full configuration matrix runs once; focus and selection regressions run in all three engines.')
-    test.setTimeout(240000)
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    for (let mask = 1; mask < 64; mask++) {
-      const units = allUnits.filter((_, index) => mask & 1 << index)
+  // Each configuration owns a fresh browser context and a bounded test budget.
+  for (let mask = 1; mask < 64; mask++) {
+    const units = allUnits.filter((_, index) => mask & 1 << index)
+    test(`${variant} unit configuration ${String(mask).padStart(2, '0')}: ${units.join(', ')}`, async ({ page, browserName }) => {
+      test.skip(browserName !== 'chromium', 'The full configuration matrix runs once; focus and selection regressions run in all three engines.')
+      await page.emulateMedia({ reducedMotion: 'reduce' })
       const inline = mask % 2 === 0
       const control = ['both', 'wheel', 'stepper'][mask % 3]
       const placement = ['auto', 'bottom-start', 'bottom-end', 'top-start', 'top-end'][mask % 5]
@@ -72,12 +72,12 @@ for (const variant of ['celestial', 'lcd']) {
       await editable.press(control === 'stepper' ? 'ArrowUp' : 'ArrowDown')
       await expect(panel).toBeVisible()
       if (!inline) {
-        await panel.getByRole('button', { name: 'Done', exact: true }).click()
+        await panel.getByRole('button', { name: 'Done', exact: true }).click({ timeout: 10000 })
         await expect(panel).toHaveCount(0)
         await expect(trigger).toBeFocused()
       }
-    }
-  })
+    })
+  }
 
   test(`${variant} year-first selection keeps the month and day while year ticks stay fixed`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })

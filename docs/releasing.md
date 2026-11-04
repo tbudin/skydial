@@ -1,4 +1,4 @@
-# Releasing 0.1.0
+# Releasing Skydial
 
 The package, adapters, static documentation, CI definitions and local release
 checks are prepared. The [live documentation](https://tbudin.github.io/skydial/)
@@ -31,13 +31,13 @@ smoke check for the supported device policy. Linux CI runs Firefox with a virtua
 display to exercise WebGL; wrap the release suite in `xvfb-run --auto-servernum`
 when running it with `CI=true` on Linux.
 
-## Finalize naming and metadata
+## Finalize the version and metadata
 
-1. Recheck the chosen `skydial` name against npm immediately before staging.
+1. Check the published `skydial` version and confirm that `tbudin` remains its maintainer before staging the next version.
 2. Package metadata, self-imports, examples, install snippets and site npm links
    now use `skydial`. GitHub repository and documentation paths use skydial.
    Rerun the release suite after any further rename.
-3. Retain version 0.1.0, review the changelog, and commit
+3. Bump the version for the reviewed release, update the changelog, and commit
    the reviewed source as Thomas Budin, without agent/co-author trailers.
 4. Confirm the publish account with `npm whoami --registry=https://registry.npmjs.org`.
 
@@ -59,14 +59,20 @@ Configure an npm trusted publisher for this repository and `release.yml`, with
 staging permission and the `npm` environment. For a brand-new name, follow npm's
 new-package staged publishing setup. Staging a new name creates a public
 `0.0.0-stage` placeholder, so finalize the name before dispatching. Approve the
-staged 0.1.0 package on npm using the maintainer account and 2FA. Staging alone
+staged package on npm using the maintainer account and 2FA. Staging alone
 does not publish the final version.
 
 See [npm staged publishing](https://docs.npmjs.com/staged-publishing/) and
 [trusted publishers](https://docs.npmjs.com/trusted-publishers/) for account setup.
 
 After success, verify the exact registry version and exported files. Create the
-v0.1.0 release/tag, then dispatch the documentation workflow or publish a GitHub
+matching version release/tag, then dispatch the documentation workflow or publish a GitHub
 release to trigger it. Enable GitHub Pages with GitHub Actions as its source.
 The docs workflow publishes the `site-dist` artifact built from the user's
 package-site template. The native mobile app is not part of this release.
+
+For a local maintainer-assisted release, use npm 11.21.0 or later, complete
+`npm login --auth-type=web`, then run `npm stage publish --access public` from
+the clean, validated checkout. Inspect the staged package and use
+`npm stage approve <stage-id>` to finish publication with npm's required 2FA.
+Verify that `npm view skydial dist-tags.latest` returns the released version.

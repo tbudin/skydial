@@ -1,6 +1,7 @@
 import { webglAvailable } from './capabilities.js'
 import { Component, useCallback, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Canvas, type CanvasProps } from '@react-three/fiber'
+import { useRenderOptions } from './visualRenderer.js'
 
 const staticCapability = () => () => undefined
 
@@ -15,7 +16,8 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
 }
 
 /** Text fallback is rendered on the server and if WebGL2 cannot start or is lost. */
-export function SceneCanvas({ children, ...props }: CanvasProps) {
+export function SceneCanvas({ children, illustration = false, ...props }: CanvasProps & { illustration?: boolean }) {
+  const { quality } = useRenderOptions()
   const ready = useSyncExternalStore(staticCapability, webglAvailable, () => false)
   const [lost, setLost] = useState(false)
   const attach = useCallback((host: HTMLDivElement | null) => {
@@ -25,5 +27,5 @@ export function SceneCanvas({ children, ...props }: CanvasProps) {
     return () => host.removeEventListener('webglcontextlost', contextLost, true)
   }, [])
   if (!ready || lost) return <Unavailable />
-  return <div ref={attach} style={{ width: '100%', height: '100%', position: 'relative' }}><SceneBoundary><Canvas {...props}>{children}</Canvas></SceneBoundary></div>
+  return <div ref={attach} style={{ width: '100%', height: '100%', position: 'relative' }}><SceneBoundary><Canvas {...props} dpr={quality === 'low' ? 1 : [1, quality === 'high' || illustration ? 2 : 1.5]}>{children}</Canvas></SceneBoundary></div>
 }

@@ -210,7 +210,12 @@ date view, up to 260px in a time-only view); the globe fits narrower containers.
 
 Use `wheelRowHeight` (minimum 24px) and `wheelRows` (3 or 5) to change scrolling
 geometry; CSS heights alone cannot update scroll math. `--picker-unit-width` and
-`--picker-year-width` control column widths. The popup supports `auto`,
+`--picker-year-width` set minimum column widths; columns stretch evenly within
+each row. `--picker-column-gap` and `--picker-row-gap` control their spacing.
+Mouse wheels, trackpads and touch swipes step directly between complete values,
+without fractional scrolling behind the fixed selection band. Pinch zoom remains
+available; unavailable values are skipped and external changes reset the gesture.
+The popup supports `auto`,
 `bottom-start`, `bottom-end`, `top-start`, and `top-end` placement. It flips when
 necessary and aligns within the viewport. If neither side of the input has enough
 space, the window shifts within the viewport rather than cropping its content.
@@ -263,7 +268,7 @@ a field inherits a surrounding provider instead. Do not supply both `clock` and
 | `mode` | `date` | `date`, `time`, `datetime` unit presets |
 | `precision` | mode default | Finest unit; `year` alone creates a year field |
 | `units` | derived | Explicit ordered subset of year/month/day/hour/minute/second; overrides presets |
-| `control` | `wheel` | Native scrolling or editable `stepper` buttons |
+| `control` | `wheel` | Snapping scroll columns or editable `stepper` buttons |
 | `steps` | one per unit | Per-unit increments, e.g. minute: 15, second: 10, year: 5 |
 | `presentation` | `popover` | Anchored compact window or an inline element |
 | `min`, `max` | supported UTC bounds | Allowed instants; partial date buckets remain selectable |
@@ -277,7 +282,12 @@ a field inherits a surrounding provider instead. Do not supply both `clock` and
 | `className`, `classNames`, `style` | unset | Wrapper, field, panel, label and CSS-variable customization |
 
 `--picker-radius`, `--picker-accent` and `--picker-font` customize the appearance
-without replacing behavior. Scroll columns support mouse wheels, trackpads,
+without replacing behavior. Inputs and panels default to a single 1px border
+and no shadow. Override `--picker-field-border`, `--picker-panel-border` and
+`--picker-panel-shadow`, or use the `field` and `panel` part styles, in either
+design. Keyboard focus retains its separate visible indicator.
+
+Scroll columns support mouse wheels, trackpads,
 touch and arrows, Page Up/Down, Home/End. Step values can be typed; Enter confirms,
 Escape discards and Up/Down steps. Civil day/month/year stepping preserves local
 time across DST and clamps invalid month-end/leap dates. Hour/minute steps carry
@@ -345,7 +355,7 @@ import { CelestialDatePicker, CelestialTimePicker, CelestialDateTimePicker } fro
 ```
 
 `presentation="popover"` renders a compact date/time field. Clicking it opens a
-modal window containing native scroll columns and the matching 3D controls.
+modal window containing snapping scroll columns and the matching 3D controls.
 Use a mouse wheel, trackpad, touch, click, or Up/Down, Page Up/Down, Home and End.
 Selection updates the shared clock and 3D scenes live. Done, Escape or a backdrop
 click closes the window and returns focus to the field. Keyboard focus stays
@@ -717,6 +727,11 @@ both variants. Canvas geometry and colours use `orbitalStyle`; CSS cannot change
 the pixels inside a WebGL canvas. Wheel row geometry uses `wheelRowHeight` and
 `wheelRows` so the selection and scrolling stay aligned.
 
+Decorative 3D bodies in cards, compact displays and `CelestialBody` share the
+same apparent disc size, independent of their physical radius. Saturn reserves
+extra room for its complete rings. Rendering quality can be budgeted with
+`CelestialRenderProvider`; the astronomical views keep their existing scales.
+
 ```tsx
 import 'skydial/style.css'
 import './my-sky.css'
@@ -741,3 +756,19 @@ import './my-sky.css'
 For standalone bodies, set `--body-background` or use a root background style.
 Accessibility preferences such as reduced motion and forced colours remain
 honoured by the default stylesheet.
+
+
+## Scheduling additions in 0.3.0
+
+See [the scheduling guide](scheduling.md) for the additions in 0.3.0:
+`CelestialRangeInput`, `CelestialRangePicker`, `CelestialValueInput`, availability
+predicates, locale/12-hour/RTL options, the renderer-free `skydial/lcd` React entry,
+explicit civil and zoned value helpers, and shared 3D rendering budgets.
+
+New `PICKER_PARTS` include `rangeTabs`, `rangeTab`, `rangeTrack`, `rangeEndpoint`,
+`unavailableTrack` and `dayPeriodButton`. Range part callbacks include an
+`endpoint` (`start` or `end`) alongside selected/disabled state. Ordinary CSS
+can select `data-range-endpoint` too. `wheelRowHeight` is a minimum: scroll rows
+expand if enlarged text needs more room, keeping exact selection geometry aligned.
+
+The scheduling APIs require Skydial 0.3.0 or later.

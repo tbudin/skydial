@@ -8,6 +8,8 @@ export interface ClockContextValue {
   readOnly: boolean
   motion: TimeMotionController
   selectDate: (timeMs: number, animated?: boolean) => void
+  /** Optional internal gate used by constrained form controls. */
+  canSelectDate?: (timeMs: number) => boolean
 }
 
 export const ClockContext = createContext<ClockContextValue | null>(null)

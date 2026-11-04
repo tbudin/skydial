@@ -26,7 +26,10 @@ try {
     import { createElement } from 'react';
     import { renderToStaticMarkup } from 'react-dom/server';
     import { CelestialPicker } from '${manifest.name}/pickers';
+    import { CelestialInput as LcdInput, CelestialRangeInput as LcdRange } from '${manifest.name}/lcd';
     const html = renderToStaticMarkup(createElement(CelestialPicker, { precision: 'year', defaultValue: Date.UTC(2026, 0, 1), name: 'year' }));
+    const lcd = renderToStaticMarkup(createElement(LcdInput, { presentation: 'inline', defaultValue: Date.UTC(2026, 0, 1) }));
+    if (!lcd.includes('data-renderer="lcd"') || !LcdRange) throw Error('LCD-only install failed');
     if (!html.includes('2026') || !html.includes('name="year"')) throw Error('Form-only install failed');
   `], { cwd: work, stdio: 'pipe' })
   assert(!existsSync(join(work, 'node_modules', 'three')), 'Form-only entry unexpectedly installed Three.js')

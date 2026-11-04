@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test'
 import { previewHeader } from './preview.js'
 
 for (const variant of ['lcd', 'celestial']) test(`${variant} month labels and step buttons stay aligned across themes and screen sizes`, async ({ page }) => {
+  // Each case checks four screen/theme combinations, including an axe scan.
+  test.setTimeout(120000)
   await page.goto(`./picker/?style=${variant}`)
   const presets = page.getByRole('group', { name: 'Picker presets' })
   for (const width of [1280, 320]) for (const theme of ['light', 'dark']) {

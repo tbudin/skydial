@@ -1,11 +1,9 @@
+import { useVisualRenderer } from '../render/visualRenderer.js'
 import type { PlanetId } from '../astro/bodies.js'
 import { useMemo } from 'react'
 import { PLANET_BY_ID } from '../astro/bodies.js'
 import { ClockScope } from '../sim/react.js'
 import { useSimNow } from '../ui/hooks.js'
-import { EarthGlobe } from '../render/EarthGlobe.js'
-import { MoonGlobe } from '../render/MoonGlobe.js'
-import { PlanetGlobe } from '../render/PlanetGlobe.js'
 import { LcdEarth } from '../render/LcdEarth.js'
 import { LcdBody } from '../render/LcdBody.js'
 import { DEFAULT_PLACE } from './defaults.js'
@@ -31,10 +29,12 @@ export interface CelestialBodyProps extends CelestialWidgetProps, DisplayAppeara
 
 /** A decorative, observer-aware body; expose a text name on the containing figure. */
 export function BodyVisual({ body, place, variant }: { body: CelestialBodyId; place: NonNullable<CelestialWidgetProps['place']>; variant: PickerVariant }) {
+  const renderer = useVisualRenderer()
   if (variant === 'lcd') return body === 'earth' ? <LcdEarth location={place} /> : <LcdBody body={body} location={place} />
-  if (body === 'earth') return <EarthGlobe location={place} cameraDistance={4.5} />
-  if (body === 'moon') return <MoonGlobe location={place} />
-  return <PlanetGlobe planet={body} />
+  if (!renderer) return null
+  if (body === 'earth') return <renderer.Earth location={place} illustration />
+  if (body === 'moon') return <renderer.Moon location={place} illustration />
+  return <renderer.Planet planet={body} illustration />
 }
 
 /** Standalone body for a header, badge or custom composition, without a selector. */

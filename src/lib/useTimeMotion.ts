@@ -5,7 +5,7 @@ import { SimClock } from '../sim/clock.js'
 
 /** Commit once, then animate the celestial view. Direct drags stay under the pointer. */
 export function useTimeMotion() {
-  const { clock, selectDate, readOnly, motion } = useCelestialTime()
+  const { clock, selectDate, readOnly, motion, canSelectDate } = useCelestialTime()
   const frame = useRef(0)
   const latest = useRef(selectDate)
   useEffect(() => { latest.current = selectDate }, [selectDate])
@@ -16,7 +16,7 @@ export function useTimeMotion() {
   }, [motion])
   useEffect(() => cancel, [cancel])
   const choose = useCallback((target: number, animate = false) => {
-    if (readOnly) return
+    if (readOnly || canSelectDate && !canSelectDate(clampTime(target))) return
     const from = (motion.getVisualClock() ?? clock).now()
     motion.cancel()
     cancel()
@@ -36,7 +36,7 @@ export function useTimeMotion() {
       else motion.finish(cancel)
     }
     frame.current = requestAnimationFrame(tick)
-  }, [clock, readOnly, cancel, motion])
+  }, [clock, readOnly, cancel, motion, canSelectDate])
   const selectionNow = () => motion.target ?? clock.now()
   return { choose, cancel, readOnly, selectionNow }
 }

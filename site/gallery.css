@@ -238,3 +238,17 @@
   .preview-colours-button { order: 4; }
 }
 @media(max-width: 600px) { :root[data-preview-controls] .brand b { font-size: 18px; } }
+
+.scheduling-playground { display: grid; gap: 24px; width: 100%; min-width: 0; }
+.scheduling-preview { padding: clamp(16px, 4vw, 32px); border: 1px solid var(--line); border-radius: 12px; background: var(--panel); min-width: 0; }
+.scheduling-preview form { display: grid; gap: 24px; max-width: 620px; margin-inline: auto; }
+.scheduling-form-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.scheduling-form-actions button { min-height: 40px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--text); font: inherit; cursor: pointer; }
+.scheduling-result { display: block; white-space: pre-wrap; overflow-wrap: anywhere; margin-block-start: 20px; color: var(--muted); font: 12px/1.7 monospace; }
+.scheduling-settings { padding: 16px; border: 1px solid var(--line); border-radius: 8px; }
+.scheduling-settings summary { cursor: pointer; min-height: 32px; }
+.scheduling-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; padding-block-start: 16px; }
+.scheduling-settings label { display: flex; align-items: center; gap: 8px; min-height: 40px; font-size: 13px; }
+.scheduling-settings label:has(select) { flex-direction: column; align-items: stretch; }
+.scheduling-settings select { min-height: 40px; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px; font: inherit; }
+.scheduling-code { max-width: 100%; overflow: auto; padding: 16px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; line-height: 1.7; }

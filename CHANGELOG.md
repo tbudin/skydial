@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0
+
+- Make scroll wheels step directly between complete values for mouse wheels, trackpads and touch; keep selection bands stationary and skip unavailable options.
+- Align column widths and gaps consistently for every date/time composition, including inline and standalone controls; expose column/row gap variables.
+- Sharpen 3D widget/body illustrations with selective 2K maps, smoother geometry and matched globe framing; retain full Saturn rings and a low-quality rendering option.
+- Simplify picker fields and windows to single borders without default shadows, keeping keyboard focus and consumer styling overrides.
+- Add one-window celestial and form-only date/time range pickers, explicit endpoints, orbital interval highlights, duration bounds and whole-range validation.
+- Share date/time availability rules across all modern input methods and native form validation; provide business-hour and weekday helpers.
+- Localize modern controls, month names, field order and accessibility messages; add 12-hour periods and RTL layouts.
+- Add a renderer-free LCD React entry, per-body texture loading and shared 3D rendering budgets.
+- Add explicit calendar-date, local-time, instant and zoned input values and framework-independent parsing/serialization, including DST disambiguation and stored offsets.
+- Expand browser accessibility/layout regression coverage and record the user-reported iPhone VoiceOver check in both designs.
+- Add the scheduling playground and update stale release documentation.
+
 ## 0.2.0
 
 - Add compact date, time and year displays and standalone planet/Moon components in both 3D and LCD styles, with configurable Intl formats and observer time zones.

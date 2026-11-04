@@ -14,3 +14,6 @@ export { civilDateValue, selectCivilDate } from './dateSelection.js'
 
 export { dateAtLongitude, yearAtLongitude, changeCivilYear, timeFromEarthDrag } from './selection.js'
 export * from './picker.js'
+export * from './values.js'
+export * from './availability.js'
+export * from './range.js'

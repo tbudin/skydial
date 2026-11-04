@@ -5,20 +5,21 @@ import type { YearPlanetId } from '../astro/bodies.js'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { PLANETS, PLANET_BY_ID } from '../astro/bodies.js'
 import { helioEcliptic, normaliseAngle } from '../astro/ephemeris.js'
-import { MONTH_SHORT } from '../astro/time.js'
+import { usePickerLocale } from '../lib/localization.js'
 import { CALENDAR_RADIUS, SCENE_EXTENT, radialScale, sampleOrbit } from '../geometry/projection.js'
 import { layoutLabels, radialCandidates, type LabelRequest } from '../geometry/labelLayout.js'
 import { usePickerParts } from '../lib/appearance.js'
-import type { OrreryProps, LabelSpec } from './Orrery.js'
+import type { OrreryViewProps, LabelSpec } from './orreryTypes.js'
 import { LcdPlanetGlyph } from './LcdPlanetGlyph.js'
 
-type Props = Omit<OrreryProps, 'textures' | 'diagnostics'> & { now: number; width: number; height: number }
+type Props = Omit<OrreryViewProps, 'diagnostics'> & { now: number; width: number; height: number }
 
 /** The same ephemeris and scales as the 3D dial, drawn with two inks in SVG. */
 export function LcdOrrery({ now, width, height, calendar, yearScale, yearPlanet, currentDayIndex, currentMonth, currentYear,
-  orbitEpochMs, onMonthSelect, onYearSelect, compact = false, visibleBodies, appearance, showMonths = true, showDays = true, showYears = true, sceneExtent = SCENE_EXTENT,
+  orbitEpochMs, onMonthSelect, onYearSelect, isMonthUnavailable, isYearUnavailable, compact = false, visibleBodies, appearance, showMonths = true, showDays = true, showYears = true, sceneExtent = SCENE_EXTENT,
 }: Props) {
   const part = usePickerParts()
+  const i18n = usePickerLocale()
   const host = useRef<HTMLDivElement>(null)
   const [sizes, setSizes] = useState<Record<string, { w: number; h: number }>>({})
   const zoom = Math.max(1, (Math.min(width, height) - (compact ? 20 : 60)) / (2 * sceneExtent))
@@ -121,9 +122,10 @@ export function LcdOrrery({ now, width, height, calendar, yearScale, yearPlanet,
       {specs.map((s, index) => {
         const pos = placed[index]
         const select = s.kind === 'month' && onMonthSelect ? () => onMonthSelect(s.value!) : s.kind === 'year' && onYearSelect ? () => onYearSelect(s.value!) : undefined
+        const unavailable = s.kind === 'month' ? isMonthUnavailable?.(s.value!) : s.kind === 'year' ? isYearUnavailable?.(s.value!) : false
         const Element = select ? 'button' : 'span'
-        return <Element key={s.id} type={select ? 'button' : undefined} onClick={select} tabIndex={select && pos.visible ? 0 : -1}
-          aria-hidden={select && !pos.visible ? true : undefined} aria-label={select ? s.kind === 'month' ? `Select ${MONTH_SHORT[s.value! - 1]} ${calendar.year}` : `Select year ${s.value}` : undefined}
+        return <Element key={s.id} type={select ? 'button' : undefined} onClick={select} disabled={select ? unavailable : undefined} tabIndex={select && pos.visible ? 0 : -1}
+          aria-hidden={select && !pos.visible ? true : undefined} aria-label={select ? s.kind === 'month' ? `${i18n.locale.startsWith('en') ? 'Select' : i18n.units.month} ${new Intl.DateTimeFormat(i18n.locale, { month: i18n.locale.startsWith('en') ? 'short' : 'long', calendar: 'gregory', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, s.value! - 1, 1)))} ${calendar.year}` : `${i18n.locale.startsWith('en') ? 'Select year' : i18n.units.year} ${s.value}` : undefined}
           data-label={s.id} data-kind={s.kind} data-longitude={s.lon} data-visible={String(pos.visible)}
           {...part(s.kind === 'month' ? 'monthLabel' : s.kind === 'year' ? 'yearLabel' : s.kind === 'date-pill' ? 'dateBadge' : 'yearBadge', `scale-label ${s.kind}${s.active ? ' active' : ''}`,
             { transform: `translate3d(${pos.cx - pos.w / 2}px, ${pos.cy - pos.h / 2}px, 0)` }, { selected: s.active })}>{s.text}</Element>

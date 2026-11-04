@@ -3,18 +3,20 @@ import { useContext, useEffect, useEffectEvent, useId, useLayoutEffect, useMemo,
 import type { Place } from '../astro/places.js'
 import { PLANET_BY_ID, type PlanetId, type YearPlanetId } from '../astro/bodies.js'
 import { calendarScale, yearScale } from '../astro/clockScales.js'
-import { civilParts, dayOfYear, MONTH_SHORT, zonedToUtc } from '../astro/time.js'
+import { civilParts, dayOfYear, zonedToUtc } from '../astro/time.js'
 import { changeCivilYear, dateAtLongitude, yearAtLongitude } from '../astro/selection.js'
 import { helioEcliptic, normaliseAngle } from '../astro/ephemeris.js'
 import { CALENDAR_RADIUS, SCENE_EXTENT, radialScale } from '../geometry/projection.js'
-import { loadTextures, type TextureLoadResult } from '../render/textures.js'
-import { renderThumbnails } from '../render/thumbnails.js'
 import { PickerAppearanceContext, usePickerParts, usePickerVariant } from './appearance.js'
 import { pickerColorPalette } from './colors.js'
-import { Orrery, type OrreryAppearance } from '../render/Orrery.js'
+import type { OrreryAppearance } from '../render/orreryTypes.js'
+import { useVisualRenderer } from '../render/visualRenderer.js'
+import { usePickerLocale } from './localization.js'
 import { PlanetSelector } from '../ui/PlanetSelector.js'
 import { useSimNow, useVisualNow } from '../ui/hooks.js'
 import { useTimeMotion } from './useTimeMotion.js'
+import { useCelestialTime } from '../sim/hooks.js'
+import type { RangeSelection } from './rangeSelection.js'
 import { clampPickerTime, stepPickerUnit, type PickerBounds, type PickerUnit, type PickerSteps } from '../astro/picker.js'
 import { daysInMonth } from '../astro/time.js'
 
@@ -29,6 +31,7 @@ interface Props extends PickerBounds {
   theme?: 'light' | 'dark'
   units?: readonly PickerUnit[]
   steps?: PickerSteps
+  rangeSelection?: RangeSelection
 }
 
 interface OrbitPreview {
@@ -37,22 +40,25 @@ interface OrbitPreview {
   label: string
   x: number
   y: number
+  unavailable?: boolean
 }
 
-export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, disabled, theme, units, steps, min, max, compact = false, appearance: customAppearance }: Props) {
+export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, disabled, theme, units, steps, min, max, compact = false, appearance: customAppearance, rangeSelection }: Props) {
   const part = usePickerParts()
   const variant = usePickerVariant()
+  const renderer = useVisualRenderer()
+  const i18n = usePickerLocale()
   const { colors } = useContext(PickerAppearanceContext)
   const appearance = useMemo(() => ({ ...customAppearance, palette: { ...pickerColorPalette(colors), ...customAppearance?.palette } }), [colors, customAppearance])
   const now = useSimNow(33)
   const visualNow = useVisualNow(33)
   const p = civilParts(now, place.timeZone)
   const [anchorYear, setAnchorYear] = useState(p.year)
-  const [assets, setAssets] = useState<TextureLoadResult | null>(null)
   const [thumbs, setThumbs] = useState<Partial<Record<YearPlanetId, string>>>({})
   const stage = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 500, height: 500 })
   const { choose, readOnly, selectionNow } = useTimeMotion()
+  const { canSelectDate } = useCelestialTime()
   const previewId = useId()
   const hintsId = useId()
   const [preview, setPreview] = useState<OrbitPreview | null>(null)
@@ -117,14 +123,10 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
   useEffect(() => {
     if (variant === 'lcd') return
     let alive = true
-    loadTextures().then((result) => {
-      if (!alive) return
-      setAssets(result)
-      if (!compact) setThumbs(renderThumbnails(result.textures, Date.now()))
-    })
+    renderer?.thumbnails?.().then((result) => { if (alive && !compact) setThumbs(result) })
     return () => { alive = false }
     // Thumbnails are static representations of the same mesh factory.
-  }, [compact, variant])
+  }, [compact, variant, renderer])
   useEffect(() => {
     const el = stage.current
     if (!el) return
@@ -153,8 +155,9 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
     const radius = kind === 'day' ? CALENDAR_RADIUS * zoom : yearRadius
     return { target, preview: {
       kind: snapshot.kind,
+      unavailable: canSelectDate ? !canSelectDate(target) : false,
       unit: snapshot.kind === 'year' ? 'year' as const : showDays ? 'day' as const : 'month' as const,
-      label: snapshot.kind === 'year' ? String(parts.year) : [showDays ? variant === 'lcd' ? String(parts.day).padStart(2, '0') : parts.day : '', showMonths ? variant === 'lcd' ? String(parts.month).padStart(2, '0') : MONTH_SHORT[parts.month - 1] : '', showYears ? parts.year : ''].filter((value) => value !== '').join(variant === 'lcd' ? '/' : ' '),
+      label: snapshot.kind === 'year' ? String(parts.year) : [showDays ? variant === 'lcd' ? String(parts.day).padStart(2, '0') : parts.day : '', showMonths ? variant === 'lcd' ? String(parts.month).padStart(2, '0') : new Intl.DateTimeFormat(i18n.locale, { month: 'short', calendar: 'gregory', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, parts.month - 1, 1))) : '', showYears ? parts.year : ''].filter((value) => value !== '').join(variant === 'lcd' ? '/' : ' '),
       x: size.width / 2 + Math.cos(snappedLon) * radius,
       y: size.height / 2 - Math.sin(snappedLon) * radius,
     } }
@@ -164,7 +167,7 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
     const next = targetFromPointer(kind, event)
     if (!next) return
     keepPreview()
-    setPreview((previous) => previous?.kind === next.preview.kind && previous.label === next.preview.label && previous.x === next.preview.x && previous.y === next.preview.y ? previous : next.preview)
+    setPreview((previous) => previous?.kind === next.preview.kind && previous.label === next.preview.label && previous.x === next.preview.x && previous.y === next.preview.y && previous.unavailable === next.preview.unavailable ? previous : next.preview)
     if (drag.current) choose(next.target, animate)
   }
   const pointerDown = (kind: 'day' | 'year', event: PointerEvent<SVGCircleElement>) => {
@@ -246,14 +249,40 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
       return `${i ? 'L' : 'M'}${size.width / 2 + Math.cos(angle) * (dayRadius - 3)},${size.height / 2 - Math.sin(angle) * (dayRadius - 3)}`
     }).join(' ')
   }, [calendar, p.month, dayRadius, size.width, size.height, showMonths])
-  const Dial = variant === 'lcd' ? LcdOrrery : Orrery
+  const Dial = variant === 'lcd' ? LcdOrrery : renderer?.Orrery
+  const dayTime = (index: number) => {
+    const tick = calendar.ticks[index]
+    return zonedToUtc(place.timeZone, p.year, tick.month, tick.day, p.hour, p.minute, p.second)
+  }
+  const arc = (ticks: readonly { lon: number }[], radius: number) => ticks.map((tick, index) => `${index ? 'L' : 'M'}${size.width / 2 + Math.cos(tick.lon) * radius},${size.height / 2 - Math.sin(tick.lon) * radius}`).join(' ')
+  const rangeStart = rangeSelection?.value?.start
+  const rangeEnd = rangeSelection?.value?.end
+  const startParts = rangeStart == null ? null : civilParts(Number(rangeStart), place.timeZone)
+  const endParts = rangeEnd == null ? null : civilParts(Number(rangeEnd), place.timeZone)
+  const selectedTicks = startParts && endParts && Number(rangeStart) <= Number(rangeEnd) ? calendar.ticks.filter((tick) => {
+    const day = Date.UTC(p.year, tick.month - 1, tick.day)
+    return day >= Date.UTC(startParts.year, startParts.month - 1, startParts.day) && day <= Date.UTC(endParts.year, endParts.month - 1, endParts.day)
+  }) : []
+  const yearRangePath = useMemo(() => {
+    if (showCalendar || rangeStart == null || rangeEnd == null) return ''
+    const lower = Math.max(Number(rangeStart), zonedToUtc(place.timeZone, scale.fromYear, 1, 1))
+    const upper = Math.min(Number(rangeEnd), zonedToUtc(place.timeZone, scale.toYear + 1, 1, 1))
+    if (upper <= lower) return ''
+    return Array.from({ length: 65 }, (_, index) => {
+      const position = helioEcliptic(PLANET_BY_ID[planet].body, lower + (upper - lower) * index / 64)
+      const radius = radialScale(position.rho) * zoom - 10
+      return `${index ? 'L' : 'M'}${size.width / 2 + Math.cos(position.lon) * radius},${size.height / 2 - Math.sin(position.lon) * radius}`
+    }).join(' ')
+  }, [showCalendar, rangeStart, rangeEnd, place.timeZone, scale.fromYear, scale.toYear, planet, zoom, size.width, size.height])
   return (
-    <section {...part('orrery', 'orrery-control', { '--orbit-day-color': appearance.palette.earthHand, '--orbit-year-color': appearance.palette.yearHand } as import('react').CSSProperties)} aria-label="Orbital date picker">
+    <section {...part('orrery', 'orrery-control', { '--orbit-day-color': appearance.palette.earthHand, '--orbit-year-color': appearance.palette.yearHand } as import('react').CSSProperties)} aria-label={i18n.messages.orbit}>
       {!compact && <div className="orbit-control-heading"><span>DAY · EARTH’S ORBIT</span><span>YEAR · {PLANET_BY_ID[planet].name.toUpperCase()}</span></div>}
       {!compact && <PlanetSelector value={planet} onChange={(next) => onPlanetChange?.(next)} thumbnails={thumbs} disabled={planetReadOnly || disabled} />}
       <div ref={stage} {...part('orbitStage', 'orrery-control-stage')} data-dragging={dragging ?? undefined} onPointerLeave={clearPreview}
         onBlurCapture={(event) => { if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) setFocused(null) }}>
-        {variant === 'lcd' || assets ? <Dial now={visualNow} width={size.width} height={size.height} appearance={appearance} visibleBodies={compact ? visibleBodies : undefined} showMonths={showMonths} showDays={showDays} showYears={showYears} sceneExtent={sceneExtent} theme={theme} textures={assets?.textures ?? {}} calendar={calendar} yearScale={scale} yearPlanet={planet}
+        {Dial ? <Dial now={visualNow} width={size.width} height={size.height} appearance={appearance} visibleBodies={compact ? visibleBodies : undefined} showMonths={showMonths} showDays={showDays} showYears={showYears} sceneExtent={sceneExtent} theme={theme} calendar={calendar} yearScale={scale} yearPlanet={planet}
+          isMonthUnavailable={(month) => canSelectDate ? !canSelectDate(resolveOrbit(stepPickerUnit(selectionNow(), 'month', month - p.month, place.timeZone))) : false}
+          isYearUnavailable={(year) => canSelectDate ? !canSelectDate(resolveOrbit(changeCivilYear(year, selectionNow(), place.timeZone))) : false}
           onMonthSelect={dayLocked ? undefined : (month) => {
             selectOrbit(stepPickerUnit(selectionNow(), 'month', month - civilParts(selectionNow(), place.timeZone).month, place.timeZone), true)
             stage.current?.querySelector<SVGCircleElement>('.orbit-hit-day')?.focus({ preventScroll: true })
@@ -263,8 +292,11 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
             stage.current?.querySelector<SVGCircleElement>('.orbit-hit-year')?.focus({ preventScroll: true })
           }}
           currentDayIndex={dayOfYear(p.year, p.month, p.day) - 1} currentMonth={p.month} currentYear={p.year} orbitEpochMs={epoch} />
-          : <div className="loading">Loading the solar system…</div>}
-        <svg className="orbit-pick-layer" width="100%" height="100%" viewBox={`0 0 ${size.width} ${size.height}`} aria-label="Select a date from the orbital scales">
+          : <div className="loading" role="status">{i18n.messages.loading}</div>}
+        <svg className="orbit-pick-layer" width="100%" height="100%" viewBox={`0 0 ${size.width} ${size.height}`} aria-label={i18n.messages.selectOrbit}>
+          {showCalendar && selectedTicks.length > 1 && <path {...part('rangeTrack', 'orbit-selected-range')} d={arc(selectedTicks, dayRadius - 10)} aria-hidden="true" />}
+          {!showCalendar && yearRangePath && <path {...part('rangeTrack', 'orbit-selected-range')} d={yearRangePath} aria-hidden="true" />}
+          {showCalendar && canSelectDate && calendar.ticks.slice(0, -1).map((tick, index) => !canSelectDate(dayTime(index)) && <path key={index} {...part('unavailableTrack', 'orbit-unavailable')} d={arc([tick, calendar.ticks[index + 1]], dayRadius)} aria-hidden="true" />)}
           {showCalendar && monthArc && <path {...part('orbitMonthArc', 'orbit-month-arc')} d={monthArc} aria-hidden="true" />}
           {(['day', 'year'] as const).filter((kind) => kind === 'day' ? showCalendar : showYears).map((kind) => {
             const angle = kind === 'day' ? calendar.ticks[dayOfYear(p.year, p.month, p.day) - 1].lon : helioEcliptic(PLANET_BY_ID[planet].body, now).lon
@@ -274,10 +306,10 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
               <circle className={`orbit-hit orbit-hit-${kind}`} data-orbit-kind={kind} cx={size.width / 2} cy={size.height / 2}
                 r={kind === 'day' ? dayRadius : yearRadius} fill="none" stroke="transparent" strokeWidth={hitWidth}
                 role="slider" tabIndex={(kind === 'day' ? dayLocked : yearLocked) ? -1 : 0} aria-disabled={kind === 'day' ? dayLocked : yearLocked}
-                aria-label={kind === 'day' ? !showDays ? 'Month on Earth’s orbit' : !showMonths ? 'Day of month on Earth’s orbit' : 'Day of year on the calendar ring' : `Year on ${PLANET_BY_ID[planet].name}’s orbit`}
+                aria-label={kind === 'day' ? !showDays ? i18n.messages.monthOrbit : i18n.messages.dayOrbit : i18n.messages.yearOrbit.replace('{planet}', PLANET_BY_ID[planet].name)}
                 aria-valuemin={kind === 'day' ? 1 : 1600} aria-valuemax={kind === 'day' ? !showDays ? 12 : !showMonths ? daysInMonth(p.year, p.month) : calendar.ticks.length - 1 : 2400}
                 aria-valuenow={kind === 'day' ? !showDays ? p.month : !showMonths ? p.day : dayOfYear(p.year, p.month, p.day) : p.year}
-                aria-valuetext={kind === 'day' ? `${p.day}/${p.month}/${p.year}` : String(p.year)}
+                aria-valuetext={kind === 'day' ? new Intl.DateTimeFormat(i18n.locale, { timeZone: place.timeZone, calendar: 'gregory', dateStyle: 'full' }).format(now) : String(p.year)}
                 aria-describedby={[`${hintsId}-${kind}`, activePreview?.kind === kind ? previewId : ''].filter(Boolean).join(' ')}
                 onFocus={() => { setFocused(kind); wheel.current = { kind, delta: 0, at: 0 } }}
                 onPointerDown={(event) => pointerDown(kind, event)} onPointerEnter={(event) => movePointer(kind, event)} onPointerMove={(event) => movePointer(kind, event)} onPointerLeave={leavePreview}
@@ -288,7 +320,23 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
                 onPointerDown={(event) => pointerDown(kind, event)} onPointerEnter={(event) => movePointer(kind, event)} onPointerMove={(event) => movePointer(kind, event)} onPointerLeave={leavePreview} />}
             </g>
           })}
-          {activePreview && <circle {...part('orbitPreviewMarker', 'orbit-preview-marker', undefined, { unit: activePreview.unit })} data-kind={activePreview.kind} cx={activePreview.x} cy={activePreview.y} r={4} aria-hidden="true" />}
+          {rangeSelection && (['start', 'end'] as const).map((endpoint) => {
+            const instant = rangeSelection.value?.[endpoint]
+            if (instant == null) return null
+            const date = civilParts(Number(instant), place.timeZone)
+            if (showCalendar ? date.year !== p.year : date.year < scale.fromYear || date.year > scale.toYear) return null
+            const tick = calendar.ticks[dayOfYear(date.year, date.month, date.day) - 1]
+            const position = helioEcliptic(PLANET_BY_ID[planet].body, Number(instant))
+            const angle = showCalendar ? tick.lon : position.lon
+            const radius = (showCalendar ? dayRadius : radialScale(position.rho) * zoom) - 10
+            return <g key={endpoint} {...part('rangeEndpoint', 'orbit-range-endpoint', undefined, { selected: rangeSelection.active === endpoint, endpoint })} data-range-endpoint={endpoint} role="button" tabIndex={0} aria-pressed={rangeSelection.active === endpoint}
+              aria-label={`${i18n.messages[endpoint]}: ${new Intl.DateTimeFormat(i18n.locale, { timeZone: place.timeZone, dateStyle: 'long', calendar: 'gregory' }).format(Number(instant))}`}
+              transform={`translate(${size.width / 2 + Math.cos(angle) * radius},${size.height / 2 - Math.sin(angle) * radius})`}
+              onClick={() => rangeSelection.activate(endpoint)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); rangeSelection.activate(endpoint) } }}>
+              <circle r="18" fill="transparent" stroke="none" /><circle r={endpoint === 'start' ? 5 : 7} className="orbit-range-point" />
+            </g>
+          })}
+          {activePreview && <circle {...part('orbitPreviewMarker', 'orbit-preview-marker', undefined, { unit: activePreview.unit, disabled: activePreview.unavailable })} data-kind={activePreview.kind} data-unavailable={activePreview.unavailable || undefined} cx={activePreview.x} cy={activePreview.y} r={4} aria-hidden="true" />}
         </svg>
         {activePreview && <OrbitHoverPreview id={previewId} preview={activePreview} width={size.width} height={size.height} onPointerEnter={keepPreview} onPointerLeave={leavePreview} />}
         {showLens && <div {...part('orbitLens', 'orbit-date-lens')} aria-hidden="true">
@@ -297,17 +345,16 @@ export function OrreryControl({ place, planet, onPlanetChange, planetReadOnly, d
             const date = civilParts(target, place.timeZone)
             const unavailable = offset !== 0 && target === now
             return <span key={offset} {...part('orbitLensDay', 'orbit-lens-day', undefined, { unit: 'day', selected: offset === 0, disabled: unavailable })}
-              data-selected={offset === 0} data-unavailable={unavailable || undefined}><span>{variant === 'lcd' ? String(date.month).padStart(2, '0') : MONTH_SHORT[date.month - 1]}</span><strong>{date.day}</strong></span>
+              data-selected={offset === 0} data-unavailable={unavailable || undefined}><span>{variant === 'lcd' ? String(date.month).padStart(2, '0') : new Intl.DateTimeFormat(i18n.locale, { month: 'short', calendar: 'gregory', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, date.month - 1, 1)))}</span><strong>{date.day}</strong></span>
           })}
         </div>}
       </div>
-      <span id={`${hintsId}-day`} className="picker-sr-only">Arrow keys adjust the {showDays ? 'day' : 'month'} by the configured step. Use Page Up or Down for a {showMonths ? 'month' : 'week'}, and Home or End for the first or last {showDays ? showMonths ? 'day of the year' : 'day of the month' : 'month of the year'}. Scroll while this ring is focused to fine-tune.</span>
-      <span id={`${hintsId}-year`} className="picker-sr-only">Arrow keys adjust the year by the configured step. Use Page Up or Down for ten steps, and Home or End for the earliest or latest allowed year. Scroll while this ring is focused to fine-tune.</span>
-      {variant !== 'lcd' && assets && assets.failed.length > 0 && <p className="warning" role="alert">Some surface textures are unavailable. Plain 3D materials are shown.</p>}
+      <span id={`${hintsId}-day`} className="picker-sr-only">{i18n.messages.dayHint}</span>
+      <span id={`${hintsId}-year`} className="picker-sr-only">{i18n.messages.yearHint}</span>
       {showYears && <div {...part('rangeNavigation', 'orbit-range-navigation')}>
-        <button type="button" {...part('rangeButton', 'chip', undefined, { direction: -1 })} aria-label="Earlier year range" disabled={anchorYear <= 1600} onClick={() => setAnchorYear(Math.max(1600, anchorYear - (Math.floor(PLANET_BY_ID[planet].periodYears) - 1)))}>←</button>
+        <button type="button" {...part('rangeButton', 'chip', undefined, { direction: -1 })} aria-label={i18n.messages.earlier} disabled={anchorYear <= 1600} onClick={() => setAnchorYear(Math.max(1600, anchorYear - (Math.floor(PLANET_BY_ID[planet].periodYears) - 1)))}>←</button>
         <span {...part('rangeLabel', 'orbit-range-caption')} aria-live="polite" aria-atomic="true"><span className="orbit-range-years">{scale.fromYear}–{Math.min(2400, scale.toYear)}</span><span className="orbit-range-planet">{PLANET_BY_ID[planet].name}</span></span>
-        <button type="button" {...part('rangeButton', 'chip', undefined, { direction: 1 })} aria-label="Later year range" disabled={anchorYear >= 2400} onClick={() => setAnchorYear(Math.min(2400, anchorYear + (Math.floor(PLANET_BY_ID[planet].periodYears) - 1)))}>→</button>
+        <button type="button" {...part('rangeButton', 'chip', undefined, { direction: 1 })} aria-label={i18n.messages.later} disabled={anchorYear >= 2400} onClick={() => setAnchorYear(Math.min(2400, anchorYear + (Math.floor(PLANET_BY_ID[planet].periodYears) - 1)))}>→</button>
       </div>}
       {!compact && <p className="picker-instruction">Click a month or year label, or drag its ring. The outer calendar selects a day; the gold orbit selects a year.</p>}
     </section>
@@ -318,6 +365,7 @@ function OrbitHoverPreview({ id, preview, width, height, onPointerEnter, onPoint
   id: string; preview: OrbitPreview; width: number; height: number; onPointerEnter: () => void; onPointerLeave: () => void
 }) {
   const part = usePickerParts()
+  const { messages } = usePickerLocale()
   const ref = useRef<HTMLSpanElement>(null)
   const [size, setSize] = useState({ width: 100, height: 28 })
   useLayoutEffect(() => {
@@ -329,8 +377,8 @@ function OrbitHoverPreview({ id, preview, width, height, onPointerEnter, onPoint
     measure()
     return () => observer.disconnect()
   }, [])
-  return <span ref={ref} id={id} role="tooltip" data-kind={preview.kind} {...part('orbitPreview', 'orbit-preview', {
+  return <span ref={ref} id={id} role="tooltip" data-kind={preview.kind} data-unavailable={preview.unavailable || undefined} {...part('orbitPreview', 'orbit-preview', {
     left: Math.max(4, Math.min(width - size.width - 4, preview.x + 12)),
     top: Math.max(4, Math.min(height - size.height - 4, preview.y - size.height - 12)),
-  }, { unit: preview.unit })} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{preview.label}</span>
+  }, { unit: preview.unit, disabled: preview.unavailable })} onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave}>{preview.label}{preview.unavailable ? ` · ${messages.unavailable}` : ''}</span>
 }

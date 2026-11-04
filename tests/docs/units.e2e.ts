@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { setDesignStyle, openSettings } from './preview.js'
+import { openSettings } from './preview.js'
 
 const allUnits = ['year', 'month', 'day', 'hour', 'minute', 'second']
 async function configure(page: Page, units: string[]) {
@@ -9,42 +9,39 @@ async function configure(page: Page, units: string[]) {
   for (const unit of allUnits.filter((unit) => !units.includes(unit))) await settings.getByRole('checkbox', { name: unit, exact: true }).uncheck()
 }
 
-test('celestial scenes and precision tabs follow the enabled units in both styles', async ({ page }) => {
+for (const variant of ['lcd', 'celestial']) test(`${variant} scenes and precision tabs follow the enabled units`, async ({ page }) => {
   test.setTimeout(120000)
-  await page.goto('./picker/')
-  for (const variant of ['lcd', 'celestial']) {
-    await setDesignStyle(page, variant)
-    for (const units of [['year'], ['year', 'month'], ['month'], ['day'], ['hour'], ['minute'], ['second'], ['year', 'second'], ['day', 'hour', 'minute'], allUnits]) {
-      await configure(page, units)
-      await page.getByRole('button', { name: 'Starts', exact: true }).click()
-      const panel = page.getByRole('dialog', { name: 'Starts', exact: true })
-      const calendar = units.includes('month') || units.includes('day')
-      const year = units.includes('year')
-      const time = units.filter((unit) => ['hour', 'minute', 'second'].includes(unit))
-      await expect(panel.getByRole('listbox')).toHaveCount(units.length)
-      await expect.poll(() => panel.getByRole('listbox').evaluateAll((wheels) => Math.max(...wheels.map((wheel) => {
-        const selected = wheel.querySelector('[aria-selected="true"]')!.getBoundingClientRect()
-        const band = wheel.parentElement!.querySelector('.picker-wheel-selection')!.getBoundingClientRect()
-        return Math.abs(selected.top - band.top)
-      })))).toBeLessThan(1)
-      await expect(panel.locator('[data-picker-part="monthLabel"]')).toHaveCount(units.includes('month') ? 12 : 0)
-      await expect(panel.locator('[data-picker-part="dateBadge"]')).toHaveCount(calendar ? 1 : 0)
-      await expect(panel.locator('[data-picker-part="yearBadge"]')).toHaveCount(year ? 1 : 0)
-      await expect(panel.locator('[data-picker-part="rangeNavigation"]')).toHaveCount(year ? 1 : 0)
-      if (calendar || year) await expect(panel.locator('[data-visible-bodies]')).toHaveAttribute('data-visible-bodies', [calendar ? 'earth' : '', year ? 'jupiter' : ''].filter(Boolean).join(' '))
-      const tabs = panel.getByRole('group', { name: 'Earth drag precision', exact: true })
-      if (time.length) {
-        await expect(tabs.getByRole('button')).toHaveCount(time.length)
-        for (const [unit, label] of [['hour', 'Hours'], ['minute', 'Minutes'], ['second', 'Seconds']]) await expect(tabs.getByRole('button', { name: label, exact: true })).toHaveCount(units.includes(unit) ? 1 : 0)
-      } else await expect(tabs).toHaveCount(0)
-      if (units.length === 1 && year) {
-        await expect(panel.getByRole('slider')).toHaveCount(1)
-        await panel.getByRole('slider', { name: 'Year on Jupiter’s orbit', exact: true }).press('ArrowRight')
-        await expect(panel.getByRole('listbox').getByRole('option', { selected: true })).toHaveText(variant === 'lcd' ? '2027' : '2028')
-        await page.screenshot({ path: `screenshots/picker-year-only-${variant}.png`, animations: 'disabled' })
-      }
-      await panel.getByRole('button', { name: 'Done', exact: true }).click()
+  await page.goto(`./picker/?style=${variant}`)
+  for (const units of [['year'], ['year', 'month'], ['month'], ['day'], ['hour'], ['minute'], ['second'], ['year', 'second'], ['day', 'hour', 'minute'], allUnits]) {
+    await configure(page, units)
+    await page.getByRole('button', { name: 'Starts', exact: true }).click()
+    const panel = page.getByRole('dialog', { name: 'Starts', exact: true })
+    const calendar = units.includes('month') || units.includes('day')
+    const year = units.includes('year')
+    const time = units.filter((unit) => ['hour', 'minute', 'second'].includes(unit))
+    await expect(panel.getByRole('listbox')).toHaveCount(units.length)
+    await expect.poll(() => panel.getByRole('listbox').evaluateAll((wheels) => wheels.map((wheel) => {
+      const selected = wheel.querySelector('[aria-selected="true"]')!.getBoundingClientRect()
+      const band = wheel.parentElement!.querySelector('.picker-wheel-selection')!.getBoundingClientRect()
+      return { unit: wheel.closest('[data-unit]')?.getAttribute('data-unit'), offset: selected.top - band.top }
+    }).filter(({ offset }) => Math.abs(offset) >= 1)), { message: `${variant}/${units.join(',')} selected rows align with their bands` }).toEqual([])
+    await expect(panel.locator('[data-picker-part="monthLabel"]')).toHaveCount(units.includes('month') ? 12 : 0)
+    await expect(panel.locator('[data-picker-part="dateBadge"]')).toHaveCount(calendar ? 1 : 0)
+    await expect(panel.locator('[data-picker-part="yearBadge"]')).toHaveCount(year ? 1 : 0)
+    await expect(panel.locator('[data-picker-part="rangeNavigation"]')).toHaveCount(year ? 1 : 0)
+    if (calendar || year) await expect(panel.locator('[data-visible-bodies]')).toHaveAttribute('data-visible-bodies', [calendar ? 'earth' : '', year ? 'jupiter' : ''].filter(Boolean).join(' '))
+    const tabs = panel.getByRole('group', { name: 'Earth drag precision', exact: true })
+    if (time.length) {
+      await expect(tabs.getByRole('button')).toHaveCount(time.length)
+      for (const [unit, label] of [['hour', 'Hours'], ['minute', 'Minutes'], ['second', 'Seconds']]) await expect(tabs.getByRole('button', { name: label, exact: true })).toHaveCount(units.includes(unit) ? 1 : 0)
+    } else await expect(tabs).toHaveCount(0)
+    if (units.length === 1 && year) {
+      await expect(panel.getByRole('slider')).toHaveCount(1)
+      await panel.getByRole('slider', { name: 'Year on Jupiter’s orbit', exact: true }).press('ArrowRight')
+      await expect(panel.getByRole('listbox').getByRole('option', { selected: true })).toHaveText('2027')
+      await page.screenshot({ path: `screenshots/picker-year-only-${variant}.png`, animations: 'disabled' })
     }
+    await panel.getByRole('button', { name: 'Done', exact: true }).click()
   }
 })
 

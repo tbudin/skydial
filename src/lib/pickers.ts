@@ -9,3 +9,8 @@ export { useCelestialClock } from '../sim/hooks.js'
 export { PICKER_PARTS } from './appearance.js'
 export type { PickerColors } from './colors.js'
 export type { PickerVariant, PickerPart, PickerPartState, PickerPartStyle, PickerStyles, PickerClassNames, PickerAppearance } from './appearance.js'
+
+export { CelestialRangePicker, type CelestialRangePickerProps } from './range.js'
+export type { PickerDateRange, PickerRangeRules } from '../astro/range.js'
+export type { PickerAvailability } from '../astro/availability.js'
+export type { PickerLocalization, PickerMessages } from './localization.js'

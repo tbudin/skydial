@@ -5,7 +5,7 @@ that show celestial positions. React components, Vue components, a Svelte action
 share one renderer. Astronomy, simulation time and Three.js models are also
 available independently.
 
-**Skydial 0.1.0** · [Documentation and live examples](https://tbudin.github.io/skydial/)
+**Skydial 0.3.0** · [Documentation and live examples](https://tbudin.github.io/skydial/)
 
 Install `skydial` plus the peers required by your chosen entry. The celestial
 React entry needs `react react-dom three @react-three/fiber @react-three/drei`;
@@ -89,8 +89,8 @@ import 'skydial/style.css'
 
 Turn the 3D Earth to choose hours (crossing midnight changes the day). Touch or
 drag the orrery's calendar ring to select a day, or its gold year orbit to select
-a year. The visible planet selector defaults to Jupiter and also offers Saturn,
-Uranus and Neptune. Click selections animate through astronomical time.
+a year. The year planet is configured through component props, defaulting to Jupiter;
+Saturn, Uranus and Neptune provide longer ranges. Click selections animate through astronomical time.
 
 For smaller readouts in a header or toolbar:
 
@@ -113,6 +113,8 @@ Moon, orrery and planetary-year variants. Configure `planet` through props; card
 synchronize them. Textures ship in the package and load relative to its assets;
 there is no public-folder copying step. Surface textures are mapped onto real
 sphere meshes; orientation and lighting come from the astronomy calculations.
+
+[Scheduling additions in development](docs/scheduling.md) · [Accessibility follow-up](docs/accessibility-testing.md)
 
 [API and examples](docs/package-api.md) · [Roadmap](docs/package-roadmap.md)
 

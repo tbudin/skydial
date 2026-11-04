@@ -1,9 +1,11 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 import { useThree } from '@react-three/fiber'
 import { useVisualClock } from '../sim/hooks.js'
+import { useRenderOptions } from './visualRenderer.js'
 
 /** Paused widgets draw on change; moving clocks draw only while visible. */
 export function ClockFrames() {
+  const { maxFps } = useRenderOptions()
   const clock = useVisualClock()
   const state = useSyncExternalStore(clock.subscribe, clock.getState, clock.getState)
   const { invalidate, gl } = useThree()
@@ -22,8 +24,8 @@ export function ClockFrames() {
   }, [clock, invalidate])
   useEffect(() => {
     if (!state.playing) return
-    const timer = window.setInterval(() => { if (visible.current) invalidate() }, 33)
+    const timer = window.setInterval(() => { if (visible.current && document.visibilityState !== 'hidden') invalidate() }, 1000 / maxFps)
     return () => window.clearInterval(timer)
-  }, [state.playing, invalidate])
+  }, [state.playing, invalidate, maxFps])
   return null
 }

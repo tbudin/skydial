@@ -4,6 +4,9 @@ import { resolve, sep, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('../site-dist', import.meta.url))
 const base = '/skydial/'
+const host = process.env.SKYDIAL_HOST || '127.0.0.1'
+const port = Number(process.env.SKYDIAL_PORT || 4323)
+if (!Number.isInteger(port) || port < 1 || port > 65535) throw new RangeError('Invalid SKYDIAL_PORT')
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.png': 'image/png', '.json': 'application/json', '.xml': 'application/xml', '.txt': 'text/plain', '.md': 'text/markdown' }
 createServer(async (request, response) => {
   const url = new URL(request.url, 'http://localhost')
@@ -16,4 +19,4 @@ createServer(async (request, response) => {
     response.writeHead(200, { 'content-type': mime[extname(path)] ?? 'application/octet-stream' })
     response.end(await readFile(path))
   } catch { response.writeHead(404).end('Not found') }
-}).listen(4323, '127.0.0.1', () => console.info('Local: http://127.0.0.1:4323/skydial/'))
+}).listen(port, host, () => console.info(`Preview: http://${host}:${port}${base}`))

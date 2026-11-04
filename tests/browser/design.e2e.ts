@@ -8,7 +8,8 @@ test('picker contrast, names and roles meet automated accessibility checks', asy
   for (const lcd of [false, true]) for (const dark of [false, true]) {
     await page.goto(`./?input&combined${lcd ? '&lcd' : ''}${dark ? '&dark' : ''}`)
     await page.getByRole('button', { name: 'Appointment', exact: true }).click()
-    await expect(page.locator('.scale-label.date-pill')).toHaveAttribute('data-visible', 'true')
+    // Texture loading and initial WebGL setup can exceed the normal UI assertion timeout.
+    await expect(page.locator('.scale-label.date-pill')).toHaveAttribute('data-visible', 'true', { timeout: 15000 })
     await page.screenshot({ path: `screenshots/picker-${lcd ? 'lcd' : 'celestial'}-${dark ? 'dark' : 'light'}-desktop.png`, animations: 'disabled' })
     const audit = await new AxeBuilder({ page }).include('.celestial-form-picker').withTags(accessibilityTags).analyze()
     expect(audit.violations.map((issue) => ({ id: issue.id, impact: issue.impact, nodes: issue.nodes.map((node) => ({ target: node.target, summary: node.failureSummary })) }))).toEqual([])
@@ -94,6 +95,8 @@ const screens = [
 for (const variant of ['celestial', 'lcd'] as const) for (const dark of [false, true]) for (const screen of screens) {
   test(`${variant} ${dark ? 'dark' : 'light'} reflows on ${screen.name}`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'The viewport matrix runs in Chromium; keyboard/state flows run in all three engines.')
+    // Four distinct popups and an accessibility scan share this case's budget.
+    test.setTimeout(120000)
     await page.setViewportSize(screen)
     await page.emulateMedia({ reducedMotion: 'reduce' })
     for (const mode of ['date', 'timeonly', 'combined', 'year']) {
@@ -127,21 +130,19 @@ for (const variant of ['celestial', 'lcd'] as const) for (const dark of [false, 
 }
 
 for (const variant of ['celestial', 'lcd'] as const) {
-  test(`${variant} inline, wheel-only and editable stepper presentations work in a narrow host`, async ({ page, browserName }) => {
+  for (const inline of [false, true]) for (const control of ['both', 'wheel', 'stepper']) test(`${variant} ${inline ? 'inline' : 'popover'} ${control} presentation works in a narrow host`, async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'Cross-engine form/input suites cover the shared controls.')
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    for (const inline of [false, true]) for (const control of ['both', 'wheel', 'stepper']) {
-      await page.goto(`./?input&combined${variant === 'lcd' ? '&lcd' : ''}${inline ? '&inline' : ''}${control === 'both' ? '' : `&${control}`}`)
-      if (!inline) await page.getByRole('button', { name: 'Appointment', exact: true }).click()
-      const panel = inline ? page.locator('.picker-form-inline') : page.getByRole('dialog')
-      expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
-      expect(await panel.locator('[data-picker-part="content"]').evaluate((element) => element.scrollHeight)).toBeLessThan(1400)
-      if (control === 'stepper') {
-        await panel.getByRole('spinbutton', { name: 'Year', exact: true }).fill('2030')
-        await panel.getByRole('spinbutton', { name: 'Year', exact: true }).press('Tab')
-      } else await panel.getByRole('listbox', { name: 'Year', exact: true }).press('ArrowDown')
-      const audit = await new AxeBuilder({ page }).include('.celestial-form-picker').withTags(accessibilityTags).analyze()
-      expect(audit.violations.map((issue) => ({ id: issue.id, targets: issue.nodes.map((node) => node.target) }))).toEqual([])
-    }
+    await page.goto(`./?input&combined${variant === 'lcd' ? '&lcd' : ''}${inline ? '&inline' : ''}${control === 'both' ? '' : `&${control}`}`)
+    if (!inline) await page.getByRole('button', { name: 'Appointment', exact: true }).click()
+    const panel = inline ? page.locator('.picker-form-inline') : page.getByRole('dialog')
+    expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+    expect(await panel.locator('[data-picker-part="content"]').evaluate((element) => element.scrollHeight)).toBeLessThan(1400)
+    if (control === 'stepper') {
+      await panel.getByRole('spinbutton', { name: 'Year', exact: true }).fill('2030')
+      await panel.getByRole('spinbutton', { name: 'Year', exact: true }).press('Tab')
+    } else await panel.getByRole('listbox', { name: 'Year', exact: true }).press('ArrowDown')
+    const audit = await new AxeBuilder({ page }).include('.celestial-form-picker').withTags(accessibilityTags).analyze()
+    expect(audit.violations.map((issue) => ({ id: issue.id, targets: issue.nodes.map((node) => node.target) }))).toEqual([])
   })
 }

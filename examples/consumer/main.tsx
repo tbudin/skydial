@@ -80,7 +80,7 @@ function FormDemo() {
   return <main style={{ maxWidth: 300, padding: 12 }}>
     <form onReset={(event) => { if (query.has('cancelreset')) event.preventDefault() }} onSubmit={(event) => { event.preventDefault(); setResult(JSON.stringify(Object.fromEntries(new FormData(event.currentTarget)))) }}>
       <input aria-label="Title" name="title" defaultValue="Event" />
-      <CelestialPicker label="Starts" name="startsAt" units={units} place={singapore} required clearable theme="light"
+      <CelestialPicker variant={query.has('lcd') ? 'lcd' : 'celestial'} label="Starts" name="startsAt" units={units} place={singapore} required clearable theme="light"
         {...(query.has('controlled') || query.has('readonly') ? { value, onChange: query.has('readonly') ? undefined : setValue } : { defaultValue: query.has('empty') ? null : start })}
         control={query.has('stepper') ? 'stepper' : 'wheel'} presentation={query.has('inline') ? 'inline' : 'popover'}
         min={Date.UTC(2028, 0, 1)} max={Date.UTC(2029, 11, 31, 15, 59, 59)} steps={{ minute: 15, second: 10 }} disabled={query.has('disabled')} />
@@ -88,7 +88,7 @@ function FormDemo() {
     </form>
     <output data-testid="form-result">{result}</output>
     <button type="button" onClick={() => setValue(new Date('2029-02-28T04:30:00Z'))}>Set form value from host</button>
-    <section aria-label="Reusable controls"><CelestialStepper units={['day', 'hour', 'minute']} date={value ?? start} onDateChange={setValue} place={singapore} steps={{ minute: 15 }} /><CelestialScrollPicker units={['year']} date={value ?? start} onDateChange={setValue} theme="light" /><output data-testid="primitive-value">{value?.toISOString()}</output></section>
+    <section aria-label="Reusable controls"><CelestialStepper variant={query.has('lcd') ? 'lcd' : 'celestial'} units={['day', 'hour', 'minute']} date={value ?? start} onDateChange={setValue} place={singapore} steps={{ minute: 15 }} /><CelestialScrollPicker variant={query.has('lcd') ? 'lcd' : 'celestial'} units={['year']} date={value ?? start} onDateChange={setValue} theme="light" /><output data-testid="primitive-value">{value?.toISOString()}</output></section>
   </main>
 }
 
@@ -126,7 +126,9 @@ function StylingDemo() {
   </CelestialProvider></main>
 }
 
-if (new URLSearchParams(window.location.search).has('styling')) {
+if (new URLSearchParams(window.location.search).has('scheduling')) {
+  void import('./scheduling').then(({ default: SchedulingDemo }) => createRoot(document.getElementById('root')!).render(<SchedulingDemo />))
+} else if (new URLSearchParams(window.location.search).has('styling')) {
   createRoot(document.getElementById('root')!).render(<StylingDemo />)
 } else if (new URLSearchParams(window.location.search).has('input')) {
   createRoot(document.getElementById('root')!).render(<CelestialInputDemo />)

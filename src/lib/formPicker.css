@@ -3,9 +3,9 @@
 .celestial-control[data-picker-size="medium"] { --picker-field-height: 40px; }
 .celestial-control[data-picker-size="large"] { --picker-field-height: 44px; }
 @media (prefers-color-scheme: light) { .celestial-clock.celestial-control[data-picker-theme="auto"] { --bg: #fff; --text: #243044; --muted: #66748a; --line: #cbd3df; --hour: #315d9a; --green: #287652; --gold: #946b20; --picker-surface: #24304405; color-scheme: light; } }
-.celestial-control .celestial-control-group { display: grid; grid-template-columns: repeat(var(--picker-columns, 3), minmax(0, 1fr)); gap: 12px 8px; width: max-content; max-width: 100%; }
-.celestial-control .celestial-control-group > div { min-width: 0; width: 64px; }
-.celestial-control .celestial-control-group > [data-unit="year"] { width: 80px; }
+.celestial-control .celestial-control-group { display: grid; grid-template-columns: repeat(var(--picker-columns, 3), minmax(0, 1fr)); gap: var(--picker-row-gap, 12px) var(--picker-column-gap, 8px); width: max-content; max-width: 100%; }
+.celestial-control .celestial-control-group > div { min-width: var(--picker-unit-width, max(var(--picker-default-unit-width, 64px), 3em)); width: auto; max-width: 100%; }
+.celestial-control .celestial-control-group > [data-unit="year"] { min-width: var(--picker-year-width, max(80px, 4.2em)); }
 .celestial-control .picker-wheel-column { min-width: 0; max-width: none; }
 .celestial-control .picker-wheel { min-width: 0; background: color-mix(in srgb, var(--text) 3%, var(--bg)); border-radius: var(--picker-radius); }
 .celestial-control .picker-wheel-option { font-size: 16px; padding: 0 6px; }
@@ -25,12 +25,12 @@
 .celestial-control button:disabled, .celestial-control input:disabled { opacity: .4; cursor: default; }
 .celestial-control .picker-form-label { display: block; margin-bottom: 7px; font-size: 12px; color: var(--text); }
 .celestial-control.celestial-form-picker { position: relative; width: 100%; min-width: 0; }
-.celestial-control .picker-form-trigger { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-width: 0; width: 100%; height: var(--picker-field-height); min-height: var(--picker-field-height); line-height: 1.2; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--picker-radius); background: var(--bg); color: var(--text); font: inherit; text-align: left; font-variant-numeric: tabular-nums; cursor: pointer; }
+.celestial-control .picker-form-trigger { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-width: 0; width: 100%; height: var(--picker-field-height); min-height: var(--picker-field-height); line-height: 1.2; padding: 6px 10px; border: var(--picker-field-border, 1px solid var(--line)); border-radius: var(--picker-radius); background: var(--bg); color: var(--text); box-shadow: none; font: inherit; text-align: left; font-variant-numeric: tabular-nums; cursor: pointer; }
 .celestial-control .picker-form-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .celestial-control .picker-form-trigger[aria-invalid="true"] { border-color: #d17b72; }
 .celestial-control .picker-form-placeholder { color: var(--muted); }
 .celestial-control .picker-form-value { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; }
-.celestial-control .picker-form-panel { position: fixed; inset: auto; margin: 0; width: max-content; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; padding: 16px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: calc(var(--picker-radius) + 4px); box-shadow: 0 10px 32px #02050b30; }
+.celestial-control .picker-form-panel { position: fixed; inset: auto; margin: 0; width: max-content; max-width: calc(100vw - 16px); max-height: calc(100dvh - 16px); overflow: auto; padding: 16px; background: var(--bg); color: var(--text); border: var(--picker-panel-border, 1px solid var(--line)); border-radius: calc(var(--picker-radius) + 4px); box-shadow: var(--picker-panel-shadow, none); }
 .celestial-control .picker-form-panel::backdrop { background: transparent; }
 .celestial-control .picker-form-scene-panel { width: min(680px, calc(100vw - 16px)); }
 .celestial-control .picker-form-scene-panel:popover-open { display: flex; flex-direction: column; }
@@ -103,10 +103,10 @@
 .celestial-control .picker-wheel-column { text-align: center; }
 .celestial-control .picker-wheel-frame { position: relative; }
 .celestial-control .picker-wheel-label { display: block; color: var(--muted); text-transform: uppercase; }
-.celestial-control .picker-wheel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-snap-type: y mandatory; touch-action: pan-y; }
+.celestial-control .picker-wheel { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; scroll-snap-type: y mandatory; scroll-behavior: auto; touch-action: pinch-zoom; user-select: none; }
 .celestial-control .picker-wheel::-webkit-scrollbar { display: none; }
 .celestial-control .picker-wheel[aria-disabled="true"] { overflow: hidden; opacity: .5; }
-.celestial-control .picker-wheel-option { display: flex; align-items: center; justify-content: center; scroll-snap-align: center; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; cursor: pointer; }
+.celestial-control .picker-wheel-option { display: flex; align-items: center; justify-content: center; scroll-snap-align: center; scroll-snap-stop: always; font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; cursor: pointer; }
 .celestial-control .picker-wheel-selection { position: absolute; left: 0; right: 0; pointer-events: none; }
 .celestial-control :focus-visible { outline: 2px solid var(--picker-accent); outline-offset: 2px; }
 .celestial-control[data-picker-theme="light"] { color-scheme: light; }
@@ -121,8 +121,6 @@
 .celestial-control .picker-form-actions { flex-shrink: 0; }
 .celestial-control .picker-form-scene-panel { width: var(--picker-panel-width, min(680px, calc(100vw - 16px))); }
 .celestial-control .celestial-input-scene .orrery-control-stage { width: 100%; max-width: var(--picker-orbit-size, clamp(110px, calc(var(--picker-available-height, 720px) - 140px), 340px)); }
-.celestial-control .celestial-control-group > div { width: var(--picker-unit-width, 64px); }
-.celestial-control .celestial-control-group > [data-unit="year"] { width: var(--picker-year-width, 80px); }
 @media (max-width: 560px) {
   .celestial-control .celestial-input-scene .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(110px, calc(var(--picker-available-height, 720px) - 340px), 240px)); }
   .celestial-control .celestial-input-scene .earth-turner { max-width: var(--picker-earth-size, clamp(100px, calc(var(--picker-available-height, 720px) - 380px), 260px)); }
@@ -140,7 +138,7 @@
 @media (prefers-color-scheme: light) { .celestial-clock.celestial-control[data-picker-theme="auto"] { --line: #78879a; --picker-error: #a63226; } }
 @media (pointer: coarse) {
   .celestial-control .picker-step-buttons button, .celestial-control .picker-form-actions button, .celestial-control .earth-precision button, .celestial-control .orbit-range-navigation button { min-height: 44px; min-width: 36px; }
-  .celestial-control .celestial-control-group > div { width: var(--picker-unit-width, 80px); }
+  .celestial-control .celestial-control-group { --picker-default-unit-width: 80px; }
 }
 @media (max-height: 600px) and (min-width: 561px) {
   .celestial-control .celestial-input-scene .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(100px, calc(var(--picker-available-height, 720px) - 130px), 240px)); }
@@ -166,10 +164,10 @@
 }
 .celestial-clock.celestial-control[data-picker-style="lcd"][data-picker-theme="dark"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
 @media (prefers-color-scheme: dark) { .celestial-clock.celestial-control[data-picker-style="lcd"][data-picker-theme="auto"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; } }
-.celestial-control[data-picker-style="lcd"] .picker-form-trigger { border: 2px solid var(--lcd-ink); background: var(--lcd-paper); box-shadow: inset 0 0 0 2px var(--lcd-paper), inset 0 0 0 3px var(--lcd-ink); padding-inline: 10px; }
+.celestial-control[data-picker-style="lcd"] .picker-form-trigger { border: var(--picker-field-border, 1px solid var(--lcd-ink)); background: var(--lcd-paper); }
 .celestial-control[data-picker-style="lcd"] .picker-form-label, .celestial-control[data-picker-style="lcd"] .picker-wheel-label { color: var(--lcd-ink); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; }
 .celestial-control[data-picker-style="lcd"] .picker-form-panel, .celestial-control[data-picker-style="lcd"] .picker-form-inline, .celestial-control[data-picker-style="lcd"].celestial-control-surface {
-  background: var(--lcd-paper); color: var(--lcd-ink); border: 4px double var(--lcd-ink); border-radius: calc(var(--picker-radius) + 2px); box-shadow: 4px 4px 0 var(--lcd-ink);
+  background: var(--lcd-paper); color: var(--lcd-ink); border: var(--picker-panel-border, 1px solid var(--lcd-ink)); border-radius: calc(var(--picker-radius) + 2px); box-shadow: var(--picker-panel-shadow, none);
 }
 .celestial-control[data-picker-style="lcd"] .picker-wheel { background: var(--lcd-paper); border-radius: var(--picker-radius); box-shadow: inset 0 0 0 1px var(--lcd-ink); }
 .celestial-control[data-picker-style="lcd"] .picker-wheel-option { color: var(--lcd-ink); font-size: 15px; }
@@ -200,6 +198,7 @@
 .celestial-clock[data-picker-style="lcd"] .earth-city-reticle { border-color: var(--lcd-ink); box-shadow: none; }
 .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::before, .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::after { background: var(--lcd-ink); }
 .celestial-control[data-picker-style="lcd"] :focus-visible { outline: 3px solid var(--lcd-ink); }
+.celestial-control[data-picker-style="lcd"] .picker-form-trigger:focus-visible { outline: 2px solid var(--lcd-ink); outline-offset: 2px; }
 @media (hover: hover) {
   .celestial-control[data-picker-style="lcd"] .picker-step-buttons button:hover:not(:disabled), .celestial-control[data-picker-style="lcd"] .picker-form-actions button:hover:not(:disabled), .celestial-control[data-picker-style="lcd"] .chip:hover:not(:disabled) { border-color: var(--lcd-ink); color: var(--lcd-paper); background: var(--lcd-ink); }
   .celestial-control[data-picker-style="lcd"] .picker-form-actions .picker-form-done:hover:not(:disabled) { color: var(--lcd-ink); background: var(--lcd-paper); }
@@ -254,7 +253,9 @@
   .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content > .picker-exact-content { order: 0; border-bottom: 0; }
   .celestial-control [data-combined="true"] .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(110px, calc(var(--picker-available-height, 720px) - 410px), 180px)); }
   .celestial-control [data-combined="true"] .celestial-input-earth-companion .earth-turner { max-width: var(--picker-earth-size, clamp(100px, calc(var(--picker-available-height, 720px) - 430px), 160px)); }
-  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group { gap: 8px 4px; }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group { gap: var(--picker-row-gap, 8px) var(--picker-column-gap, 4px); }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group:has(> :nth-child(7)) { grid-template-columns: var(--picker-dense-columns); }
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group:has(> :nth-child(7)) .picker-wheel-label { min-height: 2lh; }
   .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-wheel-option { padding-inline: 2px; font-size: 14px; }
   .celestial-control[data-picker-style="lcd"] .picker-form-panel:has([data-combined="true"]) .picker-wheel-selection { font-size: 14px; }
   .celestial-control[data-picker-style="lcd"] .picker-form-panel:has([data-combined="true"]) .picker-wheel-selection .lcd-digital-text { font-size: 18px; }
@@ -280,4 +281,54 @@
   .celestial-control .picker-form-panel:has([data-combined="true"]) .picker-composed-content > .picker-exact-content { border-top: 0; border-left: 1px solid var(--line); padding: 0 0 0 12px; }
   .celestial-control [data-combined="true"] .orbit-range-navigation { gap: 4px; font-size: 8px; flex-wrap: wrap; }
   .celestial-control [data-combined="true"] .orbit-range-navigation .chip { padding-inline: 5px; }
+}
+
+/* Range endpoints share a single surface, with no duplicated picker columns. */
+.celestial-control .picker-range-tabs { display: flex; gap: 4px; flex: 0 0 auto; padding: 3px; margin-block-end: 12px; border: 1px solid var(--line); border-radius: var(--picker-radius); }
+.celestial-control .picker-range-tabs button, .celestial-control .picker-period-buttons button { flex: 1; min-inline-size: 32px; min-block-size: 32px; padding: 6px 12px; border: 1px solid transparent; border-radius: calc(var(--picker-radius) - 2px); background: transparent; color: var(--muted); font: inherit; cursor: pointer; }
+.celestial-control .picker-range-tabs button[aria-pressed="true"], .celestial-control .picker-period-buttons button[aria-pressed="true"] { color: var(--picker-accent); background: color-mix(in srgb, var(--picker-accent) 12%, var(--bg)); border-color: var(--line); }
+.celestial-control .picker-period-buttons { display: flex; flex-direction: column; gap: 4px; }
+.celestial-control .picker-period-buttons button { border-color: var(--line); padding-inline: 4px; }
+@media (hover: hover) {
+  .celestial-control .picker-range-tabs button:hover:not(:disabled), .celestial-control .picker-period-buttons button:hover:not(:disabled) { color: var(--text); border-color: var(--picker-accent); }
+}
+.celestial-control[data-picker-style="lcd"] .picker-range-tabs, .celestial-control[data-picker-style="lcd"] .picker-range-tabs button, .celestial-control[data-picker-style="lcd"] .picker-period-buttons button { border-radius: 0; }
+.celestial-control[data-picker-style="lcd"] .picker-range-tabs button[aria-pressed="true"], .celestial-control[data-picker-style="lcd"] .picker-period-buttons button[aria-pressed="true"] { background: var(--lcd-ink); color: var(--lcd-paper); border-color: var(--lcd-ink); }
+.celestial-control .orbit-selected-range { fill: none; stroke: var(--orbit-day-color, var(--picker-accent)); stroke-width: 9; stroke-linecap: round; opacity: .4; pointer-events: none; }
+.celestial-control .orbit-unavailable { fill: none; stroke: var(--muted); stroke-width: 5; stroke-dasharray: 1 3; opacity: .65; pointer-events: none; }
+.celestial-control .orbit-range-endpoint { cursor: pointer; outline: none; }
+.celestial-control .orbit-range-point { fill: var(--bg); stroke: var(--orbit-day-color, var(--picker-accent)); stroke-width: 2; }
+.celestial-control .orbit-range-endpoint[aria-pressed="true"] .orbit-range-point { fill: var(--orbit-day-color, var(--picker-accent)); stroke: var(--bg); }
+.celestial-control .orbit-range-endpoint:focus .orbit-range-point { stroke: var(--picker-accent); stroke-width: 4; }
+.celestial-control[dir="rtl"] .picker-form-trigger { text-align: right; }
+.celestial-control[dir="rtl"] .picker-composed-content > .picker-exact-content { border-left: 0; border-right: 1px solid var(--line); padding-inline: 20px 0; }
+.celestial-control[dir="rtl"] .picker-form-value, .celestial-control[dir="rtl"] .picker-sr-only { inset-inline-start: 0; }
+.celestial-control[dir="rtl"] .orrery-control-stage, .celestial-control[dir="rtl"] .earth-turner { direction: ltr; }
+.celestial-control .picker-form-panel:has(.picker-range-tabs) { --picker-range-inset: 52px; }
+.celestial-control .picker-form-panel:has(.picker-range-tabs) .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(100px, calc(var(--picker-available-height, 720px) - 200px), 300px)); }
+@media (max-width: 600px) {
+  .celestial-control .picker-form-panel:has(.picker-range-tabs) .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(90px, calc(var(--picker-available-height, 720px) - 420px), 200px)); }
+  .celestial-control .picker-form-panel:has(.picker-range-tabs) [data-combined="true"] .orrery-control-stage { max-width: var(--picker-orbit-size, clamp(90px, calc(var(--picker-available-height, 720px) - 480px), 160px)); }
+  .celestial-control[dir="rtl"] .picker-composed-content > .picker-exact-content { border-right: 0; padding-inline: 0; }
+}
+@media (forced-colors: active) {
+  .celestial-control .orbit-selected-range, .celestial-control .orbit-unavailable { stroke: CanvasText; }
+  .celestial-control .orbit-range-point { fill: Canvas; stroke: Highlight; }
+  .celestial-control .picker-range-tabs button[aria-pressed="true"], .celestial-control .picker-period-buttons button[aria-pressed="true"] { border: 2px solid Highlight; }
+}
+@media (pointer: coarse) { .celestial-control .picker-range-tabs button, .celestial-control .picker-period-buttons button { min-block-size: 44px; } }
+.celestial-control[data-picker-style="lcd"] .orbit-selected-range { stroke: var(--lcd-ink); opacity: 1; stroke-width: 5; }
+.celestial-control[data-picker-style="lcd"] .orbit-unavailable { stroke: var(--lcd-ink); opacity: 1; }
+.celestial-control[data-picker-style="lcd"] .orbit-range-point { fill: var(--lcd-paper); stroke: var(--lcd-ink); }
+.celestial-control[data-picker-style="lcd"] .orbit-range-endpoint[aria-pressed="true"] .orbit-range-point { fill: var(--lcd-ink); stroke: var(--lcd-paper); }
+.celestial-control .orbit-preview-marker[data-unavailable="true"] { fill: transparent; stroke-dasharray: 2 2; }
+.celestial-control .orbit-preview[data-unavailable="true"] { white-space: normal; max-inline-size: min(260px, calc(100% - 8px)); }
+/* Text enlargement expands geometry instead of cropping fixed-size readings. */
+.celestial-control .picker-form-trigger { height: auto; }
+.celestial-control .picker-wheel-label { overflow-wrap: anywhere; }
+.celestial-control.celestial-form-picker { container-type: inline-size; }
+@container (max-width: 19em) {
+  .celestial-control .celestial-control-group,
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group,
+  .celestial-control .picker-form-panel:has([data-combined="true"]) .celestial-control-group:has(> :nth-child(7)) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

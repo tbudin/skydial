@@ -8,8 +8,8 @@ function adapter<K extends CelestialComponent>(name: string, kind: K) {
     setup(props) {
       const host = ref<HTMLElement | null>(null)
       let instance: CelestialMount<K> | undefined
-      onMounted(() => { if (host.value) instance = mountCelestial(host.value, kind, props.options) })
-      watch(() => props.options, (options) => instance?.update(options), { deep: true })
+      onMounted(() => { if (host.value) instance = mountCelestial(host.value, kind, props.options as CelestialComponentMap[K]) })
+      watch(() => props.options, (options) => instance?.update(options as CelestialComponentMap[K]), { deep: true })
       onBeforeUnmount(() => instance?.destroy())
       return () => h('div', { ref: host })
     },
@@ -30,3 +30,7 @@ export const CelestialClock = adapter('CelestialClock', 'clock')
 export const EarthClock = adapter('EarthClock', 'earth')
 export const MoonClock = adapter('MoonClock', 'moon')
 export const OrreryClock = adapter('OrreryClock', 'orrery')
+
+export const CelestialRangeInput = adapter('CelestialRangeInput', 'range')
+export const CelestialRangePicker = adapter('CelestialRangePicker', 'rangeField')
+export const CelestialValueInput = adapter('CelestialValueInput', 'value')

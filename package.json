@@ -1,6 +1,6 @@
 {
   "name": "skydial",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "build:lib": "vite build -c vite.lib.config.ts && tsc -p tsconfig.lib.json",
-    "check": "npm run lint && npm test && npm run build && npm run build:lib && npm run typecheck:consumer && npm run check:package",
+    "check": "npm run lint && npm test && npm run build && npm run build:lib && npm run typecheck:consumer && npm run check:package && npm run build:consumer:lcd",
     "build:consumer": "npm run build:lib && vite build -c vite.consumer.config.ts",
     "preview:consumer": "vite preview -c vite.consumer.config.ts --host 127.0.0.1 --port 4175",
     "test:browser": "npm run build:consumer && playwright test",
@@ -24,7 +24,8 @@
     "test:install": "node scripts/check-install.mjs",
     "test:release": "npm run check && npm run lint:package && npm run lint:types && npm run test:install && npm run check:docs && npm run test:browser && npm run test:docs",
     "prepublishOnly": "node scripts/release-guard.mjs && npm run check && npm run lint:package && npm run lint:types",
-    "test:docs": "playwright test -c playwright.docs.config.ts"
+    "test:docs": "playwright test -c playwright.docs.config.ts",
+    "build:consumer:lcd": "vite build -c vite.lcd.config.ts && node scripts/check-lcd.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19"
@@ -99,6 +100,10 @@
     "./picker.css": {
       "types": "./dist-lib/style.d.ts",
       "default": "./dist-lib/picker.css"
+    },
+    "./lcd": {
+      "types": "./dist-lib/types/lib/lcd.d.ts",
+      "import": "./dist-lib/lcd.js"
     }
   },
   "author": {

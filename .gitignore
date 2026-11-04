@@ -33,3 +33,5 @@ playwright-report/
 site-dist/
 site/runtime-dist/
 *.tgz
+
+dist-lcd-consumer/

@@ -12,9 +12,10 @@ export const PICKER_PARTS = [
   'orbitLabels', 'monthLabel', 'yearLabel', 'dateBadge', 'yearBadge', 'rangeNavigation',
   'rangeButton', 'rangeLabel', 'orbitPreview', 'orbitPreviewMarker', 'orbitTrack',
   'orbitHandle', 'orbitMonthArc', 'orbitLens', 'orbitLensDay',
+  'dayPeriodButton', 'rangeTabs', 'rangeTab', 'rangeTrack', 'rangeEndpoint', 'unavailableTrack',
 ] as const
 export type PickerPart = typeof PICKER_PARTS[number]
-export type PickerPartState = { unit?: PickerUnit; selected?: boolean; disabled?: boolean; direction?: number }
+export type PickerPartState = { unit?: PickerUnit; selected?: boolean; disabled?: boolean; direction?: number; endpoint?: 'start' | 'end' }
 export type PickerPartStyle = CSSProperties & { [key: `--${string}`]: string | number | undefined }
 export type PickerStyles = Partial<Record<PickerPart, PickerPartStyle | ((state: PickerPartState) => PickerPartStyle)>>
 export type PickerClassNames = Partial<Record<PickerPart, string>>

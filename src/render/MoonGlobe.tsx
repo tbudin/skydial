@@ -7,6 +7,7 @@ import { moonView, type Location } from '../astro/observer.js'
 import { useVisualClock } from '../sim/hooks.js'
 import { applyAxesInWorld } from './planetFactory.js'
 import { usePanelTextures } from './panelTextures.js'
+import { ILLUSTRATION_CAMERA_DISTANCE, ILLUSTRATION_FOV } from './illustration.js'
 
 /**
  * The Moon as the observer sees it. World frame = J2000 equatorial.
@@ -21,25 +22,27 @@ export const MOON_FOV = 26
 
 const KEYS = ['moon', 'moonNormal'] as const
 
-export function MoonGlobe({ location }: { location: Location }) {
+export function MoonGlobe({ location, illustration = false }: { location: Location; illustration?: boolean }) {
   const tex = usePanelTextures(KEYS)
+  const cameraDistance = illustration ? ILLUSTRATION_CAMERA_DISTANCE : MOON_CAMERA_DISTANCE
   return (
     <SceneCanvas
+      illustration={illustration}
       frameloop="demand"
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
-      camera={{ fov: MOON_FOV, near: 0.1, far: 50, position: [0, 0, MOON_CAMERA_DISTANCE] }}
+      camera={{ fov: illustration ? ILLUSTRATION_FOV : MOON_FOV, near: 0.1, far: 50, position: [0, 0, cameraDistance] }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
       }}
     >
       <ClockFrames />
-      {tex.ready && <MoonScene location={location} textures={tex.textures} />}
+      {tex.ready && <MoonScene location={location} textures={tex.textures} cameraDistance={cameraDistance} />}
     </SceneCanvas>
   )
 }
 
-function MoonScene({ location, textures }: { location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>> }) {
+function MoonScene({ location, textures, cameraDistance }: { location: Location; textures: Partial<Record<(typeof KEYS)[number], THREE.Texture>>; cameraDistance: number }) {
   const simClock = useVisualClock()
   const moon = useRef<THREE.Group>(null)
   const light = useRef<THREE.DirectionalLight>(null)
@@ -52,7 +55,7 @@ function MoonScene({ location, textures }: { location: Location; textures: Parti
     if (moon.current) applyAxesInWorld(moon.current, m.moonFrame)
     light.current?.position.set(m.toSun.x * 20, m.toSun.y * 20, m.toSun.z * 20)
     tmp.f.set(m.toObserver.x, m.toObserver.y, m.toObserver.z)
-    camera.position.copy(tmp.f).multiplyScalar(MOON_CAMERA_DISTANCE)
+    camera.position.copy(tmp.f).multiplyScalar(cameraDistance)
     tmp.up.set(m.zenith.x, m.zenith.y, m.zenith.z)
     tmp.up.addScaledVector(tmp.f, -tmp.up.dot(tmp.f)).normalize()
     camera.up.copy(tmp.up)

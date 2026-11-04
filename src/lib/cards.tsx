@@ -11,8 +11,8 @@ import { earthView, moonView, phaseName } from '../astro/observer.js'
 import { BodyVisual } from './display.js'
 import { widgetPart, type WidgetAppearance } from './widgetAppearance.js'
 import { useSimNow } from '../ui/hooks.js'
-import type { CelestialWidgetProps } from './widgets.js'
-import { CompactOrrery } from '../render/CompactOrrery.js'
+import type { CelestialWidgetProps } from './types.js'
+import { useVisualRenderer } from '../render/visualRenderer.js'
 
 export interface CelestialCardProps extends CelestialWidgetProps, WidgetAppearance {
   variant?: PickerVariant
@@ -38,6 +38,7 @@ export function CelestialWidget({ kind = 'earth', size = 'small', variant = 'cel
 
 function CardContent({ kind, place, planet, variant, colors, theme, styles, classNames }: Required<Pick<CelestialCardProps, 'kind' | 'place' | 'planet' | 'variant' | 'theme'>> & Pick<CelestialCardProps, 'colors' | 'styles' | 'classNames'>) {
   const appearance = { styles, classNames }
+  const renderer = useVisualRenderer()
   const now = useSimNow(250)
   const p = civilParts(now, place.timeZone)
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -56,7 +57,7 @@ function CardContent({ kind, place, planet, variant, colors, theme, styles, clas
     </div>
     <div {...widgetPart(appearance, 'scene', 'widget-scene')} aria-hidden="true">
       {kind !== 'orrery' && <div {...widgetPart(appearance, 'body', 'widget-body')}><BodyVisual body={kind === 'year' ? planet : kind} place={place} variant={variant} /></div>}
-      {kind === 'orrery' && (variant === 'lcd' ? <LcdCompactOrrery now={now} place={place} planet={planet} /> : <CompactOrrery now={now} place={place} planet={planet} palette={pickerColorPalette(colors)} theme={theme} />)}
+      {kind === 'orrery' && (variant === 'lcd' ? <LcdCompactOrrery now={now} place={place} planet={planet} /> : renderer ? <renderer.CompactOrrery now={now} place={place} planet={planet} palette={pickerColorPalette(colors)} theme={theme} /> : null)}
     </div>
   </div>
 }

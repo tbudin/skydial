@@ -54,3 +54,25 @@ export function vanillaExample(element: HTMLElement) {
 }
 void celestial
 void WIDGET_PARTS
+
+import { CelestialRangeInput, CelestialRangePicker, CelestialValueInput, CelestialRenderProvider, type CalendarDate } from 'skydial/react'
+import { CelestialRangeInput as LcdRange, CelestialValueInput as LcdValue } from 'skydial/lcd'
+import { createAvailability, parseCalendarDate, parseLocalTime, parseZonedDateTime, zonedDateTimeToInstant, serializeCelestialValue } from 'skydial/astro'
+const calendarDate = parseCalendarDate('1990-06-15')
+const availability = createAvailability({ weekdays: [1, 2, 3, 4, 5], hours: [{ start: '09:00', end: '17:00' }] })
+export const schedulingExamples = <CelestialRenderProvider quality="low" maxFps={20}>
+  <CelestialRangeInput value={{ start: date, end: date }} onChange={(range) => { const start: Date | number | null | undefined = range?.start; void start }} locale="fr-FR" hourCycle="h12" {...availability} isRangeUnavailable={({ start, end }, zone) => start > end && !zone} />
+  <CelestialRangePicker name="trip" defaultValue={null} startName="from" endName="until" minimumDuration={3600000} presentation="inline" />
+  <CelestialValueInput valueKind="date" value={calendarDate} onChange={(value) => { const result: CalendarDate | null = value; void result }} />
+  <CelestialValueInput valueKind="time" referenceDate={calendarDate} defaultValue={parseLocalTime('09:00')} />
+  <CelestialValueInput valueKind="zoned" value={parseZonedDateTime('2026-11-01T01:30-04:00[America/New_York]')} disambiguation="reject" />
+  <CelestialValueInput valueKind="instant" value={Date.UTC(2026, 10, 1)} />
+  <LcdRange name="trip" locale="ar-EG" dir="rtl" />
+  <LcdValue valueKind="date" value={calendarDate} />
+</CelestialRenderProvider>
+// @ts-expect-error A local time requires a reference date for its illustration.
+export const missingReference = <CelestialValueInput valueKind="time" value={parseLocalTime('09:00')} />
+// @ts-expect-error A calendar date is not an instant.
+export const wrongDateType = <CelestialValueInput valueKind="instant" value={calendarDate} />
+void zonedDateTimeToInstant
+void serializeCelestialValue

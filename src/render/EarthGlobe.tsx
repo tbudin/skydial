@@ -9,6 +9,7 @@ import { useVisualClock } from '../sim/hooks.js'
 import { applyAxesInWorld } from './planetFactory.js'
 import { usePanelTextures } from './panelTextures.js'
 import { earthCameraVector, type EarthCameraView } from './earthCamera.js'
+import { ILLUSTRATION_CAMERA_DISTANCE, ILLUSTRATION_FOV } from './illustration.js'
 
 /**
  * Observer-centred Earth. World frame = J2000 equatorial (EQJ).
@@ -22,14 +23,15 @@ export const EARTH_FOV = 30
 
 const KEYS = ['earthDay', 'earthNight', 'earthRough'] as const
 
-export function EarthGlobe({ location, view = 'observer', cameraDistance = EARTH_CAMERA_DISTANCE }: { location: Location; view?: EarthCameraView; cameraDistance?: number }) {
+export function EarthGlobe({ location, view = 'observer', illustration = false, cameraDistance = illustration ? ILLUSTRATION_CAMERA_DISTANCE : EARTH_CAMERA_DISTANCE }: { location: Location; view?: EarthCameraView; cameraDistance?: number; illustration?: boolean }) {
   const tex = usePanelTextures(KEYS)
   return (
     <SceneCanvas
+      illustration={illustration}
       frameloop="demand"
       dpr={[1, 2]}
       gl={{ antialias: true, alpha: true }}
-      camera={{ fov: EARTH_FOV, near: 0.1, far: 50, position: [0, 0, cameraDistance] }}
+      camera={{ fov: illustration ? ILLUSTRATION_FOV : EARTH_FOV, near: 0.1, far: 50, position: [0, 0, cameraDistance] }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1.0

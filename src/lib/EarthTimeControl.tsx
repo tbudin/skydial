@@ -1,7 +1,8 @@
 import { LcdEarth } from '../render/LcdEarth.js'
 import { usePickerParts, usePickerVariant } from './appearance.js'
 import { useId, useRef, useState, type PointerEvent, type KeyboardEvent } from 'react'
-import { EarthGlobe } from '../render/EarthGlobe.js'
+import { useVisualRenderer } from '../render/visualRenderer.js'
+import { usePickerLocale } from './localization.js'
 import type { Place } from '../astro/places.js'
 import { civilParts, zonedToUtc } from '../astro/time.js'
 import { clampTime, timeFromEarthDrag } from '../astro/selection.js'
@@ -14,14 +15,15 @@ import { pickerStep, type PickerSteps, type PickerUnit } from '../astro/picker.j
 
 type TimeUnit = 'hour' | 'minute' | 'second'
 const defaultUnits: readonly PickerUnit[] = ['hour', 'minute']
-const labels = { hour: 'Hours', minute: 'Minutes', second: 'Seconds' }
-const shortLabels = { hour: 'Hr', minute: 'Min', second: 'Sec' }
 const duration = { hour: 3600000, minute: 60000, second: 1000 }
 const format = (n: number) => String(n).padStart(2, '0')
 
 export function EarthTimeControl({ place, disabled = false, cameraSettings, compact = false, units = defaultUnits, steps, ...viewProps }: { place: Place; disabled?: boolean; compact?: boolean; units?: readonly PickerUnit[]; steps?: PickerSteps; cameraSettings?: ReturnType<typeof useEarthView> } & EarthPickerViewProps) {
   const part = usePickerParts()
   const variant = usePickerVariant()
+  const renderer = useVisualRenderer()
+  const i18n = usePickerLocale()
+  const labels = i18n.units
   const now = useSimNow(33)
   const clock = useCelestialClock()
   const { choose, cancel, readOnly, selectionNow } = useTimeMotion()
@@ -73,23 +75,23 @@ export function EarthTimeControl({ place, disabled = false, cameraSettings, comp
     if (gesture.current?.pointer === event.pointerId) gesture.current = null
   }
   return (
-    <section {...part('earth', 'earth-time-control')} aria-label="Earth time picker">
+    <section {...part('earth', 'earth-time-control')} aria-label={i18n.messages.earth}>
       {!compact && <EarthViewControls place={place} settings={earth} />}
-      <div {...part('earthPrecision', 'earth-precision')} role="group" aria-label="Earth drag precision" data-count={timeUnits.length}>
+      <div {...part('earthPrecision', 'earth-precision')} role="group" aria-label={i18n.messages.earthPrecision} data-count={timeUnits.length}>
         {!compact && <span>Drag</span>}
         {timeUnits.map((precision) => <button key={precision} {...part('earthPrecisionButton', '', undefined, { selected: unit === precision, disabled: locked })} type="button" disabled={locked}
-          aria-label={labels[precision]} aria-pressed={unit === precision} onClick={() => setUnit(precision)}><span className="earth-precision-full">{labels[precision]}</span><span className="earth-precision-short" aria-hidden="true">{shortLabels[precision]}</span></button>)}
+          aria-label={labels[precision]} aria-pressed={unit === precision} onClick={() => setUnit(precision)}><span className="earth-precision-full">{labels[precision]}</span><span className="earth-precision-short" aria-hidden="true">{labels[precision].slice(0, 3)}</span></button>)}
       </div>
-      <div {...part('globe', 'earth-turner')} role="slider" aria-label="Rotate Earth to set time" aria-describedby={compact ? undefined : hint}
+      <div {...part('globe', 'earth-turner')} role="slider" aria-label={i18n.messages.rotateEarth} aria-describedby={compact ? undefined : hint}
         tabIndex={locked ? -1 : 0} aria-disabled={locked} aria-valuemin={0} aria-valuemax={hasSeconds ? 86399 : timeUnits.includes('minute') ? 1439 : 23}
-        aria-valuenow={hasSeconds ? p.hour * 3600 + p.minute * 60 + p.second : timeUnits.includes('minute') ? p.hour * 60 + p.minute : p.hour} aria-valuetext={`${format(p.hour)}:${format(p.minute)}${hasSeconds ? `:${format(p.second)}` : ''}, ${p.day}/${p.month}/${p.year}, ${place.timeZone}`}
+        aria-valuenow={hasSeconds ? p.hour * 3600 + p.minute * 60 + p.second : timeUnits.includes('minute') ? p.hour * 60 + p.minute : p.hour} aria-valuetext={new Intl.DateTimeFormat(i18n.locale, { timeZone: place.timeZone, calendar: 'gregory', dateStyle: 'long', timeStyle: hasSeconds ? 'medium' : 'short', hourCycle: i18n.hourCycle as 'h12' | 'h23' }).format(now)}
         onKeyDown={key} onPointerDown={down}
         onPointerMove={(event) => {
           const start = gesture.current
           if (!locked && start?.pointer === event.pointerId) choose(timeFromEarthDrag(start.time, event.clientX - start.x, start.width, start.span, start.step))
         }}
         onPointerUp={end} onPointerCancel={end} onLostPointerCapture={end}>
-        {variant === 'lcd' ? <LcdEarth location={earth.view === 'city' ? earth.viewPlace : place} view={earth.view === 'city' ? 'observer' : 'rotation'} /> : <EarthGlobe location={earth.view === 'city' ? earth.viewPlace : place} view={earth.view === 'city' ? 'observer' : 'rotation'} cameraDistance={4.6} />}
+        {variant === 'lcd' ? <LcdEarth location={earth.view === 'city' ? earth.viewPlace : place} view={earth.view === 'city' ? 'observer' : 'rotation'} /> : renderer ? <renderer.Earth location={earth.view === 'city' ? earth.viewPlace : place} view={earth.view === 'city' ? 'observer' : 'rotation'} cameraDistance={4.6} /> : null}
         {earth.view === 'city' && <span {...part('reticle', 'earth-city-reticle')} aria-hidden="true" />}
         {!compact && <span className="earth-drag-hint" aria-hidden="true">{unit !== 'hour' ? `← FINE TUNE ${labels[unit].toUpperCase()} →` : earth.view === 'city' ? '← MOVE THROUGH TIME →' : '← TURN EARTH →'}</span>}
       </div>

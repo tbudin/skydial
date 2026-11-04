@@ -13,7 +13,7 @@ export default defineConfig({
       this.emitFile({ type: 'asset', fileName: 'style.d.ts', source: 'export {}\n' })
       this.emitFile({ type: 'asset', fileName: 'picker.css', source: readFileSync(new URL('./src/lib/formPicker.css', import.meta.url), 'utf8') })
       for (const output of Object.values(bundle)) {
-        if (output.type === 'chunk' && output.isEntry && ['react', 'pickers'].includes(output.name)) {
+        if (output.type === 'chunk' && output.isEntry && ['react', 'pickers', 'lcd'].includes(output.name)) {
           output.code = '"use client";\n' + output.code
         }
       }
@@ -25,7 +25,7 @@ export default defineConfig({
     assetsInlineLimit: 0,
     emptyOutDir: true,
     lib: {
-      entry: { pickers: 'src/lib/pickers.ts', astro: 'src/astro/index.ts', react: 'src/lib/build.ts', three: 'src/three/index.ts', clock: 'src/sim/index.ts', dom: 'src/dom/index.ts', vue: 'src/vue/index.ts', svelte: 'src/svelte/index.ts' },
+      entry: { lcd: 'src/lib/lcdBuild.ts', pickers: 'src/lib/pickers.ts', astro: 'src/astro/index.ts', react: 'src/lib/build.ts', three: 'src/three/index.ts', clock: 'src/sim/index.ts', dom: 'src/dom/index.ts', vue: 'src/vue/index.ts', svelte: 'src/svelte/index.ts' },
       formats: ['es'],
       cssFileName: 'skydial',
     },

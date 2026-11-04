@@ -9,7 +9,7 @@ import type { Line2 } from 'three-stdlib'
 import { PLANETS, PLANET_BY_ID, type PlanetId, type YearPlanetId } from '../astro/bodies.js'
 import { bodyAxes, helioEcliptic, normaliseAngle } from '../astro/ephemeris.js'
 import type { CalendarScale, YearScale } from '../astro/clockScales.js'
-import { MONTH_SHORT } from '../astro/time.js'
+import { usePickerLocale } from '../lib/localization.js'
 import {
   CALENDAR_RADIUS,
   CALENDAR_TICK_MAJOR,
@@ -41,19 +41,6 @@ const YEAR_HAND_OVERSHOOT = 0.2
  * the layout engine (geometry/labelLayout.ts), so none can overlap each other,
  * a planet, the Sun or a hand.
  */
-export type LabelKind = 'month' | 'year' | 'date-pill' | 'year-pill'
-
-export interface LabelSpec {
-  id: string
-  kind: LabelKind
-  text: string
-  active?: boolean
-  /** Ecliptic longitude of the anchor, radians (pills: taken from the hand each frame) */
-  lon: number
-  /** Scene radius of the anchor (pills: computed each frame) */
-  radius: number
-  value?: number
-}
 
 interface LabelStore {
   els: Map<string, HTMLElement>
@@ -68,46 +55,13 @@ const HAND_INITIAL: V3[] = [
   [1, 0, 0],
 ]
 
-export interface OrreryAppearance {
-  palette?: Partial<OrreryPalette>
-  /** Multipliers for orbit and tick stroke widths. */
-  orbitWidth?: number
-  tickWidth?: number
-  /** Hand width in CSS pixels. */
-  handWidth?: number
-  bodyScale?: number
-  sunScale?: number
-}
-
-export interface OrreryProps {
-  appearance?: OrreryAppearance
-  /** Enabled calendar units; omitted flags keep the full playground dial. */
-  showMonths?: boolean
-  showDays?: boolean
-  showYears?: boolean
-  sceneExtent?: number
-  /** Omit to show the whole solar system. A date input uses Earth and its year planet. */
-  visibleBodies?: readonly PlanetId[]
-  theme?: 'light' | 'dark'
-  onMonthSelect?: (month: number) => void
-  onYearSelect?: (year: number) => void
-  /** Widget rendering omits dial labels and ticks, retaining the 3D solar system and hands. */
-  compact?: boolean
-  diagnostics?: boolean
-  textures: TextureSet
-  calendar: CalendarScale
-  yearScale: YearScale
-  yearPlanet: YearPlanetId
-  /** Index into calendar.ticks of the current day */
-  currentDayIndex: number
-  currentMonth: number
-  currentYear?: number
-  /** Epoch (ms) the orbit paths are sampled around */
-  orbitEpochMs: number
-}
+export type { OrreryAppearance, LabelSpec } from './orreryTypes.js'
+import type { LabelSpec, OrreryViewProps } from './orreryTypes.js'
+export interface OrreryProps extends OrreryViewProps { textures: TextureSet }
 
 export function Orrery(props: OrreryProps) {
   const part = usePickerParts()
+  const i18n = usePickerLocale()
   const palette = { ...(props.theme === 'light' ? LIGHT_PALETTE : PALETTE), ...props.appearance?.palette }
   const orbitWidth = Math.max(0, props.appearance?.orbitWidth ?? 1)
   const tickWidth = Math.max(0, props.appearance?.tickWidth ?? 1)
@@ -174,14 +128,16 @@ export function Orrery(props: OrreryProps) {
         {specs.map((s) => {
           const select = s.kind === 'month' && props.onMonthSelect ? () => props.onMonthSelect!(s.value!)
             : s.kind === 'year' && props.onYearSelect ? () => props.onYearSelect!(s.value!) : undefined
+          const unavailable = s.kind === 'month' ? props.isMonthUnavailable?.(s.value!) : s.kind === 'year' ? props.isYearUnavailable?.(s.value!) : false
           const Element = select ? 'button' : 'span'
           return <Element
             key={s.id}
             type={select ? 'button' : undefined}
             onClick={select}
+            disabled={select ? unavailable : undefined}
             tabIndex={select ? -1 : undefined}
             aria-hidden={select ? true : undefined}
-            aria-label={select ? s.kind === 'month' ? `Select ${MONTH_SHORT[s.value! - 1]} ${props.calendar.year}` : `Select year ${s.value}` : undefined}
+            aria-label={select ? s.kind === 'month' ? `${i18n.locale.startsWith('en') ? 'Select' : i18n.units.month} ${new Intl.DateTimeFormat(i18n.locale, { month: i18n.locale.startsWith('en') ? 'short' : 'long', calendar: 'gregory', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, s.value! - 1, 1)))} ${props.calendar.year}` : `${i18n.locale.startsWith('en') ? 'Select year' : i18n.units.year} ${s.value}` : undefined}
             ref={(el) => {
               if (el) { if (store.els.get(s.id) !== el) store.shown.delete(s.id); store.els.set(s.id, el) }
               else store.els.delete(s.id)
@@ -212,13 +168,15 @@ function monthSpans(calendar: CalendarScale) {
 
 function useLabelSpecs({ calendar, yearScale, currentDayIndex, currentMonth, currentYear, compact, showMonths = true, showDays = true, showYears = true }: OrreryProps): LabelSpec[] {
   const day = calendar.ticks[currentDayIndex]?.day ?? 1
+  const { locale } = usePickerLocale()
+  const months = useMemo(() => Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat(locale, { month: 'short', calendar: 'gregory', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, month, 1)))), [locale])
   return useMemo(() => {
     if (compact) return []
     const out: LabelSpec[] = []
-    if (showMonths || showDays) out.push({ id: 'date-pill', kind: 'date-pill', text: showDays ? `${day}${showMonths ? ` ${MONTH_SHORT[currentMonth - 1].toUpperCase()}` : ''}` : MONTH_SHORT[currentMonth - 1].toUpperCase(), lon: 0, radius: CALENDAR_RADIUS })
+    if (showMonths || showDays) out.push({ id: 'date-pill', kind: 'date-pill', text: showDays ? `${day}${showMonths ? ` ${months[currentMonth - 1].toUpperCase()}` : ''}` : months[currentMonth - 1].toUpperCase(), lon: 0, radius: CALENDAR_RADIUS })
     if (showYears) out.push({ id: 'year-pill', kind: 'year-pill', text: String(currentYear ?? yearScale.fromYear), lon: 0, radius: 0 })
     for (const m of showMonths ? monthSpans(calendar) : []) {
-      out.push({ id: `m${m.month}`, kind: 'month', value: m.month, text: MONTH_SHORT[m.month - 1].toUpperCase(), active: m.month === currentMonth, lon: m.mid, radius: CALENDAR_RADIUS })
+      out.push({ id: `m${m.month}`, kind: 'month', value: m.month, text: months[m.month - 1].toUpperCase(), active: m.month === currentMonth, lon: m.mid, radius: CALENDAR_RADIUS })
     }
     const body = PLANET_BY_ID[yearScale.planet].body
     for (const mk of showYears ? yearScale.markers : []) {
@@ -226,7 +184,7 @@ function useLabelSpecs({ calendar, yearScale, currentDayIndex, currentMonth, cur
       out.push({ id: `y${mk.year}`, kind: 'year', value: mk.year, text: String(mk.year), lon: mk.lon, radius: radialScale(helioEcliptic(body, mk.startMs).rho) })
     }
     return out
-  }, [calendar, yearScale, day, currentMonth, currentYear, compact, showMonths, showDays, showYears])
+  }, [calendar, yearScale, day, currentMonth, currentYear, compact, showMonths, showDays, showYears, months])
 }
 
 /** Fit the whole instrument into the shorter side of the canvas. */

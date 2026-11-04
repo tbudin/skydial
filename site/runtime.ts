@@ -9,6 +9,7 @@ import PickerConfigurator from './PickerConfigurator.js'
 import PreviewHeader from './PreviewHeader.js'
 import DisplayConfigurator from './DisplayConfigurator.js'
 import OrreryPlayground from './OrreryPlayground.js'
+import SchedulingPlayground from './SchedulingPlayground.js'
 import type { Place } from 'skydial/astro'
 export { getPreviewAppearance, subscribePreviewSettings } from './previewSettings.js'
 
@@ -43,5 +44,11 @@ export function mountDisplayConfigurator(element: HTMLElement, options: { date: 
 export function mountOrreryPlayground(element: HTMLElement) {
   const root = createRoot(element)
   root.render(createElement(OrreryPlayground))
+  return { destroy: () => root.unmount() }
+}
+
+export function mountSchedulingPlayground(element: HTMLElement) {
+  const root = createRoot(element)
+  root.render(createElement(SchedulingPlayground))
   return { destroy: () => root.unmount() }
 }

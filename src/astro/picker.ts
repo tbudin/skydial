@@ -1,17 +1,21 @@
 import { MIN_TIME_MS, MAX_TIME_MS } from '../sim/clock.js'
 import { civilParts, daysInMonth, zonedToUtc } from './time.js'
+import { isPickerTimeAvailable, type PickerAvailability } from './availability.js'
+import { zonedDateTimeToInstant, type TimeDisambiguation } from './values.js'
 
 export const PICKER_UNITS = ['year', 'month', 'day', 'hour', 'minute', 'second'] as const
 export type PickerUnit = typeof PICKER_UNITS[number]
 export type PickerMode = 'date' | 'time' | 'datetime'
 export type PickerSteps = Partial<Record<PickerUnit, number>>
 export interface PickerBounds { min?: Date | number; max?: Date | number }
-export interface PickerConfiguration extends PickerBounds {
+export interface PickerConfiguration extends PickerBounds, PickerAvailability {
   mode?: PickerMode
   /** Finest unit, e.g. year for a year-only field. Explicit units take precedence. */
   precision?: PickerUnit
   units?: readonly PickerUnit[]
   steps?: PickerSteps
+  /** Repeated/missing local times. Calendar edits default to compatible resolution. */
+  disambiguation?: TimeDisambiguation
 }
 
 export function pickerUnits({ mode = 'date', precision, units }: PickerConfiguration): PickerUnit[] {
@@ -45,13 +49,18 @@ export function clampPickerTime(time: number, bounds: PickerBounds): number {
 }
 
 /** Set a civil unit, preserving hidden units and clamping month-end dates. */
-export function setPickerUnit(time: number, unit: PickerUnit, value: number, zone: string, bounds: PickerBounds = {}) {
+export function setPickerUnit(time: number, unit: PickerUnit, value: number, zone: string, bounds: PickerBounds & { disambiguation?: TimeDisambiguation } = {}) {
   const p = { ...civilParts(time, zone), [unit]: value }
   if (!Number.isInteger(value)) return null
   const maximum = { year: 2400, month: 12, day: daysInMonth(p.year, p.month), hour: 23, minute: 59, second: 59 }[unit]
   if (value < (unit === 'year' ? 1600 : ['month', 'day'].includes(unit) ? 1 : 0) || value > maximum) return null
   p.day = Math.min(p.day, daysInMonth(p.year, p.month))
-  return clampPickerTime(zonedToUtc(zone, p.year, p.month, p.day, p.hour, p.minute, p.second), bounds)
+  try {
+    return clampPickerTime(zonedDateTimeToInstant({ date: p, time: p, timeZone: zone }, bounds.disambiguation), bounds)
+  } catch (error) {
+    if (error instanceof RangeError && bounds.disambiguation === 'reject') return null
+    throw error
+  }
 }
 
 /** Calendar steps preserve local time; clock-unit steps pass through DST gaps and folds. */
@@ -92,6 +101,12 @@ export function pickerUnitAllowed(time: number, unit: PickerUnit, value: number,
   const to = zonedToUtc(zone, end.getUTCFullYear(), end.getUTCMonth() + 1, end.getUTCDate(), end.getUTCHours(), end.getUTCMinutes(), end.getUTCSeconds()) - 1
   const range = pickerBounds(bounds)
   return from <= range.max && to >= range.min
+}
+
+/** Bounds and availability are checked at the exact proposed instant. */
+export function pickerTimeAllowed(time: number, zone: string, configuration: PickerBounds & PickerAvailability = {}): boolean {
+  const bounds = pickerBounds(configuration)
+  return time >= bounds.min && time <= bounds.max && isPickerTimeAvailable(time, zone, configuration)
 }
 
 /** Civil form values follow the selected precision; callbacks still receive a complete Date. */
