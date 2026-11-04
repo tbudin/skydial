@@ -56,6 +56,12 @@ then supply predicates. Revalidate bookings on the server when saving.
 behaviour with precise controls only. `presentation="inline"` displays the
 selection window directly, with no date-input trigger.
 
+LCD field text defaults to 16px. Long ranges wrap at spaces so both endpoints
+remain visible on narrow forms, including dates with times and seconds. Change
+the installed component's text size with `styles={{ field: { fontSize: 14 } }}`
+(or `styles.value` for only the reading). Stylesheets can set
+`--picker-field-font-size` and `--picker-field-digit-gap` on the component.
+
 ## Availability
 
 All modern picker surfaces share one selection gate: the orbit, rotating Earth,

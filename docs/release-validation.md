@@ -1,5 +1,32 @@
 # Validation record
 
+## Skydial 0.3.1 — 4 November 2026
+
+The original LCD date range clipped its last endpoint at 320px (18px digits,
+14px overflow in the isolated consumer). Form readings now default to 16px,
+inherit `field`/`value` font overrides and wrap at spaces. Date and time tokens
+stay together when they fit; wheels and widget typography retain their defaults.
+The complete original reading remains available to assistive technology.
+
+The package check passes all 128 unit/SSR tests, builds, consumer types, exports,
+texture checks and the renderer-free LCD budget. Twenty-four focused browser
+tests pass across Chromium, Firefox and WebKit: date/seconds/RTL range readings
+at 320, 390 and 768px, direct part styles and CSS variable overrides, endpoint
+switching and returned focus, plus year-only edits retaining month/day and a
+fixed dial centre in both designs.
+
+The astronomical calculation has not changed. At 09:00 Europe/London on
+9 November, Earth's J2000 longitude changes by about -0.257° from 2026 to 2027
+and +0.747° from 2027 to leap year 2028. These are calculated orbital positions,
+not layout movement. Year selection still clamps a leap day when necessary.
+
+Thirteen LCD popup-layout cases pass, including phone, landscape and doubled
+text. Both documentation scheduling flows pass, and the twelve-page build and
+link checks pass. Manual inspection of the actual scheduling page at 320px
+confirms both full dates are visible, with a 16px reading and no horizontal
+overflow. A year edit and form reset also work in that narrow preview.
+See the prior release's accessibility record for physical-device scope and limits.
+
 ## Skydial 0.3.0 — 4 November 2026
 
 Release candidate based on the published 0.2.0 package, validated locally with

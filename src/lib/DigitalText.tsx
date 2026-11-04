@@ -7,9 +7,18 @@ const segments = [
 const digits = ['1111110', '0110000', '1101101', '1111001', '0110011', '1011011', '1011111', '1110000', '1111111', '1111011']
 
 /** Vector LCD segments with a single readable text alternative. No font download. */
-export function DigitalText({ children }: { children: string }) {
+export function DigitalText({ children, wrap = false }: { children: string; wrap?: boolean }) {
   if (!/\d/.test(children)) return children
-  return <span className="lcd-digital-text"><span className="picker-sr-only">{children}</span><span aria-hidden="true">{[...children].map((char, index) => /\d/.test(char)
+  // Keep dates and times together, with range separators attached to the next
+  // reading. Only form fields wrap; wheel selections and widget clocks do not.
+  const words = wrap ? children.replace(/[\u200e\u200f\u061c]/g, '').match(/(?:[–·]\s+)?\S+/gu) ?? [] : []
+  return <span className={`lcd-digital-text${wrap ? ' lcd-text-wrap' : ''}`}><span className="picker-sr-only">{children}</span><span aria-hidden="true">{wrap
+    ? words.map((word, index) => <span className="lcd-text-word" key={index} dir={/\d/.test(word) ? 'ltr' : 'auto'}>{glyphs(word)}</span>)
+    : glyphs(children)}</span></span>
+}
+
+function glyphs(text: string) {
+  return [...text].map((char, index) => /\d/.test(char)
     ? <svg key={index} viewBox="-2 0 16 33" className="lcd-digit" focusable="false">{segments.map((points, part) => digits[Number(char)][part] === '1' && <polygon key={part} points={points} />)}</svg>
-    : <span key={index} className="lcd-punctuation">{char}</span>)}</span></span>
+    : <span key={index} className="lcd-punctuation">{char}</span>)
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Reduce LCD form readings from 18px to 16px and let long ranges wrap between readings so both endpoints remain visible on narrow forms.
+- Honor consumer `field` and `value` font sizes for vector digits; expose `--picker-field-font-size` and `--picker-field-digit-gap` for CSS overrides.
+- Document the expected annual orbital-angle shift and verify that year edits retain month/day and keep the dial centre fixed in both styles.
+
 ## 0.3.0
 
 - Make scroll wheels step directly between complete values for mouse wheels, trackpads and touch; keep selection bands stationary and skip unavailable options.

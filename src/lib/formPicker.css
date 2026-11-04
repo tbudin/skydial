@@ -164,7 +164,7 @@
 }
 .celestial-clock.celestial-control[data-picker-style="lcd"][data-picker-theme="dark"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; }
 @media (prefers-color-scheme: dark) { .celestial-clock.celestial-control[data-picker-style="lcd"][data-picker-theme="auto"] { --lcd-paper: #1a281f; --lcd-ink: #d3dbba; } }
-.celestial-control[data-picker-style="lcd"] .picker-form-trigger { border: var(--picker-field-border, 1px solid var(--lcd-ink)); background: var(--lcd-paper); }
+.celestial-control[data-picker-style="lcd"] .picker-form-trigger { border: var(--picker-field-border, 1px solid var(--lcd-ink)); background: var(--lcd-paper); font-size: var(--picker-field-font-size, 16px); }
 .celestial-control[data-picker-style="lcd"] .picker-form-label, .celestial-control[data-picker-style="lcd"] .picker-wheel-label { color: var(--lcd-ink); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; }
 .celestial-control[data-picker-style="lcd"] .picker-form-panel, .celestial-control[data-picker-style="lcd"] .picker-form-inline, .celestial-control[data-picker-style="lcd"].celestial-control-surface {
   background: var(--lcd-paper); color: var(--lcd-ink); border: var(--picker-panel-border, 1px solid var(--lcd-ink)); border-radius: calc(var(--picker-radius) + 2px); box-shadow: var(--picker-panel-shadow, none);
@@ -193,7 +193,11 @@
 .lcd-digital-text > [aria-hidden="true"] { display: inline-flex; align-items: center; gap: 2px; white-space: pre; }
 .lcd-digit { display: inline-block; width: .5em; height: 1em; fill: currentColor; flex: 0 0 auto; }
 .lcd-punctuation { display: inline-block; font-family: ui-monospace, monospace; font-size: .8em; }
-.celestial-control[data-picker-style="lcd"] .picker-form-trigger .lcd-digital-text { font-size: 18px; }
+.celestial-control[data-picker-style="lcd"] .picker-form-trigger .lcd-digital-text { font-size: inherit; }
+.celestial-control .picker-form-trigger > [data-picker-part="value"]:has(.lcd-text-wrap) { min-inline-size: 0; white-space: normal; }
+.celestial-control .picker-form-trigger .lcd-text-wrap { display: block; max-inline-size: 100%; }
+.celestial-control .picker-form-trigger .lcd-text-wrap > [aria-hidden="true"] { display: flex; flex-wrap: wrap; gap: .3em .45em; }
+.celestial-control .picker-form-trigger .lcd-text-word { display: inline-flex; flex-wrap: wrap; max-inline-size: 100%; align-items: center; gap: var(--picker-field-digit-gap, .08em); unicode-bidi: isolate; }
 .celestial-control[data-picker-style="lcd"] .picker-wheel-selection .lcd-digital-text { font-size: 23px; }
 .celestial-clock[data-picker-style="lcd"] .earth-city-reticle { border-color: var(--lcd-ink); box-shadow: none; }
 .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::before, .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::after { background: var(--lcd-ink); }

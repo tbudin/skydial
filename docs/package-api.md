@@ -154,6 +154,14 @@ stylesheet. Styles accept CSS properties, CSS custom properties, or a function
 receiving `{ unit, selected, disabled, direction }` when relevant. Root `style`
 and `className` remain available. Styles on a part override its defaults.
 
+LCD form readings default to 16px and inherit the `field` or `value` part's font
+size. For example, `styles={{ field: { fontSize: 14 } }}` changes the field text,
+including its vector digits. CSS consumers can set `--picker-field-font-size`
+instead; `--picker-field-digit-gap` adjusts spacing within each reading.
+Long LCD ranges wrap between date/time readings while preserving the full
+accessible value, rather than clipping the final endpoint. Wheels and widget
+clocks retain their independent type sizes.
+
 ```tsx
 <CelestialInput
   name="appointment" planet="saturn" mode="datetime"
@@ -191,6 +199,12 @@ the selected month, day and time (with leap-day clamping); refining the day move
 Earth and every other visible body to the same instant without rotating the year
 scale. LCD months use `01`–`12`, including the segmented scroll selection, orbital
 labels, date badge and drag magnifier. The 3D style retains abbreviated month names.
+
+The same month/day can appear at a slightly different orbital angle in another
+year. The calendar ring follows Earth's calculated position in the fixed J2000
+frame: calendar years contain whole days, whereas an orbit does not. Leap years
+correct that mismatch, with smaller astronomical variations also included. The
+dial centre stays fixed. See [NASA's leap-day explanation](https://www.jpl.nasa.gov/edu/news/doing-the-math-on-why-we-have-leap-day/).
 
 Focus follows the circular ring. Focused rings accept trackpad or mouse-wheel
 steps without capturing ordinary page scrolling. Arrow keys use the configured
