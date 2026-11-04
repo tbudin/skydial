@@ -106,7 +106,9 @@ test('exact inputs, keyboard orbital selection and widget remount work', async (
   const calendar = page.getByRole('slider', { name: 'Day of year on the calendar ring' })
   await calendar.focus()
   await page.keyboard.press('ArrowRight')
-  await expect(calendar).toHaveAttribute('aria-valuetext', 'Saturday, 21 March 2026')
+  // Intl punctuation varies between the operating systems' locale data.
+  await expect(calendar).toHaveAttribute('aria-valuetext', /^Saturday,? 21 March 2026$/)
+  await expect(calendar).toHaveAttribute('aria-valuenow', '80')
   await page.getByText('Enter an exact date and time', { exact: true }).click()
   await page.getByLabel('Date', { exact: true }).fill('2026-06-15')
   await page.getByLabel('Time', { exact: true }).fill('09:30')

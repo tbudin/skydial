@@ -56,6 +56,12 @@ and form submission. The complete release command was not rerun as one job after
 splitting the aggregate tests; affected groups and final source changes were
 checked separately.
 
+GitHub's initial package, Chromium (including documentation) and Firefox jobs
+passed. Linux WebKit passed 93 cases and skipped 183, with one test failing only
+because its Intl date label omits the comma after the weekday. The assertion now
+accepts either punctuation while still requiring the exact date and ordinal day.
+The follow-up CI run verifies this platform-specific test correction.
+
 ### Manual checks and limits
 
 Both designs were inspected in light and dark mode. The updated LCD date field
