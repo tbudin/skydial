@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 for (const mode of ['', '&combined&seconds&h12', '&combined&seconds&h12&locale=ar-EG']) test(`LCD range field preserves both endpoints on phones ${mode || 'date'}`, async ({ page }) => {
   await page.goto(`./?scheduling&lcd${mode}`)
   const field = page.getByRole('button', { name: 'Booking', exact: true })
+  await page.addStyleTag({ content: 'main > form { max-width: 240px; }' })
   for (const width of [320, 390, 768]) {
     await page.setViewportSize({ width, height: 844 })
     const layout = await field.evaluate((element) => {
@@ -10,8 +11,10 @@ for (const mode of ['', '&combined&seconds&h12', '&combined&seconds&h12&locale=a
       const box = value.getBoundingClientRect()
       const indicator = element.querySelector('[data-picker-part="indicator"]')!.getBoundingClientRect()
       const glyphs = [...value.querySelectorAll<HTMLElement>('.lcd-digit, .lcd-punctuation')]
+      const centres = glyphs.map((glyph) => { const rect = glyph.getBoundingClientRect(); return (rect.top + rect.bottom) / 2 })
       return {
         fontSize: getComputedStyle(value.querySelector('.lcd-digital-text')!).fontSize,
+        oneLine: Math.max(...centres) - Math.min(...centres) < .5,
         overflow: value.scrollWidth - value.clientWidth,
         clipped: glyphs.filter((glyph) => {
           const rect = glyph.getBoundingClientRect()
@@ -24,7 +27,7 @@ for (const mode of ['', '&combined&seconds&h12', '&combined&seconds&h12&locale=a
       }
     })
     await page.screenshot({ path: `screenshots/lcd-range-field-${mode ? mode.includes('ar-EG') ? 'rtl' : 'seconds' : 'date'}-${width}.png` })
-    expect(layout, `${width}px`).toEqual({ fontSize: '16px', overflow: 0, clipped: 0, overlapsIndicator: false })
+    expect(layout, `${width}px`).toEqual({ fontSize: '16px', overflow: 0, clipped: 0, overlapsIndicator: false, oneLine: true })
   }
   await field.click()
   const panel = page.getByRole('dialog', { name: 'Booking', exact: true })
@@ -39,7 +42,17 @@ for (const part of ['field', 'value', 'variable']) test(`LCD field typography re
   const field = page.getByRole('button', { name: 'Booking', exact: true })
   const reading = field.locator('.lcd-digital-text')
   await expect(reading).toHaveCSS('font-size', '20px')
-  expect(await reading.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  expect(await reading.evaluate((element) => {
+    const box = element.getBoundingClientRect()
+    return [...element.querySelectorAll('.lcd-digit, .lcd-punctuation')].every((glyph) => {
+      const rect = glyph.getBoundingClientRect()
+      return rect.left >= box.left - 1 && rect.right <= box.right + 1 && rect.top >= box.top - 1 && rect.bottom <= box.bottom + 1
+    })
+  })).toBe(true)
+  await page.setViewportSize({ width: 768, height: 844 })
+  await expect.poll(() => reading.locator('.lcd-digit').first().evaluate((glyph) => glyph.getBoundingClientRect().height)).toBeCloseTo(20, 1)
+  await page.setViewportSize({ width: 320, height: 844 })
+  await expect.poll(() => reading.locator('.lcd-digit').first().evaluate((glyph) => glyph.getBoundingClientRect().height)).toBeLessThan(20)
   if (part === 'variable') {
     await page.addStyleTag({ content: '[data-picker-part="field"] { --picker-field-font-size: 14px; }' })
     await expect(reading).toHaveCSS('font-size', '14px')

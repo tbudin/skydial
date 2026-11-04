@@ -194,10 +194,10 @@
 .lcd-digit { display: inline-block; width: .5em; height: 1em; fill: currentColor; flex: 0 0 auto; }
 .lcd-punctuation { display: inline-block; font-family: ui-monospace, monospace; font-size: .8em; }
 .celestial-control[data-picker-style="lcd"] .picker-form-trigger .lcd-digital-text { font-size: inherit; }
-.celestial-control .picker-form-trigger > [data-picker-part="value"]:has(.lcd-text-wrap) { min-inline-size: 0; white-space: normal; }
-.celestial-control .picker-form-trigger .lcd-text-wrap { display: block; max-inline-size: 100%; }
-.celestial-control .picker-form-trigger .lcd-text-wrap > [aria-hidden="true"] { display: flex; flex-wrap: wrap; gap: .3em .45em; }
-.celestial-control .picker-form-trigger .lcd-text-word { display: inline-flex; flex-wrap: wrap; max-inline-size: 100%; align-items: center; gap: var(--picker-field-digit-gap, .08em); unicode-bidi: isolate; }
+.celestial-control .picker-form-trigger > [data-picker-part="value"]:has(.lcd-text-fit) { flex: 1; min-inline-size: 0; }
+.celestial-control .picker-form-trigger .lcd-text-fit { display: block; position: relative; inline-size: 100%; block-size: calc(1em * var(--lcd-fit-scale, 1)); overflow: hidden; }
+.celestial-control .picker-form-trigger .lcd-text-fit > [aria-hidden="true"] { position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: max-content; gap: var(--picker-field-digit-gap, .08em); transform: scale(var(--lcd-fit-scale, 1)); transform-origin: left top; }
+.celestial-control[dir="rtl"] .picker-form-trigger .lcd-text-fit > [aria-hidden="true"] { inset-inline-start: auto; inset-inline-end: 0; transform-origin: right top; }
 .celestial-control[data-picker-style="lcd"] .picker-wheel-selection .lcd-digital-text { font-size: 23px; }
 .celestial-clock[data-picker-style="lcd"] .earth-city-reticle { border-color: var(--lcd-ink); box-shadow: none; }
 .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::before, .celestial-clock[data-picker-style="lcd"] .earth-city-reticle::after { background: var(--lcd-ink); }

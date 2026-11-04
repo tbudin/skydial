@@ -154,13 +154,14 @@ stylesheet. Styles accept CSS properties, CSS custom properties, or a function
 receiving `{ unit, selected, disabled, direction }` when relevant. Root `style`
 and `className` remain available. Styles on a part override its defaults.
 
-LCD form readings default to 16px and inherit the `field` or `value` part's font
-size. For example, `styles={{ field: { fontSize: 14 } }}` changes the field text,
-including its vector digits. CSS consumers can set `--picker-field-font-size`
-instead; `--picker-field-digit-gap` adjusts spacing within each reading.
-Long LCD ranges wrap between date/time readings while preserving the full
-accessible value, rather than clipping the final endpoint. Wheels and widget
-clocks retain their independent type sizes.
+LCD form readings prefer 16px and inherit the `field` or `value` part's font
+size. For example, `styles={{ field: { fontSize: 14 } }}` sets the preferred text
+size, including its vector digits. CSS consumers can set
+`--picker-field-font-size` instead; `--picker-field-digit-gap` adjusts spacing.
+Complete LCD readings stay on one line: the artwork scales down only when the
+available field width requires it, and returns to the preferred size when space
+allows. The full accessible value is preserved. Wheels and widget clocks retain
+their independent type sizes.
 
 ```tsx
 <CelestialInput

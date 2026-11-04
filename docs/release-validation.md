@@ -1,5 +1,23 @@
 # Validation record
 
+## Skydial 0.3.2 — 4 November 2026
+
+The maintainer preferred a single-line range after reviewing 0.3.1's wrapping
+layout. Complete LCD field artwork now scales to the available width and stays
+on one line. The preferred font size remains 16px, with direct part styles and
+CSS variables retained; the full screen-reader value is unchanged. Wider fields
+restore the preferred size. Wheels and widget clocks keep their existing sizes.
+
+Focused checks cover full date and seconds/AM-PM ranges, RTL, narrow embedded
+forms, field/value/CSS font overrides and viewport changes in all three browser
+engines. Thirty-nine focused browser cases passed; 24 geometry cases were
+intentionally skipped in Firefox/WebKit because that matrix runs in Chromium.
+Both website scheduling flows, all 128 package unit/SSR tests, types, exports,
+builds and the twelve-page documentation/link checks passed. Manual inspection
+of the actual 320px scheduling page showed both full dates on one line at about
+15.16px visual height, with no clipping. No astronomy calculation changes were
+needed.
+
 ## Skydial 0.3.1 — 4 November 2026
 
 The original LCD date range clipped its last endpoint at 320px (18px digits,

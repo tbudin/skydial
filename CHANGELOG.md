@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2
+
+- Keep complete LCD range readings on one line on mobile; scale the artwork to fit the available field width instead of wrapping or clipping an endpoint.
+- Preserve the preferred 16px size and consumer font/spacing overrides, restoring the preferred size when the field grows. Screen readers retain the full original value.
+
 ## 0.3.1
 
 - Reduce LCD form readings from 18px to 16px and let long ranges wrap between readings so both endpoints remain visible on narrow forms.
