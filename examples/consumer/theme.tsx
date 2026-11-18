@@ -16,14 +16,16 @@ export default function ThemeDemo() {
 
 function ThemeContent() {
   const { theme, resolvedTheme, setTheme } = useCelestialTheme()
-  const variant = new URLSearchParams(location.search).has('lcd') ? 'lcd' : 'celestial'
+  const query = new URLSearchParams(location.search)
+  const variant = query.has('lcd') ? 'lcd' : 'celestial'
   const [controlled, setControlled] = useState<PickerTheme>('light')
   return <main style={{ padding: 20, maxWidth: 880, margin: '0 auto', background: resolvedTheme === 'dark' ? '#10141d' : '#f6f3ec', color: resolvedTheme === 'dark' ? '#e9eef6' : '#243044', minHeight: '100vh' }}>
     <h1>One appearance, everywhere</h1>
     <p>Switch between light, dark and your device’s appearance.</p>
     <CelestialThemeSwitch variant={variant} />
-    <CelestialThemeToggle variant={variant} label="Page appearance" size="large" />
+    <CelestialThemeToggle variant={variant} label="Page appearance" size="large" showMenu={!query.has('noMenu')} showLabel={!query.has('noLabel')} />
     <output data-testid="theme-state">{theme}/{resolvedTheme}</output>
+    <input aria-label="After theme toggle" />
     <button type="button" onClick={() => setTheme('auto')}>Follow device</button>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 24, marginBlock: 24 }}>
       <section style={{ display: 'grid', gap: 16 }} aria-label="Shared theme fields">

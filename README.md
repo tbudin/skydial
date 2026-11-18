@@ -53,10 +53,11 @@ import { CelestialThemeToggle } from 'skydial/react'
 
 <CelestialThemeToggle theme={theme} onThemeChange={setTheme} />
 <CelestialThemeToggle variant="lcd" defaultTheme="light" />
+<CelestialThemeToggle showMenu={false} showLabel={false} />
 ```
 
 One compact thumb moves between light and dark, with a visible preference label
-and a Light/Dark/System dropdown. System follows device appearance. The 3D version
+and an optional Light/Dark/System menu (`showMenu={false}` hides it). System follows device appearance. The 3D version
 includes a glowing Moon and twinkling night sky, plus an animated Sun with rotating
 surface detail. Motion respects reduced motion and pauses offscreen;
 use `animated={false}` for static artwork. LCD offers symbols or engraved

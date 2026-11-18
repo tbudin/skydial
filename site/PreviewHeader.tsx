@@ -41,10 +41,10 @@ export default function PreviewHeader() {
     } catch { /* The live theme does not depend on storage. */ }
     document.querySelector('#g-theme')?.setAttribute('aria-checked', String(resolved === 'dark'))
   }, [theme, resolved])
-  return <div className="preview-toolbar" role="group" aria-label="Preview appearance" onPointerDownCapture={() => {
+  return <div className="preview-toolbar" role="group" aria-label="Preview appearance" onPointerDownCapture={(event) => {
     // Native popovers dismiss on an outside click. Reopen the same preview after
     // a pointer-driven comparison, preserving the component and its selection.
-    openPicker.current = document.querySelector<HTMLButtonElement>('[data-picker-part="field"][aria-expanded="true"]')
+    if (!(event.target as Element).closest('[data-theme-toggle-part="menu"]')) openPicker.current = document.querySelector<HTMLButtonElement>('[data-picker-part="field"][aria-expanded="true"]')
   }}>
     <span className="preview-toolbar-label">Preview</span>
     <div className="preview-style-switch" role="group" aria-label="Design style">

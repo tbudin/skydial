@@ -55,7 +55,7 @@ test('every page shares one toolbar with palette presets and custom colours toge
     const header = previewHeader(page)
     await expect(header).toHaveCount(1)
     await expect(header.getByRole('button', { name: 'LCD', exact: true })).toBeVisible()
-    await expect(header.getByRole('combobox', { name: 'Theme preference', exact: true })).toBeVisible()
+    await expect(header.getByRole('button', { name: 'Theme preference', exact: true })).toBeVisible()
     await expect(header.getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveCount(0)
     const colours = await openColours(page)
     await expect(colours.getByRole('combobox', { name: 'Colour palette', exact: true })).toBeVisible()

@@ -3,7 +3,9 @@ import type { Page } from '@playwright/test'
 export const previewHeader = (page: Page) => page.getByRole('group', { name: 'Preview appearance', exact: true })
 export async function setAppearance(page: Page, theme: string) {
   const value = theme === 'auto' ? 'auto' : theme.toLowerCase() === 'dark' ? 'dark' : 'light'
-  await previewHeader(page).getByRole('combobox', { name: 'Theme preference', exact: true }).selectOption(value)
+  const header = previewHeader(page)
+  await header.getByRole('button', { name: 'Theme preference', exact: true }).click()
+  await header.getByRole('menuitemradio', { name: value === 'auto' ? 'System' : value === 'dark' ? 'Dark' : 'Light', exact: true }).click()
 }
 export async function setDesignStyle(page: Page, variant: string) {
   await previewHeader(page).getByRole('button', { name: variant === 'lcd' ? 'LCD' : '3D', exact: true }).click()

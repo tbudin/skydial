@@ -6,14 +6,23 @@
 .celestial-control .celestial-control-group { display: grid; grid-template-columns: repeat(var(--picker-columns, 3), minmax(0, 1fr)); gap: var(--picker-row-gap, 12px) var(--picker-column-gap, 8px); width: max-content; max-width: 100%; }
 /* Appearance controls share the picker palette and remain ordinary, styleable buttons. */
 /* One moving thumb identifies the current mode; the track only shows muted landmarks. */
-:where(.celestial-theme-toggle) { --toggle-width: 64px; --toggle-height: 32px; --toggle-selection-inset: 2px; --toggle-track: #263247; --toggle-ink: #c4cfdf; --toggle-selection: #f3f5f8; --toggle-duration: 200ms; --toggle-easing: cubic-bezier(.2, .7, .2, 1); --toggle-direction: 1; }
+:where(.celestial-theme-toggle) { --toggle-width: 64px; --toggle-height: 32px; --toggle-selection-inset: 2px; --toggle-track: #263247; --toggle-ink: #c4cfdf; --toggle-selection: #f3f5f8; --toggle-duration: 200ms; --toggle-easing: cubic-bezier(.2, .7, .2, 1); --toggle-direction: 1; --toggle-focus-color: var(--picker-accent); --toggle-menu-paper: var(--bg); --toggle-menu-ink: var(--text); --toggle-menu-radius: 8px; --toggle-option-radius: 4px; }
 .celestial-clock.celestial-control.celestial-theme-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 4px; margin: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text); font: inherit; vertical-align: middle; }
 .celestial-theme-toggle .theme-toggle-switch { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 8px; min-width: 44px; min-height: 44px; padding: 4px 0; margin: 0; border: 0; border-radius: 6px; background: transparent; color: inherit; font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.celestial-theme-toggle .theme-toggle-preference { position: relative; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; min-width: 24px; padding: 0 2px 0 4px; border-radius: 4px; font-size: 12px; }
-.celestial-theme-toggle .theme-toggle-preference select { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; margin: 0; opacity: 0; cursor: pointer; color: var(--text); background: var(--bg); font: inherit; }
-.celestial-theme-toggle .theme-toggle-preference select option { color: var(--text); background: var(--bg); }
-.celestial-theme-toggle .theme-toggle-preference:has(select:focus-visible), .celestial-theme-toggle .theme-toggle-switch:focus-visible { outline: 2px solid var(--picker-accent); outline-offset: 2px; }
-@media (hover: hover) { .celestial-theme-toggle .theme-toggle-preference:hover { background: color-mix(in srgb, var(--text) 6%, transparent); } }
+.celestial-theme-toggle .theme-toggle-menu-host { display: inline-flex; }
+.celestial-theme-toggle .theme-toggle-preference { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0; margin: 0; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; font-size: 12px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.celestial-theme-toggle .theme-toggle-preference-label { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--toggle-height); min-width: 28px; padding: 0 6px; border-radius: var(--toggle-option-radius); }
+.celestial-clock.celestial-control.celestial-theme-toggle .theme-toggle-switch:focus-visible, .celestial-clock.celestial-control.celestial-theme-toggle .theme-toggle-preference:focus-visible { outline: none; }
+.celestial-theme-toggle .theme-toggle-switch:focus-visible .theme-toggle-track, .celestial-theme-toggle .theme-toggle-preference:focus-visible .theme-toggle-preference-label { outline: 2px solid var(--toggle-focus-color); outline-offset: 2px; }
+.celestial-theme-toggle .theme-toggle-menu { position: fixed; inset: auto; box-sizing: border-box; margin: 0; padding: var(--toggle-menu-padding, 4px); min-inline-size: 144px; max-inline-size: calc(100vw - 16px); max-block-size: calc(100dvh - 16px); overflow-y: auto; border: 1px solid var(--line); border-radius: var(--toggle-menu-radius); background: var(--toggle-menu-paper); color: var(--toggle-menu-ink); font: inherit; font-size: 12px; }
+.celestial-theme-toggle .theme-toggle-menu:popover-open { display: grid; gap: 2px; }
+.celestial-theme-toggle .theme-toggle-menu::backdrop { background: transparent; }
+.celestial-theme-toggle .theme-toggle-option { --toggle-option-focus: var(--toggle-focus-color); display: flex; align-items: center; justify-content: space-between; gap: 20px; box-sizing: border-box; min-height: 44px; padding: var(--toggle-option-padding, 10px 12px); margin: 0; border: 0; border-radius: var(--toggle-option-radius); background: transparent; color: inherit; font: inherit; line-height: 20px; text-align: start; cursor: pointer; }
+.celestial-theme-toggle .theme-toggle-option[aria-checked="true"] { background: color-mix(in srgb, var(--toggle-focus-color) 12%, transparent); }
+.celestial-clock.celestial-control.celestial-theme-toggle .theme-toggle-option:focus-visible { outline: 2px solid var(--toggle-option-focus); outline-offset: -2px; }
+.celestial-theme-toggle .theme-toggle-check { flex: none; visibility: hidden; }
+.celestial-theme-toggle .theme-toggle-option[aria-checked="true"] .theme-toggle-check { visibility: visible; }
+@media (hover: hover) { .celestial-theme-toggle .theme-toggle-preference:not(:disabled):hover .theme-toggle-preference-label, .celestial-theme-toggle .theme-toggle-option:hover { background: color-mix(in srgb, var(--toggle-menu-ink) 8%, transparent); } }
 .celestial-theme-toggle:dir(rtl) { --toggle-direction: -1; }
 .celestial-theme-toggle[data-toggle-size="small"] { --toggle-width: 52px; --toggle-height: 28px; }
 .celestial-theme-toggle[data-toggle-size="large"] { --toggle-width: 76px; --toggle-height: 36px; }
@@ -28,12 +37,11 @@
 .celestial-theme-toggle .theme-toggle-symbol svg { display: block; width: 100%; height: 100%; }
 .celestial-theme-toggle .theme-toggle-artwork { position: absolute; display: block; inset: -1px; }
 .celestial-theme-toggle .theme-toggle-status { min-inline-size: 5ch; text-align: start; font: inherit; font-size: 12px; line-height: 1; }
-.celestial-theme-toggle:focus-visible { outline: 2px solid var(--picker-accent); outline-offset: 2px; }
 @media (hover: hover) { .celestial-theme-toggle:not([data-disabled="true"]):hover .theme-toggle-track { border-color: var(--picker-accent); } .celestial-theme-toggle:not([data-disabled="true"]):hover .theme-toggle-selection { outline: 1px solid var(--picker-accent); outline-offset: -1px; } }
 .celestial-theme-toggle .theme-toggle-switch:active:not(:disabled) .theme-toggle-selection { scale: .94; }
-.celestial-theme-toggle[data-disabled="true"] .theme-toggle-track, .celestial-theme-toggle[data-disabled="true"] .theme-toggle-preference > svg { opacity: .45; }
+.celestial-theme-toggle[data-disabled="true"] .theme-toggle-track, .celestial-theme-toggle[data-disabled="true"] .theme-toggle-preference-label { opacity: .45; }
 .celestial-clock.celestial-theme-toggle[data-disabled="true"] .theme-toggle-switch { opacity: 1; }
-.celestial-theme-toggle[data-disabled="true"] button, .celestial-theme-toggle[data-disabled="true"] select { cursor: default; }
+.celestial-theme-toggle[data-disabled="true"] button { cursor: default; }
 /* Textured globes form the 3D thumb itself, without an enclosing white button. */
 .celestial-theme-toggle[data-toggle-artwork="3d"] { --toggle-selection: transparent; --toggle-night-sky: #030712; --toggle-day-sky: #83c4f4; --toggle-sun-glow: #ffb43f99; --toggle-moon-glow: #e6efff80; }
 .celestial-theme-toggle[data-toggle-artwork="3d"] .theme-toggle-track { isolation: isolate; overflow: visible; background: var(--toggle-night-sky); border-color: color-mix(in srgb, var(--toggle-day-sky) 80%, #447599); box-shadow: inset 0 1px 2px #0002; transition: border-color var(--toggle-duration); }
@@ -60,11 +68,12 @@
 .celestial-theme-toggle[data-toggle-artwork="3d"] .theme-toggle-moon .theme-toggle-symbol { color: #e3e9f1; }
 .celestial-theme-toggle[data-toggle-artwork="3d"] [data-active]:has(canvas[data-ready="true"]) .theme-toggle-symbol { visibility: hidden; }
 @media (hover: hover) { .celestial-theme-toggle[data-toggle-artwork="3d"]:not([data-disabled="true"]):hover .theme-toggle-selection { outline: none; filter: drop-shadow(0 1px 2px #0008) brightness(1.08); } }
-.celestial-theme-toggle[data-picker-style="lcd"] { --toggle-track: var(--lcd-paper); --toggle-ink: var(--lcd-ink); --toggle-selection: var(--lcd-ink); border-radius: 2px; }
+.celestial-theme-toggle[data-picker-style="lcd"] { --toggle-track: var(--lcd-paper); --toggle-ink: var(--lcd-ink); --toggle-selection: var(--lcd-ink); --toggle-focus-color: var(--lcd-ink); --toggle-menu-paper: var(--lcd-paper); --toggle-menu-ink: var(--lcd-ink); --toggle-menu-radius: 2px; --toggle-option-radius: 0; border-radius: 2px; }
+.celestial-theme-toggle[data-picker-style="lcd"] .theme-toggle-option[aria-checked="true"] { --toggle-option-focus: var(--lcd-paper); color: var(--lcd-paper); background: var(--lcd-ink); }
 .celestial-theme-toggle[data-picker-style="lcd"] .theme-toggle-track { border: 1px solid var(--lcd-ink); border-radius: 2px; }
 .celestial-theme-toggle[data-picker-style="lcd"] .theme-toggle-selection { border: 0; border-radius: 0; color: var(--lcd-paper); }
 .celestial-theme-toggle[data-picker-style="lcd"][data-lcd-artwork="illustrations"] .theme-toggle-symbol { width: 100%; height: 100%; }
-@media (forced-colors: active) { .celestial-clock.celestial-control.celestial-theme-toggle { --toggle-track: Canvas !important; --toggle-ink: CanvasText !important; --toggle-selection: Highlight !important; } .celestial-theme-toggle [data-active="true"] { color: HighlightText; } .celestial-theme-toggle .theme-toggle-artwork { display: none; } }
+@media (forced-colors: active) { .celestial-clock.celestial-control.celestial-theme-toggle { --toggle-track: Canvas !important; --toggle-ink: CanvasText !important; --toggle-selection: Highlight !important; --toggle-focus-color: Highlight !important; --toggle-menu-paper: Canvas !important; --toggle-menu-ink: CanvasText !important; } .celestial-theme-toggle [data-active="true"] { color: HighlightText; } .celestial-theme-toggle .theme-toggle-artwork { display: none; } .celestial-theme-toggle .theme-toggle-menu { border-color: CanvasText; } .celestial-clock.celestial-control.celestial-theme-toggle .theme-toggle-option[aria-checked="true"] { --toggle-option-focus: HighlightText; color: HighlightText; background: Highlight; forced-color-adjust: none; } }
 .celestial-clock.celestial-control.celestial-theme-switch { display: inline-flex; flex-wrap: wrap; align-items: center; max-width: 100%; gap: var(--theme-switch-gap, 3px); padding: var(--theme-switch-padding, 3px); background: var(--bg); border: 1px solid var(--line); border-radius: var(--theme-switch-radius, var(--picker-radius)); }
 .celestial-theme-switch > button { display: inline-flex; align-items: center; justify-content: center; flex: 1 1 auto; min-width: 44px; min-height: var(--theme-switch-height, 36px); padding: 5px 10px; border: 1px solid transparent; border-radius: max(0px, calc(var(--theme-switch-radius, var(--picker-radius)) - 3px)); background: transparent; color: var(--text); font: inherit; line-height: 1.3; cursor: pointer; }
 .celestial-theme-switch > button[aria-pressed="true"] { background: var(--picker-accent); color: var(--bg); }

@@ -7,8 +7,9 @@ import type { PickerVariant } from './appearance.js'
 import { SunSymbol, MoonSymbol } from './ThemeToggleSymbols.js'
 import { SunIllustration, MoonIllustration } from './ThemeToggleIllustrations.js'
 import { useVisibleArtworkMotion } from '../render/artworkClock.js'
+import { ThemePreferenceMenu } from './ThemePreferenceMenu.js'
 
-export type ThemeTogglePart = 'root' | 'switch' | 'preference' | 'track' | 'selection' | 'artwork' | 'sun' | 'moon' | 'status'
+export type ThemeTogglePart = 'root' | 'switch' | 'preference' | 'menu' | 'option' | 'indicator' | 'track' | 'selection' | 'artwork' | 'sun' | 'moon' | 'status'
 export interface ThemeToggleState { theme: PickerTheme; dark: boolean; disabled: boolean }
 export type ThemeToggleStyles = Partial<Record<ThemeTogglePart, CSSProperties | ((state: ThemeToggleState) => CSSProperties)>>
 export interface CelestialThemeToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'type' | 'onChange' | 'value' | 'defaultValue'> {
@@ -24,7 +25,7 @@ export interface CelestialThemeToggleProps extends Omit<ButtonHTMLAttributes<HTM
   lcdArtwork?: 'symbols' | 'illustrations'
   /** Show the current mode beside the switch. Defaults to true. */
   showLabel?: boolean
-  /** Include a native Light / Dark / System dropdown. Defaults to true. */
+  /** Include a Light / Dark / System menu. Set false for just the toggle. Defaults to true. */
   showMenu?: boolean
   /** Enable decorative Sun motion and stars. Reduced motion still takes priority. */
   animated?: boolean
@@ -94,12 +95,6 @@ export function CelestialThemeToggle({ theme, defaultTheme = 'auto', appearance,
     </span>
     {!showMenu && showLabel && <span {...part('status', 'theme-toggle-status')} aria-hidden="true">{status}</span>}
     </button>
-    {showMenu && <span className="theme-toggle-preference" data-show-label={showLabel}>
-      {showLabel && <span {...part('status', 'theme-toggle-status')} aria-hidden="true">{status}</span>}
-      <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="m3 4.5 3 3 3-3" stroke="currentColor" strokeWidth="1.3" fill="none" /></svg>
-      <select {...part('preference')} value={preferred} aria-label={preferenceLabel} disabled={disabled} title={preferred === 'auto' ? `${labels.system ?? 'System'} · ${dark ? labels.dark : labels.light}` : status} onChange={(event) => select(event.target.value as PickerTheme)}>
-        <option value="light">{labels.light}</option><option value="dark">{labels.dark}</option><option value="auto">{labels.system ?? 'System'}</option>
-      </select>
-    </span>}
+    {showMenu && <ThemePreferenceMenu theme={preferred} status={status} resolvedLabel={dark ? labels.dark : labels.light} labels={labels} label={preferenceLabel} disabled={disabled} showLabel={showLabel} onSelect={select} part={part} />}
   </span>
 }

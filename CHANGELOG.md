@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1 — 18 November 2026
+
+- Replace the theme toggle's native dropdown with a styled Light/Dark/System menu, with padded rows, a checked selection, consistent hover states and named styling hooks in both 3D and LCD designs.
+- Keep keyboard focus around the visible switch and menu button while retaining 44px tap targets. Support menu keyboard navigation, dismissal and native Tab order, including Safari pointer/focus behaviour.
+- Position the menu 4px from its visible button, keep it inside narrow viewports and align it correctly in right-to-left layouts.
+- Expose the existing `showMenu={false}` option in the gallery settings and generated examples; document combining it with `showLabel={false}` for the switch alone.
+- Preserve the open date picker and selected date when changing appearance through the website header menu.
+
 ## 0.4.0 — 18 November 2026
 
 - Add a standalone Sun/Moon theme toggle in textured 3D and duotone LCD styles, with one moving thumb, compact 52–76px tracks, a visible current-mode label, optional engraved LCD illustrations, per-part styling, custom colours and reduced-motion support. Include both designs in the widgets gallery and framework adapters.

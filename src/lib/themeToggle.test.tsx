@@ -10,7 +10,7 @@ describe('standalone appearance toggle', () => {
       const html = renderToStaticMarkup(<CelestialThemeToggle theme={theme} label="Dark appearance" />)
       expect(html).toContain('type="button" role="switch" aria-label="Dark appearance"')
       expect(html).toContain(`aria-checked="${theme === 'dark'}"`)
-      expect(html.match(/<button/g)).toHaveLength(1)
+      expect(html.match(/role="switch"/g)).toHaveLength(1)
       expect(html).not.toContain('aria-pressed')
       expect(html).not.toContain('<div')
     }
@@ -36,12 +36,16 @@ describe('standalone appearance toggle', () => {
     expect(html).not.toContain('<canvas')
     expect(renderToStaticMarkup(<LcdToggle showLabel={false} />)).not.toContain('data-theme-toggle-part="status"')
   })
-  it('provides System in a native dropdown and supports a switch-only configuration', () => {
+  it('provides a localisable System menu and supports a switch-only configuration', () => {
     const html = renderToStaticMarkup(<LcdToggle defaultTheme="auto" labels={{ light: 'Jour', dark: 'Nuit', system: 'Système' }} />)
     expect(html).toContain('aria-label="Theme preference"')
-    expect(html).toContain('<option value="auto" selected="">Système</option>')
+    expect(html).toContain('aria-haspopup="menu"')
+    expect(html).toContain('role="menuitemradio" aria-checked="true"')
+    expect(html).toContain('>Système</span>')
     expect(html).toContain('data-theme-preference="auto"')
-    expect(renderToStaticMarkup(<LcdToggle showMenu={false} />)).not.toContain('<select')
+    const standalone = renderToStaticMarkup(<LcdToggle showMenu={false} />)
+    expect(standalone).not.toContain('data-theme-toggle-part="preference"')
+    expect(standalone).not.toContain('role="menu"')
   })
   it('inherits the host appearance while an explicit skin retains priority', () => {
     const inherited = renderToStaticMarkup(<CelestialThemeProvider theme="light"><LcdToggle theme="dark" /></CelestialThemeProvider>)

@@ -41,7 +41,8 @@ import 'skydial/style.css'
 
 <CelestialThemeToggle theme={theme} onThemeChange={setTheme} />
 <CelestialThemeToggle variant="lcd" lcdArtwork="illustrations" />
-<CelestialThemeToggle size="small" showLabel={false} />
+<CelestialThemeToggle size="small" showMenu={false} />
+<CelestialThemeToggle showMenu={false} showLabel={false} />
 ```
 
 `theme`/`onThemeChange` connect it to host state. With `defaultTheme` (default
@@ -57,14 +58,19 @@ state, the dropdown, or the provider's `setTheme('auto')`.
 76×36px. Every size retains a minimum 44px high interaction area. The current-mode
 label is included by default; use `showLabel={false}` for an icon-only switch or
 `labels={{ light: 'Jour', dark: 'Nuit', system: 'Système' }}` to localize it.
-`showMenu={false}` removes the dropdown; `preferenceLabel` names it for assistive
-technology. `lcdArtwork` accepts
+`showMenu={false}` removes the menu trigger, chevron and menu, leaving the working
+Sun/Moon switch. Combine it with `showLabel={false}` for the switch alone.
+`preferenceLabel` names the menu for assistive technology. `lcdArtwork` accepts
 `symbols` (default) or `illustrations`.
 
 The native button has `role="switch"`; `aria-checked="true"` means dark, its
 accessible `label` (default `Dark mode`) stays fixed, and it never submits a form.
-Clicking the switch, Space or Enter toggles the mode. The dropdown is a native
-HTML select with Light, Dark and System options and native keyboard/touch support. Left/Right select the
+Clicking the switch, Space or Enter toggles the mode. The menu uses a native
+popover with padded Light, Dark and System radio items. Arrow keys, Home/End and
+typing a label's initial move focus; Enter or Space selects. Escape dismisses
+without changing the preference and returns focus to its button; Tab leaves the
+menu. The switch's focus ring follows its visible track while retaining a 44px
+high tap area. Left/Right select the
 corresponding position, including RTL. The thumb moves and its artwork crossfades
 in 200ms; another activation immediately redirects the transition. Reduced motion
 makes the state change instant. `disabled` disables both controls. Button attributes
@@ -76,13 +82,15 @@ Explicit `appearance="auto"` always follows the device; `light` or `dark` fixes 
 skin to match a host interface. The gallery connects
 the switches to its actual page theme, so its labels, header and appearance agree.
 
-All parts accept styles and classes: `root`, `switch`, `preference`, `track`,
+All parts accept styles and classes: `root`, `switch`, `preference`, `menu`, `option`, `indicator`, `track`,
 `selection`, `artwork`, `sun`, `moon`, `status`. A style function receives `{ theme, dark, disabled }`.
 `colors.background` and `colors.foreground` set the track and ink; LCD stays duotone.
 CSS variables include `--toggle-width`, `--toggle-height`, `--toggle-selection-inset`,
 `--toggle-track`, `--toggle-ink`, `--toggle-selection`, `--toggle-duration` and
 `--toggle-easing`, `--toggle-night-sky`, `--toggle-day-sky`, `--toggle-sun-glow`
-and `--toggle-moon-glow`. A custom `colors.background` overrides both sky colours.
+and `--toggle-moon-glow`. The menu and focus styles expose `--toggle-focus-color`,
+`--toggle-menu-padding`, `--toggle-option-padding`, `--toggle-menu-radius` and
+`--toggle-option-radius`. A custom `colors.background` overrides both sky colours.
 `data-theme-toggle-part` exposes stylesheet hooks. Explicit
 consumer styles take priority.
 
