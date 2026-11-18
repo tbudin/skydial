@@ -21,7 +21,7 @@ export default function ThemeTogglePlayground() {
     <span className="widget-setting-label">UI elements</span><h2 id="theme-toggle-title">A little switch between day and night.</h2>
     <p>Switch between day and night, or choose System to follow your device. Try any toggle to change this page’s theme.</p>
     <div className="theme-toggle-examples" style={{ '--toggle-demo-gap': '16px' } as CSSProperties}>
-      <Example variant="celestial" colors={palettes.celestial} theme={appearance} {...{ size, disabled, rtl, showLabel }} />
+      {variant === 'celestial' && <Example variant="celestial" colors={palettes.celestial} theme={appearance} {...{ size, disabled, rtl, showLabel }} />}
       <Example variant="lcd" colors={palettes.lcd} theme={appearance} {...{ size, disabled, rtl, showLabel }} />
       <Example variant="lcd" lcdArtwork="illustrations" colors={palettes.lcd} theme={appearance} {...{ size, disabled, rtl, showLabel }} />
     </div>

@@ -58,6 +58,8 @@ test('compact toggles change the actual page theme, show one active body and off
     await expect(section.locator('[data-theme-toggle-part="status"]')).toHaveText(['Light', 'Light', 'Light'])
   }
   await setDesignStyle(page, 'lcd')
+  await expect(section.getByRole('article', { name: '3D toggle example', exact: true })).toHaveCount(0)
+  await expect(section.locator('canvas')).toHaveCount(0)
   await setPalette(page, 'Amber')
   const lcd = section.getByRole('article', { name: 'LCD illustrated toggle example', exact: true })
   await expect(lcd.locator('[data-theme-toggle-part="track"]')).toHaveCSS('background-color', 'rgb(243, 223, 175)')
