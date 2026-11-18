@@ -4,6 +4,7 @@ import { SATURN_RING_OUTER, type YearPlanetId } from '../astro/bodies.js'
 import { bodyAxes } from '../astro/ephemeris.js'
 import { DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory.js'
 import type { TextureSet } from './textures.js'
+import { RING_EXTENTS } from './artworkMotion.js'
 
 /**
  * Pre-render the planet-selector thumbnails from the same models the orrery
@@ -33,7 +34,7 @@ export function renderThumbnails(textures: TextureSet, timeMs: number, sizePx = 
     applyBodyAxes(obj.body, bodyAxes(id[0].toUpperCase() + id.slice(1), timeMs))
     scene.add(obj.root)
     const r = DISPLAY_RADIUS[id]
-    const extent = id === 'saturn' ? r * SATURN_RING_OUTER * 1.06 : r * 1.12
+    const extent = id === 'saturn' ? r * SATURN_RING_OUTER * 1.06 : id === 'uranus' ? r * RING_EXTENTS.uranus.outer * 1.06 : r * 1.12
     const cam = new THREE.OrthographicCamera(-extent, extent, extent, -extent, 0.01, 10)
     // View from within the ecliptic plane, from the side the north pole leans
     // towards. Rings then open by the planet's true obliquity (26.7° for Saturn),

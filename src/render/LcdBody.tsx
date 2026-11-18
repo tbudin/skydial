@@ -1,4 +1,6 @@
-import { useId } from 'react'
+import { useId, useRef } from 'react'
+import { useArtworkRingMotion } from './artworkClock.js'
+import { RING_EXTENTS, URANUS_RING_BANDS } from './artworkMotion.js'
 import type { PlanetId } from '../astro/bodies.js'
 import { bodyAxes } from '../astro/ephemeris.js'
 import { moonView, type BodyFrame, type Location } from '../astro/observer.js'
@@ -22,13 +24,13 @@ function RingSystem({ frame, camera, radius, near = false, narrow = false }: { f
     return ringPoint(r, angle)
   })
   const path = (points: { x: number; y: number }[]) => points.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join('')
-  const inner = narrow ? 1.42 : 1.24
-  const outer = narrow ? 1.68 : 2.27
+  const inner = narrow ? RING_EXTENTS.uranus.inner : 1.24
+  const outer = narrow ? RING_EXTENTS.uranus.outer : 2.27
   const boundary = path(coordinates(outer)) + path(coordinates(inner, true)).replace('M', 'L') + 'Z'
-  const bands = narrow ? [1.42, 1.49, 1.59, 1.68] : [1.24, 1.34, 1.43, 1.53, 1.63, 1.73, 1.83, 1.93, 2.04, 2.13, 2.22, 2.27]
+  const bands = narrow ? URANUS_RING_BANDS : [1.24, 1.34, 1.43, 1.53, 1.63, 1.73, 1.83, 1.93, 2.04, 2.13, 2.22, 2.27]
   return <g data-lcd-feature={near ? 'rings-front' : 'rings-back'}>
     <path d={boundary} className="lcd-paper-fill" stroke="none" fillRule="evenodd" />
-    {bands.map((r, i) => <path key={r} d={path(coordinates(r))} strokeWidth={narrow ? .65 : i === 0 || i === bands.length - 1 ? 1.3 : .75} strokeDasharray={!narrow && i % 3 === 1 ? '1 1.6' : undefined} />)}
+    {bands.map((r, i) => <path key={r} d={path(coordinates(r))} strokeWidth={narrow ? .65 : i === 0 || i === bands.length - 1 ? 1.3 : .75} strokeDasharray={i % 3 === 1 ? '1 1.6' : undefined} data-ring-radius={i % 3 === 1 ? r : undefined} data-ring-angle={i % 3 === 1 ? i : undefined} />)}
   </g>
 }
 
@@ -39,8 +41,10 @@ export function LcdBody({ body, location }: { body: LcdBodyId; location: Locatio
   const moon = body === 'moon' ? moonView(location, now) : null
   const frame = moon?.moonFrame ?? bodyAxes(body[0].toUpperCase() + body.slice(1), now)
   const camera = moon ? cameraBasis(moon.toObserver, frame.z) : planetCamera
-  const radius = body === 'saturn' ? 49 : body === 'uranus' ? 64 : 86
+  const radius = body === 'saturn' ? 49 : body === 'uranus' ? 54 : 86
   const ringed = body === 'saturn' || body === 'uranus'
+  const svg = useRef<SVGSVGElement>(null)
+  useArtworkRingMotion(svg, ringed)
   const markings = stippleDisc(radius, (x, y, z) => {
     const world = { x: camera.right.x * x + camera.up.x * y + camera.front.x * z, y: camera.right.y * x + camera.up.y * y + camera.front.y * z, z: camera.right.z * x + camera.up.z * y + camera.front.z * z }
     const { lat, lon } = surfaceCoordinates(world, frame)
@@ -57,7 +61,7 @@ export function LcdBody({ body, location }: { body: LcdBodyId; location: Locatio
     return [lon, lat - wave]
   }), radius, frame, camera))
   const craterPaths = body === 'moon' || body === 'mercury' ? LUNAR_CRATERS.map(([lon, lat, r]) => surfacePath(circleCoordinates(lon, lat, r), radius, frame, camera)) : []
-  return <svg className="lcd-body" data-renderer="lcd" data-lcd-body={body} viewBox="0 0 240 240" width="100%" height="100%" aria-hidden="true" focusable="false" stroke="currentColor" fill="none">
+  return <svg ref={svg} className="lcd-body" data-renderer="lcd" data-lcd-body={body} viewBox="0 0 240 240" width="100%" height="100%" aria-hidden="true" focusable="false" stroke="currentColor" fill="none">
     <defs>
       <clipPath id={`${key}-disc`}><circle cx="120" cy="120" r={radius} /></clipPath>
       {moon && <clipPath id={`${key}-light`}><path d={lit} transform={`rotate(${lightAngle} 120 120)`} /></clipPath>}

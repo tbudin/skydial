@@ -1,4 +1,4 @@
-import { setPalette } from './preview.js'
+import { setAppearance, setPalette } from './preview.js'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
@@ -59,7 +59,7 @@ test('detailed LCD bodies stay compact, rotate and retain two configurable inks'
   await page.getByLabel('Time (UTC)', { exact: true }).press('Tab')
   await expect(year.locator('[data-lcd-feature="atmosphere"]')).not.toHaveAttribute('d', before!)
   for (const appearance of ['light', 'dark']) {
-    await page.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(appearance)
+    await setAppearance(page, appearance)
     await setPalette(page, 'Ice blue')
     await expect(year.locator('.lcd-body')).toHaveCSS('color', 'rgb(24, 55, 71)')
     await expect(year.locator('.lcd-paper-fill').first()).toHaveCSS('fill', 'rgb(220, 235, 241)')

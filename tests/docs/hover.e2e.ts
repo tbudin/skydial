@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { calendarScale, yearScale } from 'skydial/astro'
-import { previewHeader, openSettings } from './preview.js'
+import { setAppearance, openSettings } from './preview.js'
 
 for (const variant of ['lcd', 'celestial']) test(`${variant} hover previews follow the configured calendar units and can be styled`, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -10,7 +10,7 @@ for (const variant of ['lcd', 'celestial']) test(`${variant} hover previews foll
   await settings.getByRole('combobox', { name: 'Element to style', exact: true }).selectOption('orbitPreview')
   await settings.getByRole('textbox', { name: 'CSS properties', exact: true }).fill('{"fontSize":14,"borderRadius":0}')
   for (const theme of ['light', 'dark']) {
-    await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     for (const unit of ['year', 'month', 'day']) {
       await settings.getByRole('checkbox', { name: unit, exact: true }).check()
       for (const other of ['year', 'month', 'day', 'hour', 'minute', 'second'].filter((item) => item !== unit)) await settings.getByRole('checkbox', { name: other, exact: true }).uncheck()

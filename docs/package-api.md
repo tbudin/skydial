@@ -23,6 +23,160 @@ native-JavaScript consumers do not need the browser renderer. For React, install
 `react react-dom three @react-three/fiber @react-three/drei` with compatible
 versions from `package.json`. Import the stylesheet once in the host app.
 
+## Shared appearance and mode switch
+
+### Standalone Sun/Moon toggle
+
+`CelestialThemeToggle` is a compact Sun/Moon switch with a Light/Dark/System
+preference dropdown, independent of date pickers.
+One thumb moves between the Sun (light) and Moon (dark); only the active body
+appears in the thumb. A visible Light, Dark or System label confirms the selected preference.
+The `celestial` style uses textured 3D spheres. The `lcd` style offers simple
+symbols or engraved illustrations using the package's lunar craters and duotone
+stipple. The track's small symbols are position landmarks, not separate buttons.
+
+```tsx
+import { CelestialThemeToggle } from 'skydial/react'
+import 'skydial/style.css'
+
+<CelestialThemeToggle theme={theme} onThemeChange={setTheme} />
+<CelestialThemeToggle variant="lcd" lcdArtwork="illustrations" />
+<CelestialThemeToggle size="small" showLabel={false} />
+```
+
+`theme`/`onThemeChange` connect it to host state. With `defaultTheme` (default
+`auto`) it owns its preference. The switch reports `light` or `dark`; the dropdown
+also reports `auto` for System. In System mode the thumb follows device changes,
+while the label and dropdown stay on System. Activating the switch chooses an
+explicit mode; choose System in the dropdown to follow the device again. It changes
+no document attributes or browser storage. Within `CelestialThemeProvider`, an
+omitted `theme` inherits and updates the provider. Reset system mode through host
+state, the dropdown, or the provider's `setTheme('auto')`.
+
+`size="small|medium|large"` sets the visual track to 52×28, 64×32 (default) or
+76×36px. Every size retains a minimum 44px high interaction area. The current-mode
+label is included by default; use `showLabel={false}` for an icon-only switch or
+`labels={{ light: 'Jour', dark: 'Nuit', system: 'Système' }}` to localize it.
+`showMenu={false}` removes the dropdown; `preferenceLabel` names it for assistive
+technology. `lcdArtwork` accepts
+`symbols` (default) or `illustrations`.
+
+The native button has `role="switch"`; `aria-checked="true"` means dark, its
+accessible `label` (default `Dark mode`) stays fixed, and it never submits a form.
+Clicking the switch, Space or Enter toggles the mode. The dropdown is a native
+HTML select with Light, Dark and System options and native keyboard/touch support. Left/Right select the
+corresponding position, including RTL. The thumb moves and its artwork crossfades
+in 200ms; another activation immediately redirects the transition. Reduced motion
+makes the state change instant. `disabled` disables both controls. Button attributes
+and `ref` apply to the switch button; `root` styles apply to its surrounding span.
+
+`appearance` controls the skin independently of the chosen `theme`. When omitted,
+it inherits the surrounding theme provider, or the device appearance outside one.
+Explicit `appearance="auto"` always follows the device; `light` or `dark` fixes the
+skin to match a host interface. The gallery connects
+the switches to its actual page theme, so its labels, header and appearance agree.
+
+All parts accept styles and classes: `root`, `switch`, `preference`, `track`,
+`selection`, `artwork`, `sun`, `moon`, `status`. A style function receives `{ theme, dark, disabled }`.
+`colors.background` and `colors.foreground` set the track and ink; LCD stays duotone.
+CSS variables include `--toggle-width`, `--toggle-height`, `--toggle-selection-inset`,
+`--toggle-track`, `--toggle-ink`, `--toggle-selection`, `--toggle-duration` and
+`--toggle-easing`, `--toggle-night-sky`, `--toggle-day-sky`, `--toggle-sun-glow`
+and `--toggle-moon-glow`. A custom `colors.background` overrides both sky colours.
+`data-theme-toggle-part` exposes stylesheet hooks. Explicit
+consumer styles take priority.
+
+The 3D night scene uses a near-black sky, six independently twinkling stars and a
+soft lunar halo. The Moon retains reflected-light shading rather than an emissive
+surface. The day scene uses a blue sky with a soft horizon gradient, solar limb shading, a corona, slow rotation, surface
+convection. Solar activity is an accelerated visual
+illustration, not live observations or a real-time physical simulation. Background:
+[NASA Moonlight](https://science.nasa.gov/moon/moonlight/) and
+[NASA Sun facts](https://science.nasa.gov/sun/facts/).
+
+`animated={false}` freezes decorative scenes while retaining switch interaction.
+Motion also stops with reduced motion, low quality,
+`CelestialRenderProvider artworkMotion={false}`, hidden pages or offscreen controls.
+Only the active, visible Sun draws continuously, capped at 20 fps or the host's
+lower `maxFps`. The Moon's geometry is idle after its short selection turn; stars
+use CSS animation. Shared texture caches avoid duplicate downloads.
+Geometry and renderer resources are released on unmount; SVG symbols keep the
+control usable without WebGL. `skydial/lcd` exports both LCD artwork options
+without Three.js or texture downloads. The form-only entry provides the same
+behavior with a vector fallback.
+
+Vue exports `CelestialThemeToggle` with the usual `options` object. Svelte uses
+`component: 'themeToggle'`; vanilla uses `mountCelestial(host, 'themeToggle', options)`.
+See both interactive designs in the website's Widgets page under **UI elements**.
+
+### Optional shared preference and three-choice control
+
+`CelestialThemeProvider`, `CelestialThemeSwitch` and `useCelestialTheme` are
+available from `skydial/react`, `skydial/lcd` and `skydial/pickers`. The latter two
+keep their renderer-free dependency graphs. Import `skydial/style.css`, or
+`skydial/picker.css` for the form-only entry.
+
+```tsx
+import { CelestialThemeProvider, CelestialThemeSwitch, CelestialInput, EarthWidget } from 'skydial/react'
+
+<CelestialThemeProvider defaultTheme="auto">
+  <CelestialThemeSwitch />
+  <CelestialInput name="appointment" mode="datetime" />
+  <EarthWidget />
+</CelestialThemeProvider>
+```
+
+The switch has visible Light, Dark and System buttons. System stores the
+preference `auto` and follows device appearance changes live. Native buttons
+support keyboard and touch, expose `aria-pressed`, and never submit a form.
+
+The provider adds no DOM wrapper. Modern inputs, range inputs, form-only pickers,
+scroll/step controls, cards, displays and standalone bodies inherit its theme.
+An explicit component `theme` wins; a nested provider creates an independent
+section. Existing component defaults apply outside a provider. The original
+reference clock and legacy `CelestialDatePicker`/`CelestialTimePicker` keep their
+dark instrument design; use `CelestialInput` for themed date/time inputs.
+Custom `colors`, CSS variables and named-part styles remain consumer overrides.
+
+The provider accepts `theme`, `defaultTheme` (default `auto`) and
+`onThemeChange`. Supply both `theme` and `onThemeChange` to control it from host
+state. `useCelestialTheme()` inside a provider returns `{ theme, resolvedTheme,
+setTheme }`; call `setTheme('auto')` to restore system mode. `resolvedTheme` is
+`light` or `dark`; the deterministic server fallback for `auto` is `dark`.
+CSS applies the device palette before hydration, and canvas appearance resolves
+on the client. No browser storage or document attributes are changed by the
+package. Persist preferences or theme the rest of your app in the host if needed.
+
+The switch can also be controlled directly with `theme`/`onThemeChange`, or own
+its state with `defaultTheme` outside a provider. A standalone switch only changes
+its own preference; connect it to other components through host state or a
+provider. It accepts `variant`, `colors`, `disabled`, native div attributes,
+translated `labels` (`appearance`, `light`, `dark`, `auto`), `className` and `style`.
+Use `styles.root`, `styles.button`, `classNames.root` and `classNames.button` for
+each part; a button style function receives `{ theme, selected, disabled }`.
+`data-theme-part` and `data-theme-option` expose stylesheet selectors.
+CSS variables `--theme-switch-height`, `--theme-switch-radius`,
+`--theme-switch-gap` and `--theme-switch-padding` customize the defaults.
+
+Framework adapters expose the same controlled switch. Update other components'
+`theme` from the callback in host state; separate mounts do not share React context:
+
+```ts
+import { mountCelestial } from 'skydial/dom'
+
+const input = mountCelestial(inputHost, 'input', { theme: 'auto' })
+const appearance = mountCelestial(switchHost, 'themeSwitch', {
+  defaultTheme: 'auto',
+  onThemeChange: (theme) => input.update({ theme }),
+})
+// On teardown: appearance.destroy(); input.destroy()
+```
+
+Vue exports `CelestialThemeSwitch`, taking the usual `options` object. Svelte
+uses `use:celestial={{ component: 'themeSwitch', options: { theme, onThemeChange } }}`.
+The documentation header uses the package switch and retains its own saved
+appearance preference across pages.
+
 ## Designed celestial date/time inputs
 
 ```tsx
@@ -551,6 +705,19 @@ may be hidden for a body-only composition, and `bodies={[]}` gives a text-only o
 real computed orientation and observer-aware Earth/Moon illumination; 3D planet
 lighting is illustrative. Bodies inherit the same provider/date/clock contracts
 as widgets. LCD uses SVG only; each 3D body uses a demand-rendered canvas.
+
+Saturn and Uranus have material motion within their fixed ring planes. The Sun
+mesh factory includes illustrative surface convection; these
+effects are not observed solar activity. Decorative motion has a separate
+presentation clock and never advances the selected date, body positions or poles.
+React views respect Reduce Motion, pause offscreen, and disable these effects at
+low quality. Set `<CelestialRenderProvider artworkMotion={false}>` to keep them
+static. LCD ring motion updates only the engraved dash pattern.
+
+The framework-independent factories from `skydial/three` expose
+`model.updateArtwork?.(elapsedSeconds)`. Call it from the host's visible render
+loop, independently of `applyBodyAxes(model.body, bodyAxes(body, savedInstant))`.
+Pass `0` for a static presentation. Dispose the model when the view closes.
 
 Displays come in `small`, `medium` and `large` typography/body sizes, with `inline`
 or `stacked` layout. They wrap to their container instead of clipping. `colors`,

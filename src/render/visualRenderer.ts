@@ -6,6 +6,7 @@ import type { OrreryViewProps } from './orreryTypes.js'
 import type { OrreryPalette } from './palette.js'
 
 export interface VisualRenderer {
+  ThemeToggle?: ComponentType<{ dark: boolean; active: boolean; animated?: boolean }>
   Earth: ComponentType<{ location: Location; view?: 'observer' | 'rotation'; cameraDistance?: number; illustration?: boolean }>
   Moon: ComponentType<{ location: Location; illustration?: boolean }>
   Planet: ComponentType<{ planet: Exclude<PlanetId, 'earth'>; illustration?: boolean }>
@@ -20,13 +21,13 @@ export function VisualRendererProvider({ renderer, children }: { renderer: Visua
 export function useVisualRenderer() { return useContext(VisualRendererContext) }
 
 export type RenderQuality = 'auto' | 'low' | 'high'
-export interface CelestialRenderOptions { quality?: RenderQuality; maxFps?: number }
-const RenderOptionsContext = createContext<Required<CelestialRenderOptions>>({ quality: 'auto', maxFps: 30 })
+export interface CelestialRenderOptions { quality?: RenderQuality; maxFps?: number; artworkMotion?: boolean }
+const RenderOptionsContext = createContext<Required<CelestialRenderOptions>>({ quality: 'auto', maxFps: 30, artworkMotion: true })
 /** Optional shared budget for a page containing several 3D widgets. */
-export function CelestialRenderProvider({ quality, maxFps, children }: CelestialRenderOptions & { children: ReactNode }) {
+export function CelestialRenderProvider({ quality, maxFps, artworkMotion, children }: CelestialRenderOptions & { children: ReactNode }) {
   const parent = useContext(RenderOptionsContext)
   if (maxFps !== undefined && (!Number.isFinite(maxFps) || maxFps < 1 || maxFps > 60)) throw new RangeError('maxFps must be between 1 and 60.')
   if (quality !== undefined && !['auto', 'low', 'high'].includes(quality)) throw new RangeError('Unknown render quality.')
-  return createElement(RenderOptionsContext.Provider, { value: { quality: quality ?? parent.quality, maxFps: maxFps ?? (quality === 'low' ? 15 : parent.maxFps) } }, children)
+  return createElement(RenderOptionsContext.Provider, { value: { quality: quality ?? parent.quality, maxFps: maxFps ?? (quality === 'low' ? 15 : parent.maxFps), artworkMotion: artworkMotion ?? parent.artworkMotion } }, children)
 }
 export function useRenderOptions() { return useContext(RenderOptionsContext) }

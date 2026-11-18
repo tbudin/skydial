@@ -11,6 +11,7 @@ import { DEFAULT_PLACE } from './defaults.js'
 import { PickerControls, type CelestialControlProps, type PickerControl } from './PickerControls.js'
 import { PickerLocalizationProvider, localizedPickerValue, usePickerLocale } from './localization.js'
 import { SelectionGuard } from './SelectionGuard.js'
+import { usePickerTheme } from './usePickerTheme.js'
 
 export interface CelestialPickerProps extends Omit<CelestialControlProps, 'date' | 'defaultDate' | 'onDateChange'> {
   /** Nullable, controlled instant; omitting value creates an uncontrolled form field. */
@@ -74,10 +75,11 @@ export function CelestialPicker({ value, defaultValue, onChange, clock, onReset,
 
 function FormPicker({ empty, locked, canClear, onClear, onReset, label: customLabel, placeholder: customPlaceholder, name, id, form, formatValue, validationMessage,
   required = false, clearable = false, control = 'wheel', children, toolbar, presentation = 'popover', description, styles: _styles, classNames: _classNames, locale, hourCycle, dir: _dir, messages: _messages, popoverPlacement = 'auto', popoverOffset = 6,
-  place = DEFAULT_PLACE, size = 'small', theme = 'dark', variant = 'celestial', colors, className = '', style, disabled = false, ...configuration
+  place = DEFAULT_PLACE, size = 'small', theme: themeProp, variant = 'celestial', colors, className = '', style, disabled = false, ...configuration
 }: Omit<CelestialPickerProps, 'value' | 'defaultValue' | 'onChange' | 'clock'> & {
   empty: boolean; locked: boolean; canClear: boolean; onClear: () => void; onReset: () => void
 }) {
+  const theme = usePickerTheme(themeProp)
   const part = usePickerParts()
   const i18n = usePickerLocale()
   const messages = i18n.messages

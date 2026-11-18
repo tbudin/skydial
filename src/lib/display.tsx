@@ -13,6 +13,7 @@ import { pickerColorStyle, type PickerColors } from './colors.js'
 import { DigitalText } from './DigitalText.js'
 import type { CelestialWidgetProps } from './types.js'
 import { widgetPart, type WidgetAppearance } from './widgetAppearance.js'
+import { usePickerTheme } from './usePickerTheme.js'
 
 export type CelestialBodyId = PlanetId | 'moon'
 export type DisplayFormat = Intl.DateTimeFormatOptions | false
@@ -38,7 +39,8 @@ export function BodyVisual({ body, place, variant }: { body: CelestialBodyId; pl
 }
 
 /** Standalone body for a header, badge or custom composition, without a selector. */
-export function CelestialBody({ body = 'earth', size = 40, variant = 'celestial', theme = 'dark', colors, place = DEFAULT_PLACE, className = '', style, styles, classNames, ...time }: CelestialBodyProps) {
+export function CelestialBody({ body = 'earth', size = 40, variant = 'celestial', theme: themeProp, colors, place = DEFAULT_PLACE, className = '', style, styles, classNames, ...time }: CelestialBodyProps) {
+  const theme = usePickerTheme(themeProp)
   const appearance = { styles, classNames }
   return <ClockScope {...time}><figure {...widgetPart(appearance, 'root', `celestial-clock celestial-body ${className}`, { width: size, height: size, ...pickerColorStyle(colors, variant), ...style })}
     data-body={body} data-picker-style={variant} data-picker-theme={theme} role="img" aria-label={body === 'moon' ? 'Moon' : PLANET_BY_ID[body].name}>
@@ -64,7 +66,8 @@ const DEFAULT_TIME: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-d
 
 /** Read-only date/time for toolbars and dashboards; no input or popup is mounted. */
 export function CelestialDisplay({ bodies = DEFAULT_BODIES, dateFormat = DEFAULT_DATE, timeFormat = DEFAULT_TIME, locale = 'en-GB', size = 'small', layout = 'inline', label,
-  variant = 'celestial', theme = 'dark', colors, place = DEFAULT_PLACE, className = '', style, styles, classNames, ...time }: CelestialDisplayProps) {
+  variant = 'celestial', theme: themeProp, colors, place = DEFAULT_PLACE, className = '', style, styles, classNames, ...time }: CelestialDisplayProps) {
+  const theme = usePickerTheme(themeProp)
   return <ClockScope {...time}><div {...widgetPart({ styles, classNames }, 'root', `celestial-clock celestial-display display-${size} display-${layout} ${className}`, { ...pickerColorStyle(colors, variant), ...style })}
     data-picker-style={variant} data-picker-theme={theme}>
     <DisplayContent {...{ bodies, dateFormat, timeFormat, locale, label, place, variant, styles, classNames }} />

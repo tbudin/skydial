@@ -54,6 +54,9 @@ export function mountWidgetGallery(main, runtime) {
   let { variant, theme, colors } = runtime.getPreviewAppearance()
   let place = { ...runtime.CITIES.find((city) => city.name === 'Greenwich'), source: 'city' }
   const compact = runtime.mountDisplayConfigurator(main.querySelector('[data-compact-configurator]'), { date, place })
+  const toggleHost = document.createElement('div')
+  main.querySelector('#compact-displays').after(toggleHost)
+  const toggle = runtime.mountThemeTogglePlayground(toggleHost)
   const mounted = widgets.map((widget) => {
     const section = main.querySelector(`[data-widget-example="${widget.kind}"]`)
     let size = widget.size
@@ -111,5 +114,5 @@ export function mountWidgetGallery(main, runtime) {
     timeField.value = current.slice(11, 16)
     updateMoment()
   }, { signal: controller.signal })
-  return { destroy: () => { controller.abort(); unsubscribe(); compact.destroy(); header.destroy(); mounted.forEach((instance) => instance.destroy()) } }
+  return { destroy: () => { controller.abort(); unsubscribe(); compact.destroy(); toggle.destroy(); toggleHost.remove(); header.destroy(); mounted.forEach((instance) => instance.destroy()) } }
 }

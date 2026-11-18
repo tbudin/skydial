@@ -8,8 +8,15 @@ import { CelestialDisplay as Display, CelestialDateDisplay as DateDisplay, Celes
 import { CelestialPicker as Picker, type CelestialPickerProps } from './picker.js'
 import { CelestialRangePicker as RangePicker, type CelestialRangePickerProps } from './range.js'
 import { CelestialScrollPicker as Scroll, CelestialStepper as Stepper, type CelestialControlProps } from './PickerControls.js'
+import { CelestialThemeSwitch as ThemeSwitch, type CelestialThemeSwitchProps } from './theme.js'
+import { CelestialThemeToggle as ThemeToggle, type CelestialThemeToggleProps } from './themeToggle.js'
 
 type Lcd<P> = Omit<P, 'variant'>
+export function CelestialThemeToggle(props: Lcd<CelestialThemeToggleProps>) { return <ThemeToggle {...props} variant="lcd" /> }
+export type { CelestialThemeToggleProps, ThemeTogglePart, ThemeToggleState, ThemeToggleStyles } from './themeToggle.js'
+export function CelestialThemeSwitch(props: Lcd<CelestialThemeSwitchProps>) { return <ThemeSwitch {...props} variant="lcd" /> }
+export { CelestialThemeProvider, useCelestialTheme } from './theme.js'
+export type { CelestialThemeProviderProps, CelestialThemeSwitchProps, ThemeSwitchButtonState, PickerTheme, ResolvedPickerTheme } from './theme.js'
 export function CelestialInput(props: Lcd<CelestialInputProps>) { return <Input {...props} variant="lcd" /> }
 export function CelestialRangeInput(props: Lcd<CelestialRangeInputProps>) { return <RangeInput {...props} variant="lcd" /> }
 export function CelestialPicker(props: Lcd<CelestialPickerProps>) { return <Picker {...props} variant="lcd" /> }

@@ -14,8 +14,15 @@ import { CelestialDisplay, CelestialBody, type CelestialDisplayProps, type Celes
 import type { CelestialRangeInputProps } from '../lib/rangeInput.js'
 import type { CelestialRangePickerProps } from '../lib/range.js'
 import type { CelestialValueInputProps } from '../lib/valueInput.js'
+import { CelestialThemeSwitch, type CelestialThemeSwitchProps } from '../lib/theme.js'
+import { CelestialThemeToggle } from '../lib/full.js'
+import type { CelestialThemeToggleProps } from '../lib/themeToggle.js'
+export type { CelestialThemeToggleProps } from '../lib/themeToggle.js'
+export type { CelestialThemeSwitchProps, PickerTheme } from '../lib/theme.js'
 
 export interface CelestialComponentMap {
+  themeSwitch: CelestialThemeSwitchProps
+  themeToggle: CelestialThemeToggleProps
   range: CelestialRangeInputProps
   rangeField: CelestialRangePickerProps
   value: CelestialValueInputProps
@@ -34,7 +41,7 @@ export interface CelestialComponentMap {
   orrery: OrreryClockProps
 }
 export type CelestialComponent = keyof CelestialComponentMap
-const components = { range: CelestialRangeInput, rangeField: CelestialRangePicker, value: CelestialValueInput, input: CelestialInput, field: CelestialPicker, scroll: CelestialScrollPicker, stepper: CelestialStepper, picker: CelestialDatePicker, time: CelestialTimePicker, widget: CelestialWidget, display: CelestialDisplay, body: CelestialBody, clock: CelestialClock, earth: EarthClock, moon: MoonClock, orrery: OrreryClock }
+const components = { themeToggle: CelestialThemeToggle, themeSwitch: CelestialThemeSwitch, range: CelestialRangeInput, rangeField: CelestialRangePicker, value: CelestialValueInput, input: CelestialInput, field: CelestialPicker, scroll: CelestialScrollPicker, stepper: CelestialStepper, picker: CelestialDatePicker, time: CelestialTimePicker, widget: CelestialWidget, display: CelestialDisplay, body: CelestialBody, clock: CelestialClock, earth: EarthClock, moon: MoonClock, orrery: OrreryClock }
 const roots = new WeakMap<HTMLElement, Root>()
 
 export interface CelestialMount<K extends CelestialComponent> {

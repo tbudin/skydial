@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { previewHeader, setDesignStyle, openSettings } from './preview.js'
+import { setAppearance, setDesignStyle, openSettings } from './preview.js'
 
 test('date, time and combined popups fit without scrolling their content', async ({ page }) => {
   test.setTimeout(180000)
@@ -57,7 +57,7 @@ test('city-facing Earth retains its geography while the high contrast night hemi
   // Readability and the selected-row focus cue hold in both appearances.
   for (const theme of ['light', 'dark']) {
     await panel.getByRole('button', { name: 'Done', exact: true }).click()
-    await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     await page.getByRole('button', { name: 'Starts', exact: true }).click()
     const hours = panel.getByRole('listbox', { name: 'Hours', exact: true })
     await hours.press('ArrowDown')

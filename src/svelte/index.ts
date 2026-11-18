@@ -1,5 +1,7 @@
 import type { Action } from 'svelte/action'
 import { mountCelestial, type CelestialComponent, type CelestialComponentMap } from '../dom/index.js'
+export type { CelestialThemeSwitchProps, PickerTheme } from '../lib/theme.js'
+export type { CelestialThemeToggleProps } from '../lib/themeToggle.js'
 
 export type CelestialActionOptions = { [K in CelestialComponent]: { component: K; options?: CelestialComponentMap[K] } }[CelestialComponent]
 

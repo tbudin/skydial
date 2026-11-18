@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { previewHeader, openSettings } from './preview.js'
+import { setAppearance, openSettings } from './preview.js'
 
 test('package-site pages mount live examples and keep nested assets working', async ({ page }) => {
   const errors: string[] = []
@@ -86,7 +86,7 @@ test('a clean picker shows Earth and one configured year planet with synchronize
   await expect(field).toContainText('2027-03-22')
   await example.getByRole('button', { name: 'Save event', exact: true }).click()
   await expect(example.locator('.picker-submit-result')).toContainText('"startsAt": "2027-03-22"')
-  await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption('dark')
+  await setAppearance(page, 'dark')
   await settings.getByRole('combobox', { name: 'Year planet', exact: true }).selectOption('saturn')
   await field.click()
   panel = page.getByRole('dialog', { name: 'Starts', exact: true })

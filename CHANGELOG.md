@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 — 18 November 2026
+
+- Add a standalone Sun/Moon theme toggle in textured 3D and duotone LCD styles, with one moving thumb, compact 52–76px tracks, a visible current-mode label, optional engraved LCD illustrations, per-part styling, custom colours and reduced-motion support. Include both designs in the widgets gallery and framework adapters.
+- Remove solar flare geometry from all shared Sun models.
+- Add a native Light/Dark/System dropdown to the toggle and use it throughout the website header. System follows device changes while retaining its selected preference.
+- Add a darker twinkling night sky and luminous lunar halo, plus a blue daytime sky, slow solar rotation and surface convection. Decorative scenes pause offscreen, in hidden pages, with reduced motion, low quality or explicit motion controls.
+- Add a styleable Light/Dark/System appearance switch, shared theme provider and theme hook for modern pickers, widgets and displays. Explicit themes and custom colours retain priority.
+- Expose the switch in the LCD/form-only entries and Vue, Svelte and vanilla adapters; use the package control in the documentation header.
+- Add independent material motion for Saturn and Uranus rings, plus illustrative solar convection. Material motion leaves dated body positions, poles and the astronomical clock unchanged.
+- Share the motion functions through `skydial/three`, include Uranus rings in the reusable 3D models, and animate engraved ring details in LCD bodies.
+- Respect Reduce Motion, hidden/offscreen views and low render quality. `CelestialRenderProvider` can disable decorative motion with `artworkMotion={false}`.
+
 ## 0.3.2
 
 - Keep complete LCD range readings on one line on mobile; scale the artwork to fit the available field width instead of wrapping or clipping an endpoint.

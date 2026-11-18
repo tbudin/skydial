@@ -1,5 +1,35 @@
 # Validation record
 
+## Skydial 0.4.0 — 18 November 2026
+
+This release adds standalone Sun/Moon toggles in 3D and two LCD artwork styles,
+a native Light/Dark/System preference dropdown, a shared appearance provider and
+framework adapters. The website header uses the package toggle. The 3D scene
+has a blue daytime sky, a luminous Moon and independently twinkling night stars.
+The Sun keeps its surface rotation and convection, with no solar flare geometry
+in any shared model. Selected dates and astronomical orientations are preserved.
+
+Local release checks pass: 139 unit/SSR tests, lint, application/library builds,
+consumer/site types, exports, texture assets, strict package lint, packed ESM
+type resolution and clean archive installations. The renderer-free LCD graph
+contains no Three.js/Fiber/Drei or texture assets and stays below its 65 kB gzip
+budget. The twelve-page documentation build and local links pass.
+
+Twenty-seven focused browser cases pass across Chromium, Firefox and WebKit.
+They cover switch and dropdown state, System/device changes, provider and
+independent controls, keyboard switching, RTL, disabled states, reduced motion,
+accessible contrast, Vue, Svelte and vanilla consumers. Five website cases pass,
+including header accessibility at 320px, preference persistence, preserving an
+open picker during appearance changes, shader rendering, and stopping decorative
+motion when hidden from view or reduced motion is requested. Native dropdown
+keyboard navigation was also checked in the actual browser. The final Sun was
+visually inspected to confirm the flare removal.
+
+Thomas Budin remains the sole author and committer; Plain Matter Pte Ltd owns
+the code copyright and website. Required third-party notices remain. The npm
+archive is prepared from a clean checkout of the reviewed commit; native-app
+and design-source work are excluded from this release.
+
 ## Skydial 0.3.2 — 4 November 2026
 
 The maintainer preferred a single-line range after reviewing 0.3.1's wrapping

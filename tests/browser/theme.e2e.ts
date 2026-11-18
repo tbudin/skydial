@@ -1,0 +1,67 @@
+import AxeBuilder from '@axe-core/playwright'
+import { expect, test } from '@playwright/test'
+
+for (const variant of ['celestial', 'lcd']) test(`${variant} shared appearance updates fields, open scenes and widgets without losing values`, async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
+  await page.goto(`?theme&controlled${variant === 'lcd' ? '&lcd' : ''}`)
+  const control = page.getByRole('group', { name: 'Appearance', exact: true })
+  await expect(page.getByTestId('theme-state')).toHaveText('auto/light')
+  const field = page.getByRole('button', { name: 'Appointment', exact: true })
+  await field.click()
+  const panel = page.getByRole('dialog', { name: 'Appointment', exact: true })
+  const original = await page.locator('input[name="appointment"]').inputValue()
+  // Theme changes via a custom host control keep the native popup and its selection alive.
+  await page.evaluate(() => document.querySelector<HTMLButtonElement>('.celestial-theme-switch [data-theme-option="dark"]')!.click())
+  await expect(panel).toBeVisible()
+  await expect(panel.locator('[data-scene-theme]')).toHaveAttribute('data-scene-theme', 'dark')
+  await expect(page.getByTestId('theme-state')).toHaveText('dark/dark')
+  await panel.getByRole('button', { name: 'Done', exact: true }).click()
+  await expect(field).toBeFocused()
+  for (const theme of ['light', 'dark']) {
+    await control.getByRole('button', { name: theme === 'light' ? 'Light' : 'Dark', exact: true }).click()
+    await expect(page.locator('.celestial-card')).toHaveAttribute('data-picker-theme', theme)
+    await expect(page.getByTestId('wheel').locator('[data-picker-theme]')).toHaveAttribute('data-picker-theme', theme)
+    await expect(page.getByTestId('stepper').locator('[data-picker-theme]')).toHaveAttribute('data-picker-theme', theme)
+    await expect(page.locator('.celestial-body')).toHaveAttribute('data-picker-theme', theme)
+    await expect(page.getByTestId('fixed').locator('[data-picker-theme]')).toHaveAttribute('data-picker-theme', 'light')
+    await expect(page.getByTestId('nested').locator('[data-picker-theme]')).toHaveAttribute('data-picker-theme', 'dark')
+    await expect(page.getByTestId('custom').locator('.celestial-display')).toHaveCSS('background-color', 'rgb(243, 223, 175)')
+    await expect(page.locator('input[name="appointment"]')).toHaveValue(original)
+  }
+  await control.getByRole('button', { name: 'System', exact: true }).click()
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await expect(page.getByTestId('theme-state')).toHaveText('auto/dark')
+  await page.emulateMedia({ colorScheme: 'light' })
+  await expect(page.getByTestId('theme-state')).toHaveText('auto/light')
+  const card = page.locator('.celestial-card')
+  await expect(card).toHaveCSS('background-color', variant === 'lcd' ? 'rgb(201, 207, 180)' : 'rgb(244, 247, 251)')
+})
+
+for (const variant of ['celestial', 'lcd']) test(`${variant} appearance controls support keyboard, narrow layouts and independent state`, async ({ page, browserName }) => {
+  await page.setViewportSize({ width: 320, height: 844 })
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto(`?theme${variant === 'lcd' ? '&lcd' : ''}`)
+  const control = page.getByRole('group', { name: 'Appearance', exact: true })
+  await control.getByRole('button', { name: 'Dark', exact: true }).focus()
+  await page.keyboard.press('Space')
+  await expect(control.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  // Safari's default navigation uses Option+Tab to include native buttons.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab')
+  await expect(control.getByRole('button', { name: 'System', exact: true })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByTestId('theme-state')).toHaveText('auto/light')
+  const independent = page.getByRole('group', { name: 'Controlled appearance', exact: true })
+  await independent.getByRole('button', { name: 'Dark', exact: true }).click()
+  await expect(page.getByTestId('controlled-theme')).toHaveText('dark')
+  await expect(page.getByTestId('theme-state')).toHaveText('auto/light')
+  await page.getByRole('group', { name: 'Standalone appearance', exact: true }).getByRole('button', { name: 'Dark', exact: true }).click()
+  await expect(page.getByRole('group', { name: 'Standalone appearance', exact: true }).getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByTestId('theme-state')).toHaveText('auto/light')
+  await expect(page.getByRole('group', { name: 'Disabled appearance', exact: true }).getByRole('button', { name: 'Light', exact: true })).toBeDisabled()
+  const audit = await new AxeBuilder({ page }).include('.celestial-theme-switch').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
+  expect(audit.violations).toEqual([])
+  expect(await page.evaluate(() => [...document.querySelectorAll('.celestial-theme-switch')].every((node) => {
+    const rect = node.getBoundingClientRect()
+    return rect.left >= 0 && rect.right <= innerWidth
+  }))).toBe(true)
+})

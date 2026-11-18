@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { previewHeader } from './preview.js'
+import { setAppearance } from './preview.js'
 
 for (const variant of ['lcd', 'celestial']) test(`${variant} month labels and step buttons stay aligned across themes and screen sizes`, async ({ page }) => {
   // Each case checks four screen/theme combinations, including an axe scan.
@@ -9,7 +9,7 @@ for (const variant of ['lcd', 'celestial']) test(`${variant} month labels and st
   const presets = page.getByRole('group', { name: 'Picker presets' })
   for (const width of [1280, 320]) for (const theme of ['light', 'dark']) {
     await page.setViewportSize({ width, height: 900 })
-    await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     await presets.getByRole('button', { name: width === 320 ? 'Date & time' : 'Date', exact: true }).click()
     await page.getByRole('button', { name: 'Starts', exact: true }).click()
     const panel = page.getByRole('dialog', { name: 'Starts', exact: true })

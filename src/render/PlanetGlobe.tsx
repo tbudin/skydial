@@ -11,6 +11,8 @@ import { loadTextures, type TextureSet } from './textures.js'
 import { useVisualClock } from '../sim/hooks.js'
 import { useRenderOptions } from './visualRenderer.js'
 import { ILLUSTRATION_CAMERA_DISTANCE, ILLUSTRATION_FOV } from './illustration.js'
+import { RING_EXTENTS } from './artworkMotion.js'
+import { useArtworkMotion } from './artworkClock.js'
 
 type GlobePlanet = Exclude<PlanetId, 'earth'>
 
@@ -25,10 +27,10 @@ export function PlanetGlobe({ planet, illustration = false }: { planet: GlobePla
     return () => { active = false }
   }, [planet, detail])
   // Saturn reserves space for its complete rings rather than cropping the illustration.
-  const distance = ILLUSTRATION_CAMERA_DISTANCE * (planet === 'saturn' ? SATURN_RING_OUTER : 1)
+  const distance = ILLUSTRATION_CAMERA_DISTANCE * (planet === 'saturn' ? SATURN_RING_OUTER : planet === 'uranus' ? RING_EXTENTS.uranus.outer : 1)
   return <div className="planet-globe" data-planet={planet} data-ready={ready === planet} style={{ width: '100%', height: '100%' }}><SceneCanvas illustration={illustration} frameloop="demand" camera={illustration ? { position: [0, 0, distance], fov: ILLUSTRATION_FOV } : { position: [0, 1.3, 6], fov: planet === 'saturn' ? 44 : 38 }} dpr={[1, 2]} gl={{ alpha: true, antialias: true }}>
     <PlanetFraming planet={planet} illustration={illustration} distance={distance} />
-    <ClockFrames />
+    <ClockFrames artwork={planet === 'saturn' || planet === 'uranus'} />
     <ambientLight intensity={0.24} /><directionalLight position={[4, 2, 6]} intensity={2.6} />
     {textures && <PlanetMesh key={planet} planet={planet} textures={textures} onReady={() => setReady(planet)} />}
   </SceneCanvas></div>
@@ -52,6 +54,7 @@ function PlanetFraming({ planet, illustration, distance }: { planet: GlobePlanet
 
 function PlanetMesh({ planet, textures, onReady }: { planet: GlobePlanet; textures: TextureSet; onReady: () => void }) {
   const clock = useVisualClock()
+  const animatedArtwork = useArtworkMotion()
   const presented = useRef(false)
   const readyFrame = useRef(0)
   useEffect(() => () => cancelAnimationFrame(readyFrame.current), [])
@@ -65,8 +68,9 @@ function PlanetMesh({ planet, textures, onReady }: { planet: GlobePlanet; textur
     return model
   }, [planet, textures])
   useEffect(() => () => object.dispose(), [object])
-  useFrame(() => {
+  useFrame(({ clock: visualClock }) => {
     applyBodyAxes(object.body, bodyAxes(PLANET_BY_ID[planet].body, clock.now()))
+    object.updateArtwork?.(animatedArtwork ? visualClock.elapsedTime : 0)
     if (!presented.current) {
       presented.current = true
       // Report readiness after the first textured frame has been presented.

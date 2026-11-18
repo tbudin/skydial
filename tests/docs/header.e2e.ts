@@ -1,6 +1,23 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeColours, openColours, previewHeader, setDesignStyle, setPalette } from './preview.js'
+import { setAppearance, closeColours, openColours, previewHeader, setDesignStyle, setPalette } from './preview.js'
+
+test('header uses the package toggle and retains System while device appearance changes', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' })
+  await page.goto('./widgets/')
+  const header = previewHeader(page)
+  await setAppearance(page, 'auto')
+  await expect(header.locator('.celestial-theme-toggle')).toHaveCount(1)
+  await expect(header.getByRole('switch')).toHaveAttribute('aria-checked', 'false')
+  await expect(header.locator('[data-theme-toggle-part="status"]')).toHaveText('System')
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await expect(header.getByRole('switch')).toHaveAttribute('aria-checked', 'true')
+  await expect(header.getByRole('combobox', { name: 'Theme preference', exact: true })).toHaveValue('auto')
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme')
+  await page.goto('./orrery/?style=lcd')
+  await expect(previewHeader(page).getByRole('combobox', { name: 'Theme preference', exact: true })).toHaveValue('auto')
+  await expect(previewHeader(page).getByRole('switch')).toHaveAttribute('aria-checked', 'true')
+})
 
 test('header comparisons retain the selected date and carry palettes between pages', async ({ page }) => {
   await page.goto('./picker/?style=celestial')
@@ -13,7 +30,7 @@ test('header comparisons retain the selected date and carry palettes between pag
   await page.getByRole('dialog', { name: 'Starts', exact: true }).getByRole('button', { name: 'Done', exact: true }).click()
   await expect(example.locator('input[name="startsAt"]')).toHaveValue('2027-03-20')
   await setDesignStyle(page, 'lcd')
-  await header.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption('light')
+  await setAppearance(page, 'light')
   await setPalette(page, 'Amber')
   await expect(example.locator('input[name="startsAt"]')).toHaveValue('2027-03-20')
   await field.click()
@@ -50,7 +67,7 @@ test('appearance controls remain in the header and accessible on desktop and pho
     await expect(header.getByRole('button', { name: 'LCD', exact: true })).toBeVisible()
     await expect(header.getByRole('button', { name: 'Colours', exact: true })).toBeVisible()
     for (const theme of ['light', 'dark']) {
-      await header.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+      await setAppearance(page, theme)
       const colours = await openColours(page)
       await expect(header.getByRole('button', { name: 'Colours', exact: true })).toHaveAttribute('aria-expanded', 'true')
       await colours.getByLabel('LCD ink colour code', { exact: true }).focus()

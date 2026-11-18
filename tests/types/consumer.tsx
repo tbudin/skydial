@@ -76,3 +76,26 @@ export const missingReference = <CelestialValueInput valueKind="time" value={par
 export const wrongDateType = <CelestialValueInput valueKind="instant" value={calendarDate} />
 void zonedDateTimeToInstant
 void serializeCelestialValue
+
+import { CelestialThemeProvider, CelestialThemeSwitch, useCelestialTheme, type PickerTheme } from 'skydial/react'
+import { CelestialThemeSwitch as LcdThemeSwitch } from 'skydial/lcd'
+import { CelestialThemeSwitch as FormThemeSwitch } from 'skydial/pickers'
+import { CelestialThemeSwitch as VueThemeSwitch } from 'skydial/vue'
+export const themeExample = <CelestialThemeProvider defaultTheme="auto" onThemeChange={(theme) => { const selected: PickerTheme = theme; void selected }}>
+  <CelestialThemeSwitch labels={{ auto: 'Device' }} styles={{ button: ({ selected }) => ({ fontWeight: selected ? 700 : 400 }) }} />
+  <LcdThemeSwitch /><FormThemeSwitch /><CelestialInput />
+</CelestialThemeProvider>
+export const vueThemeExample = h(VueThemeSwitch, { options: { theme: 'auto', onThemeChange: (theme: PickerTheme) => { void theme } } })
+export const svelteThemeOptions: CelestialActionOptions = { component: 'themeSwitch', options: { defaultTheme: 'light' } }
+export function vanillaThemeExample(element: HTMLElement) {
+  return mountCelestial(element, 'themeSwitch', { theme: 'auto', onThemeChange: (theme) => { const selected: PickerTheme = theme; void selected } })
+}
+void useCelestialTheme
+
+import { CelestialThemeToggle } from 'skydial/react'
+import { CelestialThemeToggle as LcdToggle } from 'skydial/lcd'
+import { CelestialThemeToggle as VueToggle } from 'skydial/vue'
+export const toggleExample = <><CelestialThemeToggle theme="light" onThemeChange={(theme) => { const selected: PickerTheme = theme; void selected }}
+  styles={{ selection: ({ dark }) => ({ opacity: dark ? .9 : 1 }), preference: { cursor: 'pointer' } }} /><LcdToggle defaultTheme="dark" size="large" animated={false} /></>
+export const vueToggleExample = h(VueToggle, { options: { defaultTheme: 'light' } })
+export const svelteToggleOptions: CelestialActionOptions = { component: 'themeToggle', options: { theme: 'auto' } }

@@ -10,6 +10,7 @@ import PreviewHeader from './PreviewHeader.js'
 import DisplayConfigurator from './DisplayConfigurator.js'
 import OrreryPlayground from './OrreryPlayground.js'
 import SchedulingPlayground from './SchedulingPlayground.js'
+import ThemeTogglePlayground from './ThemeTogglePlayground.js'
 import type { Place } from 'skydial/astro'
 export { getPreviewAppearance, subscribePreviewSettings } from './previewSettings.js'
 
@@ -40,6 +41,11 @@ export function mountDisplayConfigurator(element: HTMLElement, options: { date: 
   const update = (next: typeof options) => root.render(createElement(DisplayConfigurator, next))
   update(options)
   return { update, destroy: () => root.unmount() }
+}
+export function mountThemeTogglePlayground(element: HTMLElement) {
+  const root = createRoot(element)
+  root.render(createElement(ThemeTogglePlayground))
+  return { destroy: () => root.unmount() }
 }
 export function mountOrreryPlayground(element: HTMLElement) {
   const root = createRoot(element)

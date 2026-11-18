@@ -1,4 +1,4 @@
-import { useResolvedPickerTheme } from './usePickerTheme.js'
+import { usePickerTheme, useResolvedPickerTheme } from './usePickerTheme.js'
 import { useVisualRenderer } from '../render/visualRenderer.js'
 import { usePickerLocale } from './localization.js'
 import type { RangeSelection } from './rangeSelection.js'
@@ -34,7 +34,8 @@ export interface CelestialInputProps extends Omit<CelestialPickerProps, 'childre
 /** A compact input opening orbital dates, Earth time, scroll wheels and exact steps together. */
 export function CelestialInput({ scene = 'auto', interactive = true, planet, defaultPlanet = 'jupiter',
   earthView, defaultEarthView, onEarthViewChange, earthPlace, onEarthPlaceChange,
-  control = 'both', theme = 'auto', ...props }: CelestialInputProps) {
+  control = 'both', theme: themeProp, ...props }: CelestialInputProps) {
+  const theme = usePickerTheme(themeProp, 'auto')
   const resolvedTheme = useResolvedPickerTheme(theme)
   return <CelestialPicker {...props} control={control} theme={theme}>
     {scene !== false && <InputScene {...props} scene={scene} interactive={interactive} planet={planet ?? defaultPlanet} theme={resolvedTheme}

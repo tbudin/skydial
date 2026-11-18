@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import type { PickerTheme } from 'skydial/react'
+import { CelestialThemeToggle } from 'skydial/react'
 import ColorSettings from './ColorSettings.js'
 import { colourPresetName, previewSwatches, useResolvedPreviewTheme } from './previewColors.js'
 import { updatePreviewColors, updatePreviewSettings, usePreviewSettings } from './previewSettings.js'
@@ -25,8 +25,9 @@ export default function PreviewHeader() {
     }, 0)
   }
   const compare = (change: () => void) => {
+    const trigger = openPicker.current ?? document.querySelector<HTMLButtonElement>('[data-picker-part="field"][aria-expanded="true"]')
     change()
-    restorePicker(openPicker.current)
+    restorePicker(trigger)
     openPicker.current = null
   }
   useEffect(() => () => window.clearTimeout(pending.current), [])
@@ -50,7 +51,8 @@ export default function PreviewHeader() {
       <button type="button" aria-pressed={variant === 'celestial'} onMouseDown={(event) => event.preventDefault()} onClick={() => compare(() => updatePreviewSettings({ variant: 'celestial' }))}>3D</button>
       <button type="button" aria-pressed={variant === 'lcd'} onMouseDown={(event) => event.preventDefault()} onClick={() => compare(() => updatePreviewSettings({ variant: 'lcd' }))}>LCD</button>
     </div>
-    <label><span className="preview-control-label">Appearance</span><select aria-label="Appearance" value={theme} onChange={(event) => compare(() => updatePreviewSettings({ theme: event.target.value as PickerTheme }))}><option value="light">Light</option><option value="dark">Dark</option><option value="auto">System</option></select></label>
+    <CelestialThemeToggle className="preview-theme-switch" theme={theme} appearance={theme} size="small" variant={variant} colors={colors}
+      onMouseDown={(event) => event.preventDefault()} onThemeChange={(next) => compare(() => updatePreviewSettings({ theme: next }))} />
     <button type="button" className="preview-colours-button" popoverTarget={id} aria-label="Colours" aria-haspopup="dialog" aria-expanded={open} aria-controls={id} onClick={() => { if (!open) coloursReturn.current = openPicker.current; openPicker.current = null }}>
       <span className="preview-colour-swatches" aria-hidden="true" style={{ '--preview-paper': swatches.background, '--preview-ink': swatches.foreground } as CSSProperties}><i /><i /></span>Colours <span className="preview-palette-name">{colourPresetName(colors)}</span>
     </button>

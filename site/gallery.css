@@ -180,6 +180,8 @@
 .preview-toolbar select { min-height: 36px; max-width: 160px; padding: 6px 26px 6px 9px; font-size: 12px; }
 .preview-style-switch { display: flex; border: 1px solid var(--line-strong); border-radius: 6px; padding: 3px; gap: 3px; }
 .preview-toolbar button { font: inherit; color: var(--fg); cursor: pointer; }
+.preview-toolbar .preview-theme-switch { font-size: 12px; }
+.preview-toolbar .preview-theme-switch > button { color: var(--text); }
 .preview-style-switch button { border: 0; border-radius: 3px; min-width: 46px; min-height: 30px; background: transparent; padding: 3px 10px; }
 .preview-style-switch button[aria-pressed="true"] { background: var(--accent); color: var(--panel); }
 .preview-colours-button { display: flex; align-items: center; gap: 7px; min-height: 38px; border: 1px solid var(--line-strong); border-radius: 6px; padding: 6px 10px; background: var(--panel); }
@@ -236,10 +238,20 @@
   .preview-palette-name { display: none; }
   .preview-toolbar > label:has([aria-label="Colour palette"]) { order: 3; flex: 1 0 calc(100% - 100px); }
   .preview-colours-button { order: 4; }
+  .preview-toolbar .preview-theme-switch { order: 2; margin-inline-start: auto; }
 }
 @media(max-width: 600px) { :root[data-preview-controls] .brand b { font-size: 18px; } }
 
 .scheduling-playground { display: grid; gap: 24px; width: 100%; min-width: 0; }
+.theme-toggle-playground { margin-block: 40px; display: grid; gap: 16px; scroll-margin-top: calc(var(--top-h) + 24px); }
+.theme-toggle-playground > h2, .theme-toggle-playground > p { margin: 0; }
+.theme-toggle-examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--toggle-demo-gap, 16px); }
+.theme-toggle-example { display: grid; justify-items: start; align-content: center; gap: 8px; padding: 16px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--panel); color: var(--fg); }
+.theme-toggle-example h3 { margin: 0; font-size: 14px; }
+.theme-toggle-example span { font-size: 12px; }
+.theme-toggle-settings { display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; align-items: center; }
+.theme-toggle-settings button { min-height: 36px; padding: 6px 10px; border: 1px solid var(--line-strong); background: var(--panel); color: var(--fg); border-radius: 4px; font: inherit; text-transform: capitalize; cursor: pointer; }
+.theme-toggle-settings button[aria-pressed="true"] { background: var(--accent); color: var(--panel); }
 .scheduling-preview { padding: clamp(16px, 4vw, 32px); border: 1px solid var(--line); border-radius: 12px; background: var(--panel); min-width: 0; }
 .scheduling-preview form { display: grid; gap: 24px; max-width: 620px; margin-inline: auto; }
 .scheduling-form-actions { display: flex; gap: 12px; flex-wrap: wrap; }

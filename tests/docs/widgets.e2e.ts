@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { openColours, closeColours, previewHeader, setDesignStyle } from './preview.js'
+import { setAppearance, openColours, closeColours, previewHeader, setDesignStyle } from './preview.js'
 
 test('compact displays expose formats and all bodies through settings in both styles', async ({ page }) => {
   test.setTimeout(90000)
@@ -27,7 +27,7 @@ test('compact displays expose formats and all bodies through settings in both st
   await expect(display.getByRole('img')).toHaveCount(9)
   await expect(display.locator('canvas')).toHaveCount(0)
   for (const theme of ['light', 'dark']) {
-    await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     const audit = await new AxeBuilder({ page }).include('.compact-builder').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()
     expect(audit.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((node) => node.failureSummary) }))).toEqual([])
   }
@@ -55,7 +55,7 @@ test('every page shares one toolbar with palette presets and custom colours toge
     const header = previewHeader(page)
     await expect(header).toHaveCount(1)
     await expect(header.getByRole('button', { name: 'LCD', exact: true })).toBeVisible()
-    await expect(header.getByRole('combobox', { name: 'Appearance', exact: true })).toBeVisible()
+    await expect(header.getByRole('combobox', { name: 'Theme preference', exact: true })).toBeVisible()
     await expect(header.getByRole('combobox', { name: 'Colour palette', exact: true })).toHaveCount(0)
     const colours = await openColours(page)
     await expect(colours.getByRole('combobox', { name: 'Colour palette', exact: true })).toBeVisible()

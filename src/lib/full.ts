@@ -8,6 +8,7 @@ import { CelestialDatePicker as DatePicker } from './datePicker.js'
 import { CelestialTimePicker as TimePicker } from './timePicker.js'
 import { CelestialWidget as Widget, EarthWidget as Earth, MoonWidget as Moon, OrreryWidget as Orrery, YearWidget as Year } from './cards.js'
 import { CelestialDisplay as Display, CelestialDateDisplay as DateDisplay, CelestialTimeDisplay as TimeDisplay, CelestialBody as Body } from './display.js'
+import { CelestialThemeToggle as ThemeToggle } from './themeToggle.js'
 
 function withRenderer<P extends object>(View: ComponentType<P>) {
   return function CelestialView(props: P) {
@@ -29,3 +30,4 @@ export const CelestialDisplay = withRenderer(Display)
 export const CelestialDateDisplay = withRenderer(DateDisplay)
 export const CelestialTimeDisplay = withRenderer(TimeDisplay)
 export const CelestialBody = withRenderer(Body)
+export const CelestialThemeToggle = withRenderer(ThemeToggle)

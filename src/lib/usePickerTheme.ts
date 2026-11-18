@@ -1,13 +1,37 @@
-import { useSyncExternalStore } from 'react'
+import { useContext, useSyncExternalStore } from 'react'
+import { CelestialThemeContext, type PickerTheme } from './themeContext.js'
 
+const listeners = new Set<() => void>()
+let media: MediaQueryList | null = null
+const notifyTheme = () => listeners.forEach((notify) => notify())
 const subscribeTheme = (notify: () => void) => {
-  const media = window.matchMedia('(prefers-color-scheme: light)')
-  media.addEventListener('change', notify)
-  return () => media.removeEventListener('change', notify)
+  if (typeof window.matchMedia !== 'function') return () => {}
+  if (!media) {
+    media = window.matchMedia('(prefers-color-scheme: light)')
+    media.addEventListener('change', notifyTheme)
+  }
+  listeners.add(notify)
+  return () => {
+    listeners.delete(notify)
+    if (!listeners.size) {
+      media?.removeEventListener('change', notifyTheme)
+      media = null
+    }
+  }
 }
-const systemLight = () => window.matchMedia('(prefers-color-scheme: light)').matches
+const subscribeNothing = () => () => {}
+const systemLight = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+  ? (media ?? window.matchMedia('(prefers-color-scheme: light)')).matches : false
 const serverDark = () => false
-export function useResolvedPickerTheme(theme: 'light' | 'dark' | 'auto') {
-  const light = useSyncExternalStore(subscribeTheme, systemLight, serverDark)
-  return theme === 'auto' ? light ? 'light' : 'dark' : theme
+
+/** Explicit component props win; a provider otherwise precedes the existing default. */
+export function usePickerTheme(theme?: PickerTheme, fallback: PickerTheme = 'dark') {
+  const context = useContext(CelestialThemeContext)
+  return theme ?? context?.theme ?? fallback
+}
+
+export function useResolvedPickerTheme(theme?: PickerTheme, fallback: PickerTheme = 'dark') {
+  const preferred = usePickerTheme(theme, fallback)
+  const light = useSyncExternalStore(preferred === 'auto' ? subscribeTheme : subscribeNothing, systemLight, serverDark)
+  return preferred === 'auto' ? light ? 'light' : 'dark' : preferred
 }

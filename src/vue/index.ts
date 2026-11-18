@@ -34,3 +34,7 @@ export const OrreryClock = adapter('OrreryClock', 'orrery')
 export const CelestialRangeInput = adapter('CelestialRangeInput', 'range')
 export const CelestialRangePicker = adapter('CelestialRangePicker', 'rangeField')
 export const CelestialValueInput = adapter('CelestialValueInput', 'value')
+export const CelestialThemeSwitch = adapter('CelestialThemeSwitch', 'themeSwitch')
+export const CelestialThemeToggle = adapter('CelestialThemeToggle', 'themeToggle')
+export type { CelestialThemeToggleProps } from '../lib/themeToggle.js'
+export type { CelestialThemeSwitchProps, PickerTheme } from '../lib/theme.js'

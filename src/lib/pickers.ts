@@ -14,3 +14,7 @@ export { CelestialRangePicker, type CelestialRangePickerProps } from './range.js
 export type { PickerDateRange, PickerRangeRules } from '../astro/range.js'
 export type { PickerAvailability } from '../astro/availability.js'
 export type { PickerLocalization, PickerMessages } from './localization.js'
+export { CelestialThemeProvider, CelestialThemeSwitch, useCelestialTheme } from './theme.js'
+export type { CelestialThemeProviderProps, CelestialThemeSwitchProps, ThemeSwitchButtonState, ResolvedPickerTheme } from './theme.js'
+export { CelestialThemeToggle } from './themeToggle.js'
+export type { CelestialThemeToggleProps, ThemeTogglePart, ThemeToggleState, ThemeToggleStyles } from './themeToggle.js'

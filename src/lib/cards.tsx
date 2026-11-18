@@ -13,6 +13,7 @@ import { widgetPart, type WidgetAppearance } from './widgetAppearance.js'
 import { useSimNow } from '../ui/hooks.js'
 import type { CelestialWidgetProps } from './types.js'
 import { useVisualRenderer } from '../render/visualRenderer.js'
+import { usePickerTheme } from './usePickerTheme.js'
 
 export interface CelestialCardProps extends CelestialWidgetProps, WidgetAppearance {
   variant?: PickerVariant
@@ -27,7 +28,8 @@ export interface CelestialCardProps extends CelestialWidgetProps, WidgetAppearan
 }
 
 /** Compact website cards with small, medium and large home-screen proportions. */
-export function CelestialWidget({ kind = 'earth', size = 'small', variant = 'celestial', theme = 'dark', colors, place = DEFAULT_PLACE, className = '', style, planet, defaultPlanet = 'jupiter', onPlanetChange: _onPlanetChange, styles, classNames, ...time }: CelestialCardProps) {
+export function CelestialWidget({ kind = 'earth', size = 'small', variant = 'celestial', theme: themeProp, colors, place = DEFAULT_PLACE, className = '', style, planet, defaultPlanet = 'jupiter', onPlanetChange: _onPlanetChange, styles, classNames, ...time }: CelestialCardProps) {
+  const theme = usePickerTheme(themeProp)
   const selected = planet ?? defaultPlanet
   return <ClockScope {...time}>
     <article {...widgetPart({ styles, classNames }, 'root', `celestial-clock celestial-card widget-${kind} widget-${size} ${className}`, { ...pickerColorStyle(colors, variant), ...style })} data-planet={selected} data-picker-style={variant} data-picker-theme={theme} aria-label={`${kind === 'year' ? PLANET_BY_ID[selected].name + ' year' : kind} widget`}>

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeColours, openColours, previewHeader } from './preview.js'
+import { setAppearance, closeColours, openColours, previewHeader } from './preview.js'
 
 const tags = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']
 const summary = (issues: Awaited<ReturnType<AxeBuilder['analyze']>>['violations']) => issues.map((issue) => ({ id: issue.id, nodes: issue.nodes.map((node) => ({ target: node.target, reason: node.failureSummary })) }))
@@ -34,7 +34,7 @@ test('the live builder exposes LCD, custom inks and all precision presets', asyn
   await closeColours(page)
   for (const theme of ['light', 'dark']) {
     await page.setViewportSize({ width: 1440, height: 1100 })
-    await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     await page.getByRole('group', { name: 'Picker presets' }).getByRole('button', { name: 'Date & time', exact: true }).click()
     await field.click()
     await expect(page.locator('.scale-label.date-pill')).toHaveAttribute('data-visible', 'true')
@@ -52,7 +52,7 @@ for (const width of [1440, 768, 320]) for (const variant of ['celestial', 'lcd']
     await page.goto(`./widgets/?style=${variant}`)
     for (const kind of ['earth', 'moon', 'year', 'orrery']) await page.locator(`[data-widget-example="${kind}"] .component-settings > summary`).click()
     for (const theme of ['light', 'dark']) for (const size of ['Small', 'Medium', 'Large']) {
-      await page.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+      await setAppearance(page, theme)
       for (const kind of ['earth', 'moon', 'year', 'orrery']) {
         const example = page.locator(`[data-widget-example="${kind}"]`)
         await example.getByRole('button', { name: size, exact: true }).click()

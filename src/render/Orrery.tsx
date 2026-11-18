@@ -21,7 +21,9 @@ import {
   sampleOrbit,
 } from '../geometry/projection.js'
 import { useVisualClock } from '../sim/hooks.js'
-import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS, applyBodyAxes, createPlanetObject } from './planetFactory.js'
+import { DISPLAY_RADIUS, SUN_DISPLAY_RADIUS, applyBodyAxes, createPlanetObject, createSunObject } from './planetFactory.js'
+import { useArtworkMotion } from './artworkClock.js'
+import { RING_EXTENTS } from './artworkMotion.js'
 import { SATURN_RING_OUTER } from '../astro/bodies.js'
 import { layoutLabels, radialCandidates, type Disc, type LabelRequest, type Pt, type Seg } from '../geometry/labelLayout.js'
 import type { TextureSet } from './textures.js'
@@ -104,7 +106,7 @@ export function Orrery(props: OrreryProps) {
         }}
         style={{ background: props.appearance?.palette?.background ?? (props.compact || props.theme ? 'transparent' : palette.background) }}
       >
-        <ClockFrames />
+        <ClockFrames artwork />
         <FitCamera compact={props.compact} extent={props.sceneExtent} />
         <ambientLight intensity={0.035} />
         <pointLight position={[0, 0, 0]} intensity={3.2} decay={0} />
@@ -208,7 +210,9 @@ function fitCamera(cam: THREE.OrthographicCamera, size: { width: number; height:
 
 function Sun({ textures, scale }: { textures: TextureSet; scale: number }) {
   const simClock = useVisualClock()
-  const ref = useRef<THREE.Mesh>(null)
+  const animatedArtwork = useArtworkMotion()
+  const object = useMemo(() => createSunObject(textures), [textures])
+  useEffect(() => () => object.dispose(), [object])
   const halo = useMemo(() => {
     const c = document.createElement('canvas')
     c.width = c.height = 256
@@ -224,15 +228,13 @@ function Sun({ textures, scale }: { textures: TextureSet; scale: number }) {
     return t
   }, [])
   useEffect(() => () => halo.dispose(), [halo])
-  useFrame(() => {
-    if (ref.current) applyBodyAxes(ref.current, bodyAxes('Sun', simClock.now()))
+  useFrame(({ clock: visualClock }) => {
+    applyBodyAxes(object.body, bodyAxes('Sun', simClock.now()))
+    object.updateArtwork?.(animatedArtwork ? visualClock.elapsedTime : 0)
   })
   return (
     <group scale={scale}>
-      <mesh ref={ref} scale={SUN_DISPLAY_RADIUS}>
-        <sphereGeometry args={[1, 64, 32]} />
-        <meshBasicMaterial map={textures.sun ?? null} color={textures.sun ? '#fff0d8' : '#f6c35b'} toneMapped={false} />
-      </mesh>
+      <primitive object={object.root} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
         <planeGeometry args={[SUN_DISPLAY_RADIUS * 4.2, SUN_DISPLAY_RADIUS * 4.2]} />
         <meshBasicMaterial map={halo} transparent depthWrite={false} toneMapped={false} />
@@ -396,6 +398,7 @@ function PlanetsAndHands({
   store: LabelStore
 }) {
   const simClock = useVisualClock()
+  const animatedArtwork = useArtworkMotion()
   const objects = useMemo(() => {
     const map = {} as Record<PlanetId, ReturnType<typeof createPlanetObject>>
     for (const p of PLANETS) map[p.id] = createPlanetObject(p.id, textures, p.id === 'jupiter' || p.id === 'saturn' ? 96 : 64)
@@ -409,7 +412,7 @@ function PlanetsAndHands({
   const { camera, size } = useThree()
   const tmp = useMemo(() => new THREE.Vector3(), [])
 
-  useFrame(() => {
+  useFrame(({ clock: visualClock }) => {
     const t = simClock.now()
     let earthLon = 0
     let yearLon = 0
@@ -422,6 +425,7 @@ function PlanetsAndHands({
       o.root.scale.setScalar(bodyScale)
       if (o.ringShadow) o.ringShadow.uPlanetCentre.value.copy(o.root.position) // Sun stays at the origin
       applyBodyAxes(o.body, bodyAxes(p.body, t))
+      o.updateArtwork?.(animatedArtwork ? visualClock.elapsedTime : 0)
       if (p.id === 'earth') earthLon = h.lon
       if (p.id === yearPlanet) {
         yearLon = h.lon
@@ -448,7 +452,7 @@ function PlanetsAndHands({
     const discs: Disc[] = [{ ...centre, r: SUN_DISPLAY_RADIUS * sunScale * pxPerUnit + 4 }]
     for (const p of PLANETS.filter((p) => !visibleBodies || visibleBodies.includes(p.id))) {
       const pos = objects[p.id].root.position
-      const r = DISPLAY_RADIUS[p.id] * (p.id === 'saturn' ? SATURN_RING_OUTER : 1)
+      const r = DISPLAY_RADIUS[p.id] * (p.id === 'saturn' ? SATURN_RING_OUTER : p.id === 'uranus' ? RING_EXTENTS.uranus.outer : 1)
       discs.push({ ...toPx(pos.x, pos.z), r: r * bodyScale * pxPerUnit + 3 })
     }
     const eTip = toPx(e.x, e.z)

@@ -1,5 +1,5 @@
 import { useRangeSelection } from './rangeSelection.js'
-import { useResolvedPickerTheme } from './usePickerTheme.js'
+import { usePickerTheme, useResolvedPickerTheme } from './usePickerTheme.js'
 import { CelestialRangePicker, type CelestialRangePickerProps } from './range.js'
 import { InputScene, type CelestialInputProps } from './input.js'
 import type { EarthPickerViewProps } from './useEarthView.js'
@@ -10,7 +10,8 @@ export interface CelestialRangeInputProps extends CelestialRangePickerProps, Ear
   planet?: CelestialInputProps['planet']
   orbitalStyle?: CelestialInputProps['orbitalStyle']
 }
-export function CelestialRangeInput({ scene = 'auto', interactive = true, planet = 'jupiter', control = 'both', theme = 'auto', ...props }: CelestialRangeInputProps) {
+export function CelestialRangeInput({ scene = 'auto', interactive = true, planet = 'jupiter', control = 'both', theme: themeProp, ...props }: CelestialRangeInputProps) {
+  const theme = usePickerTheme(themeProp, 'auto')
   const { value: _value, defaultValue: _defaultValue, onChange: _onChange, children: _children, ...sceneProps } = props
   return <CelestialRangePicker {...props} theme={theme} control={control}>
     {scene !== false && <RangeScene {...sceneProps} theme={theme} scene={scene} interactive={interactive} planet={planet} />}

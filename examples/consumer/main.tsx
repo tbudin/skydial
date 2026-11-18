@@ -126,7 +126,9 @@ function StylingDemo() {
   </CelestialProvider></main>
 }
 
-if (new URLSearchParams(window.location.search).has('scheduling')) {
+if (new URLSearchParams(window.location.search).has('theme')) {
+  void import('./theme').then(({ default: ThemeDemo }) => createRoot(document.getElementById('root')!).render(<ThemeDemo />))
+} else if (new URLSearchParams(window.location.search).has('scheduling')) {
   void import('./scheduling').then(({ default: SchedulingDemo }) => createRoot(document.getElementById('root')!).render(<SchedulingDemo />))
 } else if (new URLSearchParams(window.location.search).has('styling')) {
   createRoot(document.getElementById('root')!).render(<StylingDemo />)

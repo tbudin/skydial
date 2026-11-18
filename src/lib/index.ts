@@ -46,3 +46,7 @@ export type { PickerAvailability } from '../astro/availability.js'
 
 export type { CelestialValueInputProps } from './valueInput.js'
 export type { CalendarDate, LocalTime, ZonedDateTime, CelestialValue, TimeDisambiguation } from '../astro/values.js'
+export { CelestialThemeProvider, CelestialThemeSwitch, useCelestialTheme } from './theme.js'
+export type { CelestialThemeProviderProps, CelestialThemeSwitchProps, ThemeSwitchButtonState, ResolvedPickerTheme } from './theme.js'
+export { CelestialThemeToggle } from './full.js'
+export type { CelestialThemeToggleProps, ThemeTogglePart, ThemeToggleState, ThemeToggleStyles } from './themeToggle.js'

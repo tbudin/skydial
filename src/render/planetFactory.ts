@@ -4,6 +4,8 @@ import type { BodyAxes } from '../astro/ephemeris.js'
 import { eclipticDirToScene } from '../geometry/projection.js'
 import { FALLBACK_COLOURS } from './fallbackColours.js'
 import type { TextureSet } from './textures.js'
+import { RING_EXTENTS } from './artworkMotion.js'
+import { animateRingMaterial, animateSolarMaterial } from './artworkMaterials.js'
 
 /**
  * One factory for planet models, used by the orrery and by the
@@ -52,6 +54,8 @@ export interface RingShadowUniforms {
 }
 
 export interface PlanetObject {
+  /** Decorative seconds, independent of the astronomical epoch and body axes. */
+  updateArtwork?: (seconds: number) => void
   /** Present for Saturn: update each frame so the globe's shadow falls on the rings */
   ringShadow?: RingShadowUniforms
   /** Positioned in the orrery (translation only) */
@@ -81,12 +85,13 @@ export function createPlanetObject(id: PlanetId, textures: TextureSet, segments 
 
   const disposables: Array<{ dispose: () => void }> = [material, mesh.geometry]
   let ringShadow: RingShadowUniforms | undefined
+  let updateArtwork: ((seconds: number) => void) | undefined
 
-  if (id === 'saturn') {
-    const ringMap = textures.saturnRing
+  if (id === 'saturn' || id === 'uranus') {
+    const ringMap = id === 'saturn' ? textures.saturnRing : undefined
     const ringMat = new THREE.MeshStandardMaterial({
       map: ringMap ?? null,
-      color: ringMap ? 0xffffff : FALLBACK_COLOURS.saturnRing,
+      color: ringMap ? 0xffffff : id === 'uranus' ? '#716e64' : FALLBACK_COLOURS.saturnRing,
       transparent: true,
       opacity: ringMap ? 1 : 0.6,
       side: THREE.DoubleSide,
@@ -129,14 +134,16 @@ export function createPlanetObject(id: PlanetId, textures: TextureSet, segments 
         .replace('#include <map_fragment>', '#include <map_fragment>\nfloat rsf = ringShadowFactor();\ndiffuseColor.rgb *= rsf;')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance *= rsf;')
     }
-    const ringGeo = ringGeometry(radius * SATURN_RING_INNER, radius * SATURN_RING_OUTER)
+    updateArtwork = animateRingMaterial(ringMat, radius, id === 'uranus')
+    const extent = id === 'saturn' ? { inner: SATURN_RING_INNER, outer: SATURN_RING_OUTER } : RING_EXTENTS.uranus
+    const ringGeo = ringGeometry(radius * extent.inner, radius * extent.outer)
     const ring = new THREE.Mesh(ringGeo, ringMat)
     ring.renderOrder = 2
     body.add(ring)
     disposables.push(ringMat, ringGeo)
   }
 
-  return { root, body, ringShadow, dispose: () => disposables.forEach((d) => d.dispose()) }
+  return { root, body, ringShadow, updateArtwork, dispose: () => disposables.forEach((d) => d.dispose()) }
 }
 
 const _m = new THREE.Matrix4()
@@ -185,7 +192,8 @@ export function createSunObject(textures: CelestialTextures = {}, segments = 64)
   const mesh = new THREE.Mesh(geometry, material)
   mesh.scale.setScalar(SUN_DISPLAY_RADIUS)
   body.add(mesh)
-  return { root, body, dispose: () => { geometry.dispose(); material.dispose() } }
+  const updateSurface = animateSolarMaterial(material)
+  return { root, body, updateArtwork: updateSurface, dispose: () => { geometry.dispose(); material.dispose() } }
 }
 
 /** Real lunar geometry; use a directional Sun light to produce the phase. */

@@ -44,6 +44,41 @@ import 'skydial/style.css'
 <CelestialInput name="year" precision="year" planet="jupiter" />
 ```
 
+For a standalone Sun/Moon toggle, use `CelestialThemeToggle`. The celestial style
+has textured 3D spheres; the LCD style uses two-colour artwork. Connect the callback
+to your app's theme, or use `defaultTheme` for an independent toggle:
+
+```tsx
+import { CelestialThemeToggle } from 'skydial/react'
+
+<CelestialThemeToggle theme={theme} onThemeChange={setTheme} />
+<CelestialThemeToggle variant="lcd" defaultTheme="light" />
+```
+
+One compact thumb moves between light and dark, with a visible preference label
+and a Light/Dark/System dropdown. System follows device appearance. The 3D version
+includes a glowing Moon and twinkling night sky, plus an animated Sun with rotating
+surface detail. Motion respects reduced motion and pauses offscreen;
+use `animated={false}` for static artwork. LCD offers symbols or engraved
+illustrations via `lcdArtwork="illustrations"`. Sizes, colours, labels, per-part styles
+and keyboard/touch input are configurable. `skydial/lcd` exports the LCD version without Three.js.
+An optional provider lets one toggle update multiple Skydial components:
+
+```tsx
+import { CelestialThemeProvider, CelestialThemeSwitch, CelestialInput, EarthWidget } from 'skydial/react'
+
+<CelestialThemeProvider defaultTheme="auto">
+  <CelestialThemeSwitch />
+  <CelestialInput name="date" />
+  <EarthWidget />
+</CelestialThemeProvider>
+```
+
+Light, Dark and System buttons share the provider's preference. System follows
+device changes live. An explicit component `theme` overrides the provider;
+custom colours remain fixed. The switch and provider also ship in `skydial/lcd`
+and `skydial/pickers`. See [appearance controls](docs/package-api.md#shared-appearance-and-mode-switch) for controlled state, styling and framework adapters.
+
 `scene="auto"` shows the Sun, Earth and one year planet (Jupiter by default). Earth’s revolution selects the day; the year planet defines the year range. Combined date/time inputs add rotating Earth for time. Set `planet` in host settings; the popup contains no planet selector or repeated date/title/help text. Use
 `interactive={false}` for a decorative orbital view alongside precise controls. Optional `earth`, `moon` and `planet` scenes remain available; `scene={false}` hides the visual.
 The default `control="both"` places −/+ buttons beneath the scrollers; wheel-only

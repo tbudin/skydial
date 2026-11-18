@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { closeColours, openColours, previewHeader, setDesignStyle, setPalette } from './preview.js'
+import { setAppearance, closeColours, openColours, previewHeader, setDesignStyle, setPalette } from './preview.js'
 
 test('custom LCD colours follow all controls, themes and form selection', async ({ page }) => {
   await page.goto('./picker/?style=lcd')
@@ -12,7 +12,7 @@ test('custom LCD colours follow all controls, themes and form selection', async 
   await colours.getByLabel('LCD screen', { exact: true }).fill('#cdebe0')
   await closeColours(page)
   for (const theme of ['dark', 'light', 'auto']) {
-    await previewHeader(page).getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     await field.click()
     const panel = page.getByRole('dialog')
     await expect(panel).toHaveCSS('background-color', 'rgb(205, 235, 224)')
@@ -76,7 +76,7 @@ test('widget colours and copied options update together and fit narrow screens',
   await colours.getByLabel('Text', { exact: true }).fill('#342719')
   await closeColours(page)
   for (const theme of ['light', 'dark']) {
-    await page.getByRole('combobox', { name: 'Appearance', exact: true }).selectOption(theme)
+    await setAppearance(page, theme)
     await expect(page.locator('[data-gallery-host="year"] .celestial-card')).toHaveCSS('background-color', 'rgb(255, 248, 239)')
     await expect(page.locator('[data-gallery-host="year"] .widget-value')).toHaveCSS('color', 'rgb(52, 39, 25)')
   }

@@ -11,9 +11,11 @@ import { ScrollWheel } from './ScrollWheel.js'
 import { pickerColorStyle } from './colors.js'
 import { PickerLocalizationProvider, localizedPickerUnits, pickerLocale, parsePickerInteger, usePickerLocale, type PickerLocalization } from './localization.js'
 import { SelectionGuard } from './SelectionGuard.js'
+import { usePickerTheme } from './usePickerTheme.js'
+import type { PickerTheme } from './themeContext.js'
 
 export type PickerSize = 'small' | 'medium' | 'large'
-export type PickerTheme = 'dark' | 'light' | 'auto'
+export type { PickerTheme } from './themeContext.js'
 export interface CelestialControlProps extends CelestialWidgetProps, PickerConfiguration, PickerAppearance, PickerLocalization {
   disabled?: boolean
   readOnly?: boolean
@@ -136,7 +138,8 @@ function StepButtons({ unit, label, disabled, decrementDisabled, incrementDisabl
   </div>
 }
 
-function StandaloneControls({ control, className = '', style, theme = 'dark', size = 'small', variant = 'celestial', colors, ...props }: CelestialControlProps & { control: 'wheel' | 'stepper' }) {
+function StandaloneControls({ control, className = '', style, theme: themeProp, size = 'small', variant = 'celestial', colors, ...props }: CelestialControlProps & { control: 'wheel' | 'stepper' }) {
+  const theme = usePickerTheme(themeProp)
   const { date, defaultDate, clock, onDateChange } = props
   const time = { date, defaultDate, clock, onDateChange }
   const i18n = pickerLocale(props)
